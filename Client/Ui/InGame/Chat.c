@@ -56,7 +56,8 @@ static void chat_bar_animate(struct rr_ui_element *this, struct rr_game *game)
     }
     else
         this->fill = 0x80000000;
-    if (rr_bitset_get(game->input_data->keys_pressed_this_tick, 13))
+    if (rr_bitset_get(game->input_data->keys_pressed_this_tick, 13) &&
+        !rr_bitset_get(game->input_data->keys_pressed, 16))
     {
         if (game->chat.chat_active)
         {

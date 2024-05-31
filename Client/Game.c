@@ -1364,13 +1364,26 @@ void rr_game_tick(struct rr_game *this, float delta)
                 rr_write_serverbound_packet_mobile(this);
             rr_write_dev_cheat_packets(this, 0);
         }
+        if (this->player_info->flower_id == RR_NULL_ENTITY &&
+            rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 13) &&
+            (!this->simulation_ready ||
+             rr_bitset_get(this->input_data->keys_pressed, 16)))
+        {
+            if (!this->simulation_ready)
+                rr_write_dev_cheat_packets(this, 1);
+            struct proto_bug encoder;
+            proto_bug_init(&encoder, RR_OUTGOING_PACKET);
+            proto_bug_write_uint8(&encoder, this->socket.quick_verification, "qv");
+            proto_bug_write_uint8(&encoder, rr_serverbound_squad_ready,
+                                "header");
+            rr_websocket_send(&this->socket, encoder.current - encoder.start);
+        }
     }
     else if (--this->ticks_until_reconnect == 0)
         rr_game_connect_socket(this);
     if (!rr_is_text_input_focused())
     {
-        if (rr_bitset_get_bit(this->input_data->keys_pressed_this_tick,
-                              186 /* ; */))
+        if (rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 186))
             this->cache.displaying_debug_information ^= 1;
         if (rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 'M'))
             this->cache.use_mouse ^= 1;

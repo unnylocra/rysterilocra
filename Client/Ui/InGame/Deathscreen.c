@@ -53,7 +53,11 @@ struct rr_ui_element *rr_ui_finished_game_screen_init()
     leave_game->on_event = continue_to_squad_event;
     struct rr_ui_element *this = rr_ui_v_container_init(
         rr_ui_container_init(), 10, 10,
-        rr_ui_text_init("You Died", 48, 0xffffffff), leave_game, NULL);
+        rr_ui_text_init("You Died", 48, 0xffffffff),
+        leave_game,
+        rr_ui_static_space_init(1),
+        rr_ui_text_init("[Shift + Enter]", 14, 0xffffffff),
+        NULL);
     this->should_show = game_over;
     return this;
 }

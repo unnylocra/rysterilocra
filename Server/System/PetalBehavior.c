@@ -38,35 +38,29 @@ struct uranium_captures
     float damage;
 };
 
-#ifdef RIVET_BUILD
-#define URANIUM_RADIUS_FACTOR 1
-#else
-#define URANIUM_RADIUS_FACTOR 5
-#endif
-
-static void uranium_damage(EntityIdx mob, void *_captures)
+static void uranium_damage(EntityIdx target, void *_captures)
 {
     struct uranium_captures *captures = _captures;
     struct rr_simulation *simulation = captures->simulation;
-    if (!rr_simulation_has_mob(simulation, mob))
-        return;
-    if (rr_simulation_get_relations(simulation, mob)->team ==
-        rr_simulation_get_relations(simulation, captures->flower_id)->team)
+    if ((!rr_simulation_has_flower(simulation, target) ||
+         rr_simulation_get_entity_hash(simulation, target) != captures->flower_id) &&
+        (!rr_simulation_has_mob(simulation, target) ||
+         rr_simulation_get_relations(simulation, target)->team ==
+         rr_simulation_get_relations(simulation, captures->flower_id)->team))
         return;
     struct rr_component_health *health =
-        rr_simulation_get_health(simulation, mob);
+        rr_simulation_get_health(simulation, target);
     struct rr_component_physical *physical =
-        rr_simulation_get_physical(simulation, mob);
+        rr_simulation_get_physical(simulation, target);
     struct rr_vector delta = {physical->x - captures->x,
                               physical->y - captures->y};
 
     if (rr_vector_magnitude_cmp(&delta,
-                                URANIUM_RADIUS_FACTOR *
-                                    (100 + 75 * captures->petal_rarity)) == -1)
+                                500 + 375 * captures->petal_rarity) == -1)
     {
         rr_component_health_do_damage(simulation, health, captures->flower_id,
                                       captures->damage);
-        struct rr_component_ai *ai = rr_simulation_get_ai(simulation, mob);
+        struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);
         if (ai->target_entity == RR_NULL_ENTITY &&
             !dev_cheat_enabled(simulation, captures->flower_id, no_aggro))
             ai->target_entity = captures->flower_id;
@@ -95,8 +89,8 @@ static void uranium_petal_system(struct rr_simulation *simulation,
         rr_spatial_hash_query(
             &rr_simulation_get_arena(simulation, physical->arena)->spatial_hash,
             physical->x, physical->y,
-            URANIUM_RADIUS_FACTOR * (100 + 75 * captures.petal_rarity),
-            URANIUM_RADIUS_FACTOR * (100 + 75 * captures.petal_rarity),
+            500 + 375 * captures.petal_rarity,
+            500 + 375 * captures.petal_rarity,
             &captures, uranium_damage);
     }
 }

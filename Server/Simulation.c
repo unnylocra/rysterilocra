@@ -62,16 +62,16 @@ uint8_t ornith_pachy_zone()
     return rr_frand() > 0.5 ? rr_mob_id_ornithomimus : rr_mob_id_pachycephalosaurus;
 }
 uint8_t fern_zone() { return rr_mob_id_fern; }
-uint8_t edmon_tree_zone() { return rr_mob_id_edmontosaurus; }
+uint8_t edmo_zone() { return rr_mob_id_edmontosaurus; }
 uint8_t quetz_trex_zone()
 {
     return rr_frand() > 0.5 ? rr_mob_id_quetzalcoatlus : rr_mob_id_trex;
 }
-uint8_t trike_dako_zone()
+uint8_t trice_dako_zone()
 {
     return rr_frand() > 0.2 ? rr_mob_id_dakotaraptor : rr_mob_id_triceratops;
 }
-uint8_t pter_zone()
+uint8_t pter_meteor_zone()
 {
     return rr_frand() > 0.02 ? rr_mob_id_pteranodon : rr_mob_id_meteor;
 }
@@ -89,6 +89,10 @@ uint8_t dako_pter_zone()
 {
     return rr_frand() > 0.5 ? rr_mob_id_dakotaraptor : rr_mob_id_pteranodon;
 }
+uint8_t anky_trex_zone()
+{
+    return rr_frand() > 0.2 ? rr_mob_id_ankylosaurus : rr_mob_id_trex;
+}
 
 struct zone
 {
@@ -105,11 +109,11 @@ struct zone
 
 // all over spawn
 static struct zone zone_positions[ZONE_POSITION_COUNT] = {
-    {11, 29, 3, 2, edmon_tree_zone},     {4,  25, 3, 2, quetz_trex_zone},
-    {34, 21, 3, 2, trike_dako_zone},     {38, 21, 5, 1, pter_zone},
-    {26, 31, 4, 2, edmo_dako_zone},      {13, 8,  2, 3, pter_zone},
+    {11, 29, 3, 2, edmo_zone},           {4,  25, 3, 2, quetz_trex_zone},
+    {34, 21, 3, 2, trice_dako_zone},     {10, 10, 2, 1, anky_trex_zone},
+    {26, 31, 4, 2, edmo_dako_zone},      {13, 8,  2, 3, pter_meteor_zone},
     {28, 24, 2, 3, trex_dako_pter_zone}, {0,  11, 5, 1, dako_pter_zone},
-    {21, 23, 3, 2, edmon_tree_zone},     {7,  33, 3, 2, trike_dako_zone},
+    {21, 23, 3, 2, edmo_zone},           {7,  33, 3, 2, trice_dako_zone},
 };
 
 static struct zone perma_zone_positions[PERMA_ZONE_POSITION_COUNT] = {

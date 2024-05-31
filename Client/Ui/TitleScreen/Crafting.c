@@ -437,6 +437,8 @@ static void crafting_inventory_button_on_event(struct rr_ui_element *this,
                     game->crafting_data.crafting_rarity = data->rarity;
                     game->crafting_data.count = 0;
                     game->crafting_data.success_count = 0;
+                    data->count = rr_game_get_adjusted_inventory_count(
+                        game, data->id, data->rarity);
                 }
                 if (rr_bitset_get(game->input_data->keys_pressed, 16))
                     game->crafting_data.count += data->count;
