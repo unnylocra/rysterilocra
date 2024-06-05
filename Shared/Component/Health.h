@@ -28,6 +28,7 @@ struct rr_component_health
 {
     float health;
     RR_CLIENT_ONLY(float lerp_health;)
+    RR_CLIENT_ONLY(float lerp_prev_health;)
     float max_health;
     RR_CLIENT_ONLY(float damage_animation;)
     RR_SERVER_ONLY(float damage;)

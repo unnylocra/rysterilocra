@@ -103,17 +103,18 @@ struct zone
     uint8_t (*spawn_func)();
 };
 
-#define ZONE_POSITION_COUNT 10
+#define ZONE_POSITION_COUNT 11
 #define ROT_COUNT 5
 #define PERMA_ZONE_POSITION_COUNT 2
 
 // all over spawn
 static struct zone zone_positions[ZONE_POSITION_COUNT] = {
     {11, 29, 3, 2, edmo_zone},           {4,  25, 3, 2, quetz_trex_zone},
-    {34, 21, 3, 2, trice_dako_zone},     {10, 10, 2, 1, anky_trex_zone},
+    {34, 21, 3, 2, trice_dako_zone},     {38, 21, 5, 1, pter_meteor_zone},
     {26, 31, 4, 2, edmo_dako_zone},      {13, 8,  2, 3, pter_meteor_zone},
     {28, 24, 2, 3, trex_dako_pter_zone}, {0,  11, 5, 1, dako_pter_zone},
     {21, 23, 3, 2, edmo_zone},           {7,  33, 3, 2, trice_dako_zone},
+    {10, 10, 2, 1, anky_trex_zone},
 };
 
 static struct zone perma_zone_positions[PERMA_ZONE_POSITION_COUNT] = {
@@ -235,7 +236,7 @@ static void spawn_mob(struct rr_simulation *this, uint32_t grid_x,
     else
         id = get_spawn_id(RR_GLOBAL_BIOME, grid);
     uint8_t rarity =
-        get_spawn_rarity(grid->difficulty + grid->local_difficulty * 0.6);
+        get_spawn_rarity(grid->difficulty + grid->local_difficulty * 0);
     if (!should_spawn_at(id, rarity))
         return;
     for (uint32_t n = 0; n < 10; ++n)
@@ -266,11 +267,7 @@ static void count_flower_vicinity(EntityIdx entity, void *_simulation)
         rr_simulation_get_physical(this, entity);
     if (dev_cheat_enabled(this, entity, no_grid_influence))
         return;
-#ifdef RIVET_BUILD
 #define FOV 3072
-#else
-#define FOV 4096
-#endif
     uint32_t sx = rr_fclamp((physical->x - FOV) / arena->maze->grid_size, 0,
                             arena->maze->maze_dim - 1);
     uint32_t sy = rr_fclamp((physical->y - FOV) / arena->maze->grid_size, 0,

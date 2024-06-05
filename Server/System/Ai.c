@@ -46,7 +46,12 @@ static void system_for_each(EntityIdx entity, void *simulation)
         (!rr_simulation_entity_alive(simulation, ai->target_entity) ||
             dev_cheat_enabled(this, ai->target_entity, no_aggro)))
     {
-        ai->target_entity = RR_NULL_ENTITY;
+        struct rr_component_relations *t_relations =
+            rr_simulation_get_relations(this, ai->target_entity);
+        if (t_relations->owner != RR_NULL_ENTITY)
+            ai->target_entity = t_relations->owner;
+        else
+            ai->target_entity = RR_NULL_ENTITY;
         ai->ai_state = rr_ai_state_idle;
         ai->ticks_until_next_action = 25;
     }

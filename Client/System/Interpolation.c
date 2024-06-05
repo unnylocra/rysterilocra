@@ -143,8 +143,12 @@ void system_interpolation_for_each_function(EntityIdx entity, void *_captures)
         }
         if (health->lerp_health == 0)
             health->lerp_health = health->health;
+        if (health->lerp_prev_health == 0)
+            health->lerp_prev_health = health->health;
         health->lerp_health =
             rr_lerp(health->lerp_health, health->health, 25 * delta);
+        health->lerp_prev_health =
+            rr_lerp(health->lerp_prev_health, health->health, 10 * delta);
     }
 }
 

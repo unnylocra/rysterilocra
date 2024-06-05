@@ -58,6 +58,7 @@ static void uranium_damage(EntityIdx target, void *_captures)
     if (rr_vector_magnitude_cmp(&delta,
                                 500 + 375 * captures->petal_rarity) == -1)
     {
+        health->flags |= 4;
         rr_component_health_do_damage(simulation, health, captures->flower_id,
                                       captures->damage);
         struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);

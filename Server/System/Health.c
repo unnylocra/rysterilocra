@@ -37,7 +37,6 @@ static void system_default_idle_heal(EntityIdx entity, void *captures)
     struct rr_component_physical *physical =
         rr_simulation_get_physical(this, entity);
 
-    // heal 0.5% of max hp per second (0.0002 is 0.01 / 25)
     if (health->poison_ticks > 0)
     {
         --health->poison_ticks;
@@ -45,15 +44,14 @@ static void system_default_idle_heal(EntityIdx entity, void *captures)
     }
     else
         health->poison = 0;
-    // if (health->health > 0)
-    //{
-    // rr_component_health_set_health(health, health->health +
-    //                                            health->max_health * 0.0002);
     if (health->damage_paused > 0)
         health->damage_paused -= 1;
-    //}
     if (health->health == 0)
         rr_simulation_request_entity_deletion(this, entity);
+    else
+        // heal 0.5% of max hp per second (0.0002 is 0.005 / 25)
+        rr_component_health_set_health(health, health->health +
+                                               health->max_health * 0.0002);
 }
 
 struct lightning_captures
@@ -122,6 +120,7 @@ static void lightning_petal_system(struct rr_simulation *simulation,
             rr_simulation_get_physical(simulation, target);
         struct rr_component_health *health =
             rr_simulation_get_health(simulation, target);
+        health->flags |= 4;
         rr_component_health_do_damage(simulation, health, petal->parent_id,
                                       damage);
         health->damage_paused = 5;
