@@ -54,7 +54,7 @@ struct rr_petal_data RR_PETAL_DATA[rr_petal_id_max] = {
     {rr_petal_id_shell,     rr_rarity_id_rare,      offensive, 30.0f,  16.0f,   0.0f,  75, 13, {1,1,1,1,1,2,3,3}},
     {rr_petal_id_peas,      rr_rarity_id_rare,      offensive, 22.0f,  12.0f,   8.0f,  13, 12, {4,4,4,4,4,4,5,5}},
     {rr_petal_id_leaf,      rr_rarity_id_unusual,   offensive,  9.0f,  8.75f,   8.0f,  38,  0, {1,1,1,1,1,2,2,2}},
-    {rr_petal_id_egg,       rr_rarity_id_unusual,   defensive,  1.0f,  50.0f,   0.0f,  25, 75, {1,1,1,1,1,1,1,1}},
+    {rr_petal_id_egg,       rr_rarity_id_unusual,   defensive,  1.0f,  50.0f,   0.0f,  25,100, {1,1,1,1,1,1,1,1}},
     {rr_petal_id_magnet,    rr_rarity_id_rare,      defensive,  2.0f,  15.0f,   0.0f,  38,  0, {1,1,1,1,1,1,1,1}},
     {rr_petal_id_uranium,   rr_rarity_id_rare,      offensive,  6.0f,  10.0f,   0.0f,  50, 25, {1,1,1,1,1,1,1,1}},
     {rr_petal_id_feather,   rr_rarity_id_common,    defensive,  1.0f,   3.0f,   0.0f,  25,  0, {1,1,1,1,1,1,1,1}},
@@ -62,7 +62,7 @@ struct rr_petal_data RR_PETAL_DATA[rr_petal_id_max] = {
     {rr_petal_id_bone,      rr_rarity_id_common,    defensive,  2.5f,  25.0f,   0.0f,  68,  0, {1,1,1,1,1,1,1,1}},
     {rr_petal_id_web,       rr_rarity_id_rare,      defensive,  5.0f,   5.0f,   0.0f,  50, 13, {1,1,1,1,1,1,1,1}},
     {rr_petal_id_seed,      rr_rarity_id_legendary, defensive,  1.0f,  25.0f,   0.0f,  63,  1, {1,1,1,1,1,1,1,1}},
-    {rr_petal_id_gravel,    rr_rarity_id_unusual,   offensive, 11.0f,  20.0f,   0.0f,  20, 10, {1,2,2,2,3,3,4,4}},
+    {rr_petal_id_gravel,    rr_rarity_id_unusual,   offensive,  7.0f,  20.0f,   0.0f,  20, 10, {1,2,2,2,3,3,4,4}},
     {rr_petal_id_club,      rr_rarity_id_common,    defensive,  8.0f, 600.0f,   0.0f, 250,  0, {1,1,1,1,1,1,1,1}},
     {rr_petal_id_crest,     rr_rarity_id_rare,      offensive,  0.0f,   0.0f,   0.0f,   0,  0, {0,0,0,0,0,0,0,0}},
     {rr_petal_id_droplet,   rr_rarity_id_common,    offensive, 15.0f,   5.0f,   0.0f,  37,  0, {1,1,1,1,1,1,1,1}},
@@ -532,9 +532,9 @@ RR_DEFINE_MAZE(HELL_CREEK, 80) = {
 {L,L,_,_,_,_,_,U,U,U,_,U,r,_,r,r,_,_,R,R,R,_,_,_,_,_,E,E,E,E,E,_,_,_,_,l,_,_,m,_},//21
 {L,_,_,_,_,_,_,_,U,U,_,r,_,_,r,R,R,_,_,R,e,e,e,_,_,_,E,E,_,E,E,E,_,_,l,l,l,_,m,_},//22
 {L,_,_,_,L,L,L,_,_,U,_,r,_,_,R,R,R,_,_,e,_,E,E,E,_,_,E,_,_,_,_,E,_,l,l,l,l,_,m,_},//23
-{L,_,_,L,L,L,L,L,_,_,_,r,_,_,_,R,R,_,e,e,_,E,E,E,_,E,E,_,l,_,_,l,l,l,l,l,_,_,m,_},//24
-{L,_,L,L,L,L,L,L,_,_,_,r,_,_,_,R,R,_,e,e,_,e,e,_,_,E,_,_,l,l,_,l,_,_,_,_,_,_,m,_},//25
-{L,L,L,L,L,L,L,L,_,_,_,R,R,R,_,_,e,_,e,e,_,_,E,_,_,E,_,_,l,l,_,l,l,_,_,_,_,m,m,_},//26
+{L,_,_,L,L,L,L,L,_,_,_,r,_,_,_,R,R,_,e,e,_,E,E,E,_,E,E,_,L,_,_,l,l,l,l,l,_,_,m,_},//24
+{L,_,L,L,L,L,L,L,_,_,_,r,_,_,_,R,R,_,e,e,_,e,e,_,_,E,_,_,L,L,_,l,_,_,_,_,_,_,m,_},//25
+{L,L,L,L,L,L,L,L,_,_,_,R,R,R,_,_,e,_,e,e,_,_,E,_,_,E,_,_,L,L,_,l,l,_,_,_,_,m,m,_},//26
 {L,_,L,L,L,L,L,_,_,_,R,R,R,R,R,_,e,_,_,e,e,E,E,_,_,E,_,_,l,l,l,l,l,l,_,_,m,m,m,_},//27
 {L,_,_,L,l,L,_,_,_,_,R,R,R,R,e,_,e,_,_,e,E,E,E,_,_,l,_,_,_,_,_,l,l,l,_,_,m,L,_,_},//28
 {L,_,_,_,l,_,_,_,_,_,R,e,e,E,e,_,e,e,_,_,E,E,E,_,_,l,l,l,l,_,_,_,l,l,_,_,L,L,_,_},//29

@@ -103,9 +103,9 @@ struct zone
     uint8_t (*spawn_func)();
 };
 
-#define ZONE_POSITION_COUNT 11
+#define ZONE_POSITION_COUNT 10
 #define ROT_COUNT 5
-#define PERMA_ZONE_POSITION_COUNT 2
+#define PERMA_ZONE_POSITION_COUNT 3
 
 // all over spawn
 static struct zone zone_positions[ZONE_POSITION_COUNT] = {
@@ -114,11 +114,11 @@ static struct zone zone_positions[ZONE_POSITION_COUNT] = {
     {26, 31, 4, 2, edmo_dako_zone},      {13, 8,  2, 3, pter_meteor_zone},
     {28, 24, 2, 3, trex_dako_pter_zone}, {0,  11, 5, 1, dako_pter_zone},
     {21, 23, 3, 2, edmo_zone},           {7,  33, 3, 2, trice_dako_zone},
-    {10, 10, 2, 1, anky_trex_zone},
 };
 
 static struct zone perma_zone_positions[PERMA_ZONE_POSITION_COUNT] = {
     {2,  9,  2, 2, ornith_pachy_zone},   {8,  22, 2, 2, fern_zone},
+    {10, 10, 2, 1, anky_trex_zone},
 };
 
 static void set_spawn_zones()

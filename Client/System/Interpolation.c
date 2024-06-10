@@ -148,7 +148,7 @@ void system_interpolation_for_each_function(EntityIdx entity, void *_captures)
         health->lerp_health =
             rr_lerp(health->lerp_health, health->health, 25 * delta);
         health->lerp_prev_health =
-            rr_lerp(health->lerp_prev_health, health->health, 10 * delta);
+            rr_lerp(health->lerp_prev_health, health->health, 5 * delta);
     }
 }
 
