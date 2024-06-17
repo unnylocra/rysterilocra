@@ -442,11 +442,22 @@ void rr_static_data_init()
     init(HELL_CREEK);
     init(BURROW);
 #ifdef RR_SERVER
-    print_chances(52);
-    print_chances(44);
-    print_chances(40);
-    print_chances(36);
-    print_chances(32);
+    print_chances(1);  // c
+    print_chances(4);  // C
+    print_chances(8);  // u
+    print_chances(12); // U
+    print_chances(16); // r
+    print_chances(20); // R
+    print_chances(24); // e
+    print_chances(28); // E
+    print_chances(32); // l
+    print_chances(36); // L
+    print_chances(40); // m
+    print_chances(44); // M
+    print_chances(48); // x
+    print_chances(52); // X
+    print_chances(56); // a
+    print_chances(60); // A
 #endif
 }
 
@@ -484,6 +495,8 @@ uint32_t level_from_xp(double xp)
 #define M 44
 #define x 48
 #define X 52
+#define a 56
+#define A 60
 #else
 #define _ 0
 #define c 1
@@ -500,6 +513,8 @@ uint32_t level_from_xp(double xp)
 #define M 1
 #define x 1
 #define X 1
+#define a 1
+#define A 1
 #endif
 
 #define RR_DEFINE_MAZE(name, size)                                             \
@@ -507,47 +522,48 @@ uint32_t level_from_xp(double xp)
     uint8_t RR_MAZE_TEMPLATE_##name[size / 2][size / 2]
 // clang-format off
 RR_DEFINE_MAZE(HELL_CREEK, 80) = {
-// 1 2 3 4 5 6 7 8 9 101112131415161718192021222324252627282930313233343536373839
-{_,_,_,_,_,x,x,x,x,_,_,_,_,_,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,X,_,_,_,_,_},//0
-{_,M,M,_,_,_,_,x,x,x,x,M,M,M,x,_,_,_,_,_,x,_,_,_,_,_,_,_,_,x,_,_,x,X,X,X,X,_,_,_},//1
-{m,m,M,M,_,_,_,_,_,_,_,_,M,_,_,_,_,X,X,_,x,x,x,_,x,x,x,x,x,x,_,_,_,_,X,X,X,X,_,_},//2
-{m,m,m,M,M,M,M,M,M,M,M,M,M,_,_,X,X,X,x,x,x,_,x,x,x,_,_,x,x,x,x,x,_,X,X,X,X,X,_,_},//3
-{m,m,m,_,_,_,_,_,_,_,_,_,_,_,X,X,X,X,X,_,x,_,_,x,x,_,_,_,_,x,x,_,_,X,X,X,X,X,X,_},//4
-{m,m,_,_,_,_,_,U,U,U,_,_,_,_,_,X,X,X,_,_,x,_,_,_,x,_,x,x,_,_,x,_,_,_,X,X,X,_,_,_},//5
-{m,m,_,_,_,U,U,U,u,U,U,U,U,_,_,_,X,X,_,_,_,_,_,_,x,x,x,x,_,_,x,_,x,_,_,X,_,_,_,_},//6
-{m,_,_,_,U,U,U,u,u,u,_,_,r,_,_,_,_,X,X,_,_,_,_,_,x,_,x,x,x,_,x,_,x,M,_,_,_,_,_,_},//7
-{m,_,_,U,U,U,u,u,u,u,_,r,r,e,R,_,_,X,X,X,_,_,_,x,x,_,x,x,X,_,M,_,M,M,M,M,_,_,_,_},//8
-{m,_,R,r,U,_,u,u,u,_,_,r,_,_,R,_,X,X,X,X,X,X,_,_,x,_,_,X,X,_,M,_,_,M,M,M,M,_,_,_},//9
-{m,_,R,R,_,_,_,_,C,_,e,e,_,R,R,_,X,X,_,_,_,X,_,_,x,x,_,_,_,_,M,_,_,_,M,M,M,M,_,_},//10
-{m,_,_,_,_,_,_,_,C,_,_,_,_,u,_,_,X,X,_,X,X,X,_,_,x,x,x,_,_,M,M,_,_,_,_,_,_,M,_,_},//11
-{m,_,_,_,_,c,c,c,C,C,C,u,u,u,_,_,X,X,_,_,_,X,_,_,_,x,M,M,M,M,M,_,_,M,M,_,M,M,_,_},//12
-{m,_,_,_,_,c,c,c,_,_,u,u,u,_,_,_,X,X,_,_,_,X,_,_,_,x,x,_,_,_,M,M,M,M,M,M,M,_,_,_},//13
-{m,_,_,_,_,c,c,c,_,u,u,u,u,U,_,_,X,X,X,X,X,X,_,_,_,_,_,_,_,_,_,M,M,M,M,M,M,_,_,_},//14
-{m,_,_,_,_,_,_,C,_,u,u,u,U,U,_,_,_,_,X,X,X,_,_,_,_,_,_,M,M,M,_,_,_,M,_,M,m,_,_,_},//15
-{m,m,m,m,m,m,_,C,_,_,u,U,U,U,_,r,r,_,_,_,_,_,e,e,e,_,_,_,M,M,M,M,_,M,_,_,m,m,_,_},//16
-{L,_,_,_,_,m,_,C,u,_,_,_,_,U,r,r,r,R,e,e,e,e,R,_,e,e,e,_,M,M,M,M,M,M,m,_,m,m,m,_},//17
-{L,L,_,m,m,m,_,_,u,u,u,U,_,_,_,_,_,_,e,e,_,_,e,_,_,_,E,_,_,M,M,M,_,_,m,m,m,m,m,_},//18
-{_,L,_,_,L,m,_,u,u,_,_,U,U,U,r,_,R,R,R,R,_,_,e,e,_,_,E,_,_,_,M,M,M,_,_,m,m,m,m,_},//19
-{_,L,L,L,L,_,_,U,u,_,_,U,U,r,r,r,r,R,R,R,_,_,_,e,e,e,E,E,_,_,_,_,_,_,_,_,_,_,m,_},//20
-{L,L,_,_,_,_,_,U,U,U,_,U,r,_,r,r,_,_,R,R,R,_,_,_,_,_,E,E,E,E,E,_,_,_,_,l,_,_,m,_},//21
-{L,_,_,_,_,_,_,_,U,U,_,r,_,_,r,R,R,_,_,R,e,e,e,_,_,_,E,E,_,E,E,E,_,_,l,l,l,_,m,_},//22
-{L,_,_,_,L,L,L,_,_,U,_,r,_,_,R,R,R,_,_,e,_,E,E,E,_,_,E,_,_,_,_,E,_,l,l,l,l,_,m,_},//23
-{L,_,_,L,L,L,L,L,_,_,_,r,_,_,_,R,R,_,e,e,_,E,E,E,_,E,E,_,L,_,_,l,l,l,l,l,_,_,m,_},//24
-{L,_,L,L,L,L,L,L,_,_,_,r,_,_,_,R,R,_,e,e,_,e,e,_,_,E,_,_,L,L,_,l,_,_,_,_,_,_,m,_},//25
-{L,L,L,L,L,L,L,L,_,_,_,R,R,R,_,_,e,_,e,e,_,_,E,_,_,E,_,_,L,L,_,l,l,_,_,_,_,m,m,_},//26
-{L,_,L,L,L,L,L,_,_,_,R,R,R,R,R,_,e,_,_,e,e,E,E,_,_,E,_,_,l,l,l,l,l,l,_,_,m,m,m,_},//27
-{L,_,_,L,l,L,_,_,_,_,R,R,R,R,e,_,e,_,_,e,E,E,E,_,_,l,_,_,_,_,_,l,l,l,_,_,m,L,_,_},//28
-{L,_,_,_,l,_,_,_,_,_,R,e,e,E,e,_,e,e,_,_,E,E,E,_,_,l,l,l,l,_,_,_,l,l,_,_,L,L,_,_},//29
-{L,L,_,_,l,_,_,_,_,_,e,e,E,E,e,_,e,e,_,_,_,E,E,_,_,_,l,l,l,l,l,l,l,l,_,L,L,L,_,_},//30
-{L,L,_,_,l,l,_,_,_,_,_,e,e,e,_,_,e,E,E,E,_,_,E,E,_,_,l,l,l,l,_,_,_,_,_,_,_,L,_,_},//31
-{L,L,_,_,l,l,l,l,_,_,_,_,_,_,_,_,E,E,E,E,E,E,E,E,_,_,l,l,l,l,_,_,m,L,L,L,L,L,_,_},//32
-{_,L,L,_,_,l,l,l,l,l,l,_,_,_,_,_,E,E,E,E,_,_,E,E,_,_,l,l,l,_,_,_,m,_,_,_,_,L,_,_},//33
-{_,L,L,_,_,_,_,l,l,l,E,E,E,E,E,E,E,E,E,E,E,_,E,l,_,_,l,l,_,_,_,_,m,_,m,m,_,L,_,_},//34
-{_,L,L,m,m,_,_,_,_,l,l,E,E,E,_,_,_,_,_,_,E,E,l,l,l,_,l,l,l,_,_,_,m,_,_,m,_,L,_,_},//35
-{_,L,m,m,m,m,m,_,_,_,_,_,_,_,_,_,_,_,_,_,E,l,l,l,l,l,l,l,l,_,_,_,m,m,m,m,_,L,_,_},//36
-{_,_,m,m,m,m,m,m,_,_,_,_,_,_,_,_,M,M,_,_,_,l,l,l,_,l,l,l,l,_,_,_,_,_,_,_,_,L,_,_},//37
-{_,_,_,m,m,m,m,m,m,m,m,m,m,m,m,m,M,M,_,_,_,_,_,_,_,l,l,l,l,l,l,L,L,L,L,L,L,L,_,_},//38
-{_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_},//39
+//                     11  13  15  17  19  21  23  25  27  29  31  33  35  37  39
+// 1 2 3 4 5 6 7 8 9 10  12  14  16  18  20  22  24  26  28  30  32  34  36  38
+{c,c,_,_,r,r,_,_,_,r,r,_,_,r,r,r,r,r,R,R,R,R,R,e,e,e,e,e,E,E,E,E,E,E,E,l,l,l,l,l}, // 0
+{c,c,c,_,_,r,r,_,r,r,_,_,U,U,_,_,r,r,_,R,R,_,_,e,e,e,_,_,E,E,E,_,_,E,E,l,l,l,l,l}, // 1
+{_,c,c,c,_,_,r,r,r,_,_,U,U,_,_,r,r,_,_,_,R,R,_,_,e,e,e,_,_,E,E,E,_,_,E,_,_,_,_,l}, // 2
+{_,_,c,c,c,_,_,U,_,_,U,U,_,_,r,r,_,_,e,_,_,e,e,_,_,e,e,e,_,_,E,l,l,_,_,_,L,L,_,l}, // 3
+{_,C,C,C,_,_,_,U,_,U,U,_,_,r,r,_,_,e,e,e,_,_,e,e,_,_,e,e,e,_,_,l,l,l,_,L,L,L,_,l}, // 4
+{C,C,C,_,_,U,U,U,U,U,_,_,r,r,_,_,_,e,e,e,_,_,_,e,e,_,_,E,E,E,_,_,l,l,l,L,L,L,_,l}, // 5
+{C,C,_,_,U,U,U,U,U,_,_,r,r,_,_,_,e,e,e,e,e,_,_,_,E,E,_,_,E,E,E,_,_,_,_,_,_,_,_,l}, // 6
+{C,_,_,u,u,_,_,_,_,_,r,r,_,_,_,e,e,_,_,_,e,e,_,_,_,E,E,_,_,E,E,E,_,X,X,X,X,X,_,l}, // 7
+{C,_,u,u,_,R,R,R,R,R,r,r,_,_,_,R,_,_,e,_,_,R,_,_,_,E,l,l,_,_,E,E,_,X,X,X,_,_,_,l}, // 8
+{u,u,u,_,R,R,R,R,R,R,r,_,_,_,_,R,_,e,e,e,_,R,_,_,_,_,_,l,l,_,E,E,_,X,X,X,x,_,_,L}, // 9
+{u,u,_,R,R,_,_,R,R,_,_,_,_,_,R,R,_,_,e,_,_,R,R,_,_,_,_,_,_,_,_,l,_,X,_,x,x,x,_,L}, // 10
+{u,_,R,R,_,e,_,_,R,R,_,_,_,_,R,_,_,_,e,_,_,_,R,_,_,_,_,l,l,_,l,l,_,X,_,_,x,x,_,L}, // 11
+{_,R,R,_,e,e,e,_,_,R,R,_,R,R,R,_,_,e,e,e,_,_,E,E,E,_,l,l,_,_,l,l,_,_,_,x,x,_,_,L}, // 12
+{R,R,_,e,e,_,e,e,_,_,R,R,R,R,R,R,e,e,e,e,e,E,E,E,E,E,E,_,_,l,l,l,_,_,x,x,_,_,L,L}, // 13
+{R,_,e,e,_,e,e,_,E,_,_,R,R,_,R,_,_,e,e,e,_,_,E,_,E,E,_,_,l,l,l,_,_,x,x,_,_,L,L,L}, // 14
+{e,e,e,_,e,e,_,E,E,E,_,_,R,R,R,_,_,_,e,_,_,_,E,E,E,_,_,L,L,L,_,_,x,x,_,_,L,L,L,_}, // 15
+{e,e,_,e,e,_,E,E,_,E,E,_,_,R,R,R,_,e,e,e,_,E,E,E,_,_,L,L,L,_,_,x,x,_,_,L,L,L,_,_}, // 16
+{e,_,e,e,_,E,E,_,E,E,_,_,_,R,R,_,_,_,E,_,_,_,E,E,_,L,L,L,_,_,x,x,_,_,m,m,m,_,_,x}, // 17
+{_,e,e,_,E,E,_,E,E,_,L,_,_,R,_,E,E,E,E,E,E,E,_,E,_,_,L,L,_,x,x,_,_,m,m,m,_,_,x,x}, // 18
+{e,e,_,E,E,_,E,E,_,L,L,_,R,R,_,E,E,_,_,_,E,E,_,E,E,_,L,L,_,x,x,_,m,m,m,_,_,x,x,x}, // 19
+{e,_,E,E,_,l,l,_,L,L,_,_,R,_,E,E,_,_,M,_,_,E,E,_,E,_,_,L,_,_,x,_,_,m,m,_,x,x,x,x}, // 20
+{E,E,E,_,l,l,_,L,L,L,_,e,e,e,e,_,_,m,L,c,_,_,l,l,l,l,_,L,L,_,x,x,_,_,_,_,x,x,x,M}, // 21
+{E,E,_,l,l,_,L,L,L,_,_,e,e,e,_,_,e,l,_,r,E,_,_,l,l,l,_,_,L,_,_,x,x,_,_,x,x,_,_,M}, // 22
+{E,_,l,l,_,l,l,_,L,_,e,e,e,_,_,r,L,_,_,_,C,e,_,_,l,l,l,_,L,L,_,_,x,x,x,x,_,_,M,M}, // 23
+{_,l,l,_,l,l,_,L,L,_,e,e,_,_,R,E,_,_,_,_,_,l,m,_,_,l,l,_,L,L,L,_,_,x,x,_,_,M,M,M}, // 24
+{l,l,_,l,l,_,L,L,_,_,_,_,_,M,C,_,_,M,_,M,_,_,M,U,_,_,_,_,L,_,_,_,_,_,_,_,_,_,_,M}, // 25
+{l,_,l,l,_,L,L,_,m,m,_,_,l,U,_,_,M,M,M,M,M,_,_,R,u,_,_,_,m,m,m,m,_,m,m,m,_,m,m,M}, // 26
+{l,l,l,_,L,L,_,m,m,m,m,r,L,M,M,M,M,_,M,_,M,M,M,M,E,c,_,_,m,m,_,m,m,m,_,m,m,m,m,M}, // 27
+{l,l,_,L,L,_,m,m,_,_,R,E,_,M,M,_,M,M,M,M,M,_,M,M,_,e,M,_,_,_,_,_,_,_,_,_,_,_,_,_}, // 28
+{l,_,L,L,_,m,m,_,_,u,C,_,_,M,M,M,M,_,M,_,M,M,M,M,_,_,C,L,_,_,a,a,a,a,a,a,a,a,a,a}, // 29
+{_,m,m,m,m,m,_,_,c,M,_,_,_,M,_,M,M,M,M,M,M,M,_,M,_,_,_,m,M,_,a,_,_,_,_,_,_,_,_,a}, // 30
+{_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,x,_,a,_,a,a,a,a,a,a,_,a}, // 31
+{x,x,x,_,x,x,x,_,x,x,x,_,x,x,x,_,x,x,x,_,x,x,x,_,x,x,x,_,x,_,a,_,a,_,_,_,_,a,_,a}, // 32
+{x,_,x,x,x,_,x,x,x,_,x,x,x,_,x,x,x,_,x,x,x,_,x,x,x,_,x,x,x,_,a,_,a,_,A,A,_,a,_,a}, // 33
+{x,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,a,_,a,_,A,A,_,a,_,a}, // 34
+{X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,a,_,a,a,a,a,_,a,_,a}, // 35
+{X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,_,a,_,_,_,_,_,_,a,_,a}, // 36
+{X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,_,a,a,a,a,a,a,a,a,_,a}, // 37
+{X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,X,X,_,_,_,_,_,_,_,_,_,_,a}, // 38
+{_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,a,a,a,a,a,a,a,a,a,a,a,a,a}, // 39
 };
 // clang-format on
 RR_DEFINE_MAZE(BURROW, 4) = {{1, 1}, {0, 1}};
@@ -557,12 +573,13 @@ RR_DEFINE_MAZE(BURROW, 4) = {{1, 1}, {0, 1}};
         &RR_MAZE_##MAZE[0][0]
 
 struct rr_maze_declaration RR_MAZES[rr_biome_id_max] = {
-    {MAZE_ENTRY(HELL_CREEK, 1024), {{6, 13}, {11, 15}, {16, 17}, {22, 23}}},
+    {MAZE_ENTRY(HELL_CREEK, 1024), {{1, 1}, {7, 5}, {18, 0}, {18, 13}}},
     {MAZE_ENTRY(HELL_CREEK, 1024), {{6, 13}, {11, 15}, {16, 17}, {22, 23}}},
     {MAZE_ENTRY(BURROW, 512), {{0}, {0}, {0}, {0}}},
 };
 
 uint8_t RR_GLOBAL_BIOME = rr_biome_id_hell_creek;
+#undef _
 #undef c
 #undef C
 #undef u
@@ -576,3 +593,6 @@ uint8_t RR_GLOBAL_BIOME = rr_biome_id_hell_creek;
 #undef m
 #undef M
 #undef x
+#undef X
+#undef a
+#undef A
