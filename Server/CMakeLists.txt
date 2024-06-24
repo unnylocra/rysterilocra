@@ -21,10 +21,8 @@ project(rrolf-server)
 include_directories(..)
 
 set(SRCS
-    MobAi/Aggressive.c
     MobAi/Helpers.c
-    MobAi/Neutral.c
-    MobAi/Passive.c
+    MobAi/Hybrid.c
     System/Ai.c
     System/Camera.c
     System/Centipede.c

@@ -25,6 +25,7 @@
 #include <Server/Client.h>
 #include <Server/EntityAllocation.h>
 #include <Server/EntityDetection.h>
+#include <Server/MobAi/Ai.h>
 #include <Server/SpatialHash.h>
 #include <Server/System/System.h>
 #include <Server/Waves.h>
@@ -283,7 +284,7 @@ static void despawn_mob(EntityIdx entity, void *_simulation)
     else
         mob->ticks_to_despawn = 30 * 25;
     if (mob->force_despawn && (mob->id == rr_mob_id_ornithomimus ||
-        ai->ai_state == rr_ai_state_idle || ai->ai_state == rr_ai_state_idle_moving))
+                               ai_is_passive(ai)))
     {
         if (--mob->ticks_to_force_despawn == 0)
         {

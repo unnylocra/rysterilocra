@@ -80,6 +80,17 @@ uint8_t ai_is_passive(struct rr_component_ai *ai)
            ai->ai_state == rr_ai_state_idle_moving;
 }
 
+uint8_t should_aggro(struct rr_simulation *simulation,
+                     struct rr_component_ai *ai)
+{
+    if (ai->ai_type == rr_ai_type_neutral)
+        return rr_simulation_entity_alive(simulation, ai->target_entity) &&
+               ai_is_passive(ai);
+    if (ai->ai_type == rr_ai_type_aggro)
+        return has_new_target(ai, simulation);
+    return 0;
+}
+
 struct rr_vector predict(struct rr_vector delta, struct rr_vector velocity,
                          float speed)
 {

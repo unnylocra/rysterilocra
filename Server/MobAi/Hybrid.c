@@ -18,20 +18,19 @@
 #include <math.h>
 
 #include <Server/EntityAllocation.h>
-#include <Server/EntityDetection.h>
 #include <Server/Simulation.h>
 
-void tick_ai_neutral_default(EntityIdx entity, struct rr_simulation *simulation,
-                             float speed)
+void tick_ai_default(EntityIdx entity, struct rr_simulation *simulation,
+                     float speed)
 {
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, entity);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
-    if (rr_simulation_entity_alive(simulation, ai->target_entity) &&
-        ai_is_passive(ai))
+    if (should_aggro(simulation, ai))
     {
         ai->ai_state = rr_ai_state_attacking;
-        ai->ticks_until_next_action = 25;
+        if (ai->ai_type == rr_ai_type_neutral)
+            ai->ticks_until_next_action = 25;
     }
 
     switch (ai->ai_state)
@@ -68,15 +67,13 @@ void tick_ai_neutral_default(EntityIdx entity, struct rr_simulation *simulation,
     }
 }
 
-void tick_ai_neutral_triceratops(EntityIdx entity,
-                                 struct rr_simulation *simulation)
+void tick_ai_triceratops(EntityIdx entity, struct rr_simulation *simulation)
 {
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, entity);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
 
-    if (rr_simulation_entity_alive(simulation, ai->target_entity) &&
-        ai_is_passive(ai))
+    if (should_aggro(simulation, ai))
     {
         ai->ai_state = rr_ai_state_waiting_to_attack;
         ai->ticks_until_next_action = 18;
@@ -143,13 +140,12 @@ void tick_ai_neutral_triceratops(EntityIdx entity,
     }
 }
 
-void tick_ai_neutral_trex(EntityIdx entity, struct rr_simulation *simulation)
+void tick_ai_trex(EntityIdx entity, struct rr_simulation *simulation)
 {
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, entity);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
-    if (rr_simulation_entity_alive(simulation, ai->target_entity) &&
-        ai_is_passive(ai))
+    if (should_aggro(simulation, ai))
     {
         ai->ai_state = rr_ai_state_attacking;
         ai->ticks_until_next_action = 300;
@@ -240,15 +236,13 @@ void tick_ai_neutral_trex(EntityIdx entity, struct rr_simulation *simulation)
     }
 }
 
-void tick_ai_neutral_pteranodon(EntityIdx entity,
-                                struct rr_simulation *simulation)
+void tick_ai_pteranodon(EntityIdx entity, struct rr_simulation *simulation)
 {
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, entity);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
 
-    if (rr_simulation_entity_alive(simulation, ai->target_entity) &&
-        ai_is_passive(ai))
+    if (should_aggro(simulation, ai))
         ai->ai_state = rr_ai_state_attacking;
 
     switch (ai->ai_state)
@@ -354,15 +348,72 @@ void tick_ai_neutral_pteranodon(EntityIdx entity,
     }
 }
 
-void tick_ai_neutral_ornithomimus(EntityIdx entity,
-                                  struct rr_simulation *simulation)
+void tick_ai_pachycephalosaurus(EntityIdx entity,
+                                struct rr_simulation *simulation)
+{
+    struct rr_component_ai *ai = rr_simulation_get_ai(simulation, entity);
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, entity);
+    if (should_aggro(simulation, ai))
+        ai->ai_state = rr_ai_state_attacking;
+
+    switch (ai->ai_state)
+    {
+    case rr_ai_state_idle:
+        tick_idle(entity, simulation);
+        break;
+
+    case rr_ai_state_idle_moving:
+        tick_idle_move_default(entity, simulation);
+        break;
+    case rr_ai_state_attacking:
+    {
+        struct rr_vector accel;
+        struct rr_component_physical *physical2 =
+            rr_simulation_get_physical(simulation, ai->target_entity);
+
+        struct rr_vector delta = {physical2->x, physical2->y};
+        struct rr_vector target_pos = {physical->x, physical->y};
+        rr_vector_sub(&delta, &target_pos);
+        // struct rr_vector prediction = predict(delta, physical2->velocity, 4);
+        float target_angle = rr_vector_theta(&delta);
+
+        rr_component_physical_set_angle(physical, target_angle);
+
+        rr_vector_from_polar(&accel, RR_PLAYER_SPEED, physical->angle);
+        rr_vector_add(&physical->acceleration, &accel);
+        ai->ticks_until_next_action = 25;
+        if (rr_vector_magnitude_cmp(&delta, 350) == -1)
+            ai->ai_state = rr_ai_state_charging;
+        break;
+    }
+    case rr_ai_state_charging:
+    {
+        struct rr_vector accel;
+        struct rr_component_physical *physical2 =
+            rr_simulation_get_physical(simulation, ai->target_entity);
+
+        rr_vector_from_polar(&accel, RR_PLAYER_SPEED * 1.8, physical->angle);
+        rr_vector_add(&physical->acceleration, &accel);
+        if (ai->ticks_until_next_action == 0)
+        {
+            ai->ticks_until_next_action = 25;
+            ai->ai_state = rr_ai_state_attacking;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void tick_ai_ornithomimus(EntityIdx entity, struct rr_simulation *simulation)
 {
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, entity);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
 
-    if (rr_simulation_entity_alive(simulation, ai->target_entity) &&
-        ai_is_passive(ai))
+    if (should_aggro(simulation, ai))
     {
         ai->ai_state = rr_ai_state_attacking;
         ai->ticks_until_next_action = -1;
@@ -386,8 +437,7 @@ void tick_ai_neutral_ornithomimus(EntityIdx entity,
         struct rr_vector delta = {physical2->x, physical2->y};
         struct rr_vector target_pos = {physical->x, physical->y};
         rr_vector_sub(&delta, &target_pos);
-        if (rr_simulation_get_mob(simulation, entity)->rarity >=
-            rr_rarity_id_exotic)
+        if (ai->ai_type == rr_ai_type_aggro)
             physical->bearing_angle = rr_vector_theta(&delta);
         else
             physical->bearing_angle = rr_vector_theta(&delta) + M_PI;
@@ -400,14 +450,12 @@ void tick_ai_neutral_ornithomimus(EntityIdx entity,
     }
 }
 
-void tick_ai_neutral_ankylosaurus(EntityIdx entity,
-                                  struct rr_simulation *simulation)
+void tick_ai_ankylosaurus(EntityIdx entity, struct rr_simulation *simulation)
 {
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, entity);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
-    if (rr_simulation_entity_alive(simulation, ai->target_entity) &&
-        ai_is_passive(ai))
+    if (should_aggro(simulation, ai))
     {
         ai->ai_state = rr_ai_state_attacking;
         ai->ticks_until_next_action = 10;
@@ -502,15 +550,45 @@ void tick_ai_neutral_ankylosaurus(EntityIdx entity,
     }
 }
 
-void tick_ai_neutral_quetzalcoaltus(EntityIdx entity,
-                                    struct rr_simulation *simulation)
+void tick_ai_meteor(EntityIdx entity, struct rr_simulation *simulation)
 {
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, entity);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
 
-    if (rr_simulation_entity_alive(simulation, ai->target_entity) &&
-        ai_is_passive(ai))
+    switch (ai->ai_state)
+    {
+    case rr_ai_state_idle:
+        physical->bearing_angle = rr_frand() * M_PI * 2;
+        ai->ai_state = rr_ai_state_idle_moving;
+        break;
+    case rr_ai_state_idle_moving:
+        ai->ticks_until_next_action = 10;
+        struct rr_vector normal = {physical->wall_collision.x,
+                                   physical->wall_collision.y};
+        if (rr_vector_get_magnitude(&normal) != 0)
+        {
+            float angle = rr_vector_theta(&normal);
+            physical->bearing_angle =
+                (2 * angle - (M_PI + physical->bearing_angle));
+        }
+
+        rr_vector_from_polar(&physical->acceleration, RR_PLAYER_SPEED * 0.15,
+                             physical->bearing_angle);
+        rr_component_physical_set_angle(physical, physical->angle + 0.1);
+        break;
+    default:
+        break;
+    }
+}
+
+void tick_ai_quetzalcoaltus(EntityIdx entity, struct rr_simulation *simulation)
+{
+    struct rr_component_ai *ai = rr_simulation_get_ai(simulation, entity);
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, entity);
+
+    if (should_aggro(simulation, ai))
         ai->ai_state = rr_ai_state_attacking;
 
     switch (ai->ai_state)

@@ -24,6 +24,14 @@ struct proto_bug;
 RR_CLIENT_ONLY(struct rr_renderer;)
 RR_SERVER_ONLY(struct rr_component_player_info;)
 
+enum rr_ai_type
+{
+    rr_ai_type_none,
+    rr_ai_type_passive,
+    rr_ai_type_neutral,
+    rr_ai_type_aggro
+};
+
 enum rr_ai_state
 {
     rr_ai_state_idle,
@@ -42,6 +50,7 @@ struct rr_component_ai
     RR_SERVER_ONLY(uint32_t ticks_until_next_action;)
     RR_SERVER_ONLY(EntityHash target_entity;)
     EntityIdx parent_id;
+    RR_SERVER_ONLY(enum rr_ai_type ai_type;)
     RR_SERVER_ONLY(enum rr_ai_state ai_state;)
     RR_SERVER_ONLY(uint8_t protocol_state;)
     RR_SERVER_ONLY(uint8_t has_prediction;)

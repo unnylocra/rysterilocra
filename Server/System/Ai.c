@@ -75,76 +75,87 @@ static void system_for_each(EntityIdx entity, void *simulation)
     {
     case rr_mob_id_fern:
     case rr_mob_id_tree:
+        ai->ai_type = rr_ai_type_none;
         break;
     case rr_mob_id_triceratops:
         if (mob->rarity >= rr_rarity_id_exotic)
-            tick_ai_aggro_triceratops(entity, this);
+            ai->ai_type = rr_ai_type_aggro;
         else
         {
             if (mob->rarity >= rr_rarity_id_legendary)
                 mob->force_despawn = 1;
-            tick_ai_neutral_triceratops(entity, this);
+            ai->ai_type = rr_ai_type_neutral;
         }
+        tick_ai_triceratops(entity, this);
         break;
     case rr_mob_id_trex:
         if (mob->rarity >= rr_rarity_id_rare || mob->player_spawned)
-            tick_ai_aggro_trex(entity, this);
+            ai->ai_type = rr_ai_type_aggro;
         else
-            tick_ai_neutral_trex(entity, this);
+            ai->ai_type = rr_ai_type_neutral;
+        tick_ai_trex(entity, this);
         break;
     case rr_mob_id_meteor:
-        tick_ai_passive_meteor(entity, this);
+        ai->ai_type = rr_ai_type_passive;
+        tick_ai_meteor(entity, this);
         break;
     case rr_mob_id_pteranodon:
         if (mob->rarity >= rr_rarity_id_rare)
-            tick_ai_aggro_pteranodon(entity, this);
+            ai->ai_type = rr_ai_type_aggro;
         else
-            tick_ai_neutral_pteranodon(entity, this);
+            ai->ai_type = rr_ai_type_neutral;
+        tick_ai_pteranodon(entity, this);
         break;
     case rr_mob_id_dakotaraptor:
         if (mob->rarity >= rr_rarity_id_rare)
-            tick_ai_aggro_default(entity, this, RR_PLAYER_SPEED *
-                                  (1.5 - mob->rarity * 0.05));
+            ai->ai_type = rr_ai_type_aggro;
         else
-            tick_ai_neutral_default(entity, this, RR_PLAYER_SPEED *
-                                    (1.5 - mob->rarity * 0.05));
+            ai->ai_type = rr_ai_type_neutral;
+        tick_ai_default(entity, this, RR_PLAYER_SPEED *
+                                      (1.5 - mob->rarity * 0.05));
         break;
     case rr_mob_id_pachycephalosaurus:
-        tick_ai_aggro_pachycephalosaurus(entity, this);
+        ai->ai_type = rr_ai_type_aggro;
+        tick_ai_pachycephalosaurus(entity, this);
         break;
     case rr_mob_id_ornithomimus:
         if (mob->rarity >= rr_rarity_id_legendary)
-            tick_ai_aggro_ornithomimus(entity, this);
+            ai->ai_type = rr_ai_type_aggro;
         else
         {
             mob->force_despawn = 1;
-            tick_ai_neutral_ornithomimus(entity, this);
+            ai->ai_type = rr_ai_type_neutral;
         }
+        tick_ai_ornithomimus(entity, this);
         break;
     case rr_mob_id_ankylosaurus:
         if (mob->rarity >= rr_rarity_id_legendary)
-            tick_ai_aggro_ankylosaurus(entity, this);
+            ai->ai_type = rr_ai_type_aggro;
         else
-            tick_ai_neutral_ankylosaurus(entity, this);
+            ai->ai_type = rr_ai_type_neutral;
+        tick_ai_ankylosaurus(entity, this);
         break;
     case rr_mob_id_quetzalcoatlus:
         if (mob->rarity >= rr_rarity_id_rare)
-            tick_ai_aggro_quetzalcoaltus(entity, this);
+            ai->ai_type = rr_ai_type_aggro;
         else
-            tick_ai_neutral_quetzalcoaltus(entity, this);
+            ai->ai_type = rr_ai_type_neutral;
+        tick_ai_quetzalcoaltus(entity, this);
         break;
     case rr_mob_id_edmontosaurus:
         if (mob->rarity >= rr_rarity_id_mythic)
-            tick_ai_aggro_default(entity, this, RR_PLAYER_SPEED);
+            ai->ai_type = rr_ai_type_aggro;
         else
         {
             if (mob->rarity >= rr_rarity_id_legendary)
                 mob->force_despawn = 1;
-            tick_ai_neutral_default(entity, this, RR_PLAYER_SPEED);
+            ai->ai_type = rr_ai_type_neutral;
         }
+        tick_ai_default(entity, this, RR_PLAYER_SPEED);
         break;
     default:
-        tick_ai_passive_default(entity, this);
+        ai->ai_type = rr_ai_type_passive;
+        tick_ai_default(entity, this, 0);
         break;
     }
     --ai->ticks_until_next_action;
