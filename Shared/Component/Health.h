@@ -27,8 +27,10 @@ RR_SERVER_ONLY(struct rr_component_player_info;)
 struct rr_component_health
 {
     float health;
+    RR_CLIENT_ONLY(float health_last_tick;)
     RR_CLIENT_ONLY(float lerp_health;)
     RR_CLIENT_ONLY(float lerp_prev_health;)
+    RR_CLIENT_ONLY(uint8_t prev_health_delay_ticks;)
     float max_health;
     RR_CLIENT_ONLY(float damage_animation;)
     RR_SERVER_ONLY(float damage;)

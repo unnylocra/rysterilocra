@@ -91,6 +91,22 @@ void read_account(struct proto_bug *decoder, struct rr_game *game)
     }
 }
 
+static void update_significant_rarity(struct rr_game *this)
+{
+    uint32_t count = 0;
+    for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
+        for (uint8_t id = 1; id < rr_petal_id_max; ++id)
+        {
+            count += this->inventory[id][rarity];
+            if (count >= this->slots_unlocked * 2)
+            {
+                this->significant_rarity = rarity;
+                count = 0;
+                break;
+            }
+        }
+}
+
 void rr_api_on_get_password(char *s, void *captures)
 {
     struct rr_game *this = captures;
@@ -1036,8 +1052,11 @@ static void write_serverbound_packet_desktop(struct rr_game *this)
         movement_flags |= rr_bitset_get(this->input_data->keys_pressed, 32) << 4;
         movement_flags |= rr_bitset_get(this->input_data->keys_pressed, 16) << 5;
     }
-    movement_flags |= this->cache.hold_attack << 4;
-    movement_flags |= this->cache.hold_defense << 5;
+    if (!(movement_flags >> 4 & 3))
+    {
+        movement_flags |= this->cache.hold_attack << 4;
+        movement_flags |= this->cache.hold_defense << 5;
+    }
     movement_flags |= this->cache.use_mouse << 6;
 
     proto_bug_write_uint8(&encoder2, movement_flags, "movement kb flags");
@@ -1146,6 +1165,7 @@ void rr_game_tick(struct rr_game *this, float delta)
     this->slots_unlocked =
         RR_SLOT_COUNT_FROM_LEVEL(level_from_xp(this->cache.experience));
     validate_loadout(this);
+    update_significant_rarity(this);
 
     rr_game_cache_data(this);
 

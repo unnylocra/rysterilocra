@@ -327,7 +327,7 @@ static void system_flower_petal_movement_logic(
                 break;
             system_petal_detach(simulation, petal, player_info, outer_pos,
                                 inner_pos, petal_data);
-            petal->effect_delay = 125;
+            petal->effect_delay = 65;
             physical->friction = 0.4;
             break;
         }

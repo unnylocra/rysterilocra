@@ -183,7 +183,7 @@ struct rr_game
     uint8_t is_mobile : 1;
     uint8_t logged_in : 1;
     uint8_t account_linked : 1;
-    uint8_t is_dev;
+    uint8_t is_dev : 1;
     uint8_t socket_error;
     uint8_t menu_open;
     uint8_t ticks_until_text_cache;
@@ -191,6 +191,7 @@ struct rr_game
     uint8_t slots_unlocked;
     uint8_t cursor;
     uint8_t ticks_until_reconnect;
+    uint8_t significant_rarity;
 
     char rivet_player_token[400];
     char connect_code[16];

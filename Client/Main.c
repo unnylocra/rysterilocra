@@ -61,8 +61,10 @@ static void *rr_create_game_thread(void *arg)
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
 void rr_key_event(struct rr_game *this, uint8_t type, uint32_t which,
-                  uint32_t key)
+                  uint32_t key, uint8_t repeat)
 {
+    if (repeat)
+        return;
     if (type == 1)
     {
         rr_bitset_set(this->input_data->keys_pressed, which);
@@ -141,7 +143,7 @@ void rr_main_loop(struct rr_game *this)
                     $0, 1, e.which,
                     e.key ? (!e.ctrlKey && !e.metaKey && e.key.length == 1) *
                                 e.key.charCodeAt()
-                          : 0);
+                          : 0, +e.repeat);
             };
             window.onkeyup = function(e)
             {
@@ -149,7 +151,7 @@ void rr_main_loop(struct rr_game *this)
                     $0, 0, e.which,
                     e.key ? (!e.ctrlKey && !e.metaKey && e.key.length == 1) *
                                 e.key.charCodeAt()
-                          : 0);
+                          : 0, +e.repeat);
             };
             window.addEventListener(
                 "mousedown", async function(e) {

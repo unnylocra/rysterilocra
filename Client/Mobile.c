@@ -164,8 +164,13 @@ void rr_write_serverbound_packet_mobile(struct rr_game *this)
     proto_bug_init(&encoder, RR_OUTGOING_PACKET);
     proto_bug_write_uint8(&encoder, this->socket.quick_verification, "qv");
     proto_bug_write_uint8(&encoder, rr_serverbound_input, "header");
-    uint8_t is_attack = draw_mobile_attack_button(this) || this->cache.hold_attack;
-    uint8_t is_defend = draw_mobile_defend_button(this) || this->cache.hold_defense;
+    uint8_t is_attack = draw_mobile_attack_button(this);
+    uint8_t is_defend = draw_mobile_defend_button(this);
+    if (!is_attack && !is_defend)
+    {
+        is_attack = this->cache.hold_attack;
+        is_defend = this->cache.hold_defense;
+    }
     proto_bug_write_uint8(&encoder,
                           (1 << 6) | (is_attack << 4) | (is_defend << 5),
                           "movement kb flags");

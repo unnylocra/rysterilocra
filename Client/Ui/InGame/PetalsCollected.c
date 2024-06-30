@@ -106,7 +106,9 @@ static uint8_t loot_container_should_show(struct rr_ui_element *this,
         if (game->player_info->collected_this_run[i] != 0)
             return !game->cache.hide_ui && game->simulation_ready &&
                    (game->simulation->game_over ||
-                   game->player_info->flower_id == RR_NULL_ENTITY);
+                    game->player_info->flower_id == RR_NULL_ENTITY ||
+                    (rr_bitset_get_bit(game->input_data->keys_pressed, 'J') &&
+                     !game->chat.chat_active));
     return 0;
 }
 

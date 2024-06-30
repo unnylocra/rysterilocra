@@ -107,7 +107,7 @@ static void system_for_each(EntityIdx entity, void *simulation)
         tick_ai_pteranodon(entity, this);
         break;
     case rr_mob_id_dakotaraptor:
-        if (mob->rarity >= rr_rarity_id_rare)
+        if (mob->rarity >= rr_rarity_id_epic)
             ai->ai_type = rr_ai_type_aggro;
         else
             ai->ai_type = rr_ai_type_neutral;

@@ -31,21 +31,15 @@ void rr_component_drop_render(EntityIdx entity, struct rr_game *game,
     struct rr_component_drop *drop = rr_simulation_get_drop(simulation, entity);
     if (game->cache.low_performance_mode)
     {
-        uint8_t significant_rarity = 0;
-        uint8_t petal_count = 0;
-        for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
-            for (uint8_t id = 1; id < rr_petal_id_max; ++id)
-            {
-                petal_count += game->inventory[id][rarity];
-                if (petal_count >= game->slots_unlocked)
-                {
-                    significant_rarity = rarity;
-                    petal_count = 0;
-                    break;
-                }
-            }
-
-        uint8_t min_rarity = significant_rarity >= 2 ? significant_rarity - 2 : 0;
+        uint8_t min_rarity = game->significant_rarity >= 2 ?
+                                 game->significant_rarity - 2 : 0;
+        if (drop->id == rr_petal_id_bone || drop->id == rr_petal_id_lightning ||
+            drop->id == rr_petal_id_third_eye)
+            min_rarity = game->significant_rarity >= 3 ?
+                             game->significant_rarity - 3 : 0;
+        if (drop->id == rr_petal_id_seed || drop->id == rr_petal_id_peas ||
+            drop->id == rr_petal_id_magnet || drop->id == rr_petal_id_uranium)
+            min_rarity = 0;
         if (drop->rarity < min_rarity)
             return;
     }
