@@ -93,7 +93,7 @@ void render_flower(struct rr_ui_element *element, struct rr_game *game)
 static void flower_animate(struct rr_ui_element *this, struct rr_game *game)
 {
     struct squad_flower_metadata *data = this->data;
-    data->mouth = rr_lerp(data->mouth, (data->member->playing), 0.4);
+    data->mouth = rr_lerp(data->mouth, (data->member->playing), 24 * game->lerp_delta);
 }
 
 static uint8_t choose(struct rr_ui_element *this, struct rr_game *game)

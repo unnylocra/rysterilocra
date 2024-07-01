@@ -54,7 +54,7 @@ static void scroll_container_on_render(struct rr_ui_element *this,
         data->y = this->elements.start[0]->abs_height - this->abs_height;
     if (data->y < 0)
         data->y = 0;
-    data->lerp_y = rr_lerp(data->lerp_y, data->y, 0.2);
+    data->lerp_y = rr_lerp(data->lerp_y, data->y, 12 * game->lerp_delta);
     struct rr_renderer *renderer = game->renderer;
     rr_renderer_set_stroke(renderer, 0x80000000);
     rr_renderer_set_line_width(renderer, 5);

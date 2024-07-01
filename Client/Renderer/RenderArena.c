@@ -30,12 +30,16 @@ void render_background(struct rr_component_player_info *player_info,
     if (player_info->arena == 0)
         return;
     struct rr_renderer *renderer = this->renderer;
+    double extra = 5;
     double scale = player_info->lerp_camera_fov * renderer->scale;
-    double leftX = player_info->lerp_camera_x - renderer->width / (2 * scale);
-    double rightX = player_info->lerp_camera_x + renderer->width / (2 * scale);
-    double topY = player_info->lerp_camera_y - renderer->height / (2 * scale);
+    double leftX =
+        player_info->lerp_camera_x - renderer->width / (2 * scale) - extra;
+    double rightX =
+        player_info->lerp_camera_x + renderer->width / (2 * scale) + extra;
+    double topY =
+        player_info->lerp_camera_y - renderer->height / (2 * scale) - extra;
     double bottomY =
-        player_info->lerp_camera_y + renderer->height / (2 * scale);
+        player_info->lerp_camera_y + renderer->height / (2 * scale) + extra;
 
 #define GRID_SIZE (512.0f)
     double newLeftX = floorf(leftX / GRID_SIZE) * GRID_SIZE;

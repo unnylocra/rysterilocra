@@ -267,10 +267,9 @@ static void rr_simulation_dev_cheat_kill_mob(EntityIdx entity, void *_captures)
     struct rr_component_player_info *player_info = captures->player_info;
     struct rr_component_mob *mob = rr_simulation_get_mob(this, entity);
     struct rr_component_physical *physical = rr_simulation_get_physical(this, entity);
-    float delta_x = player_info->camera_x - physical->x;
-    float delta_y = player_info->camera_y - physical->y;
-    float dist = 1024 + physical->radius;
-    if (delta_x * delta_x + delta_y * delta_y < dist * dist)
+    struct rr_vector delta = {player_info->camera_x - physical->x,
+                              player_info->camera_y - physical->y};
+    if (rr_vector_magnitude_cmp(&delta, 1024 + physical->radius) == -1)
     {
         mob->no_drop = 1;
         rr_simulation_request_entity_deletion(this, entity);
@@ -916,13 +915,14 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 for (uint8_t i = 0; i < count; ++i)
                     for (uint8_t j = 0; j < 255; ++j)
                     {
-                        float angle = rr_frand() * 2 * M_PI;
-                        float dist = 512;
-                        float x = client->player_info->camera_x + cosf(angle) * dist;
-                        float y = client->player_info->camera_y + sinf(angle) * dist;
-                        uint32_t grid_x = rr_fclamp(x / arena->maze->grid_size,
+                        struct rr_vector camera = {client->player_info->camera_x,
+                                                   client->player_info->camera_y};
+                        struct rr_vector pos;
+                        rr_vector_from_polar(&pos, 512, rr_frand() * 2 * M_PI);
+                        rr_vector_add(&pos, &camera);
+                        uint32_t grid_x = rr_fclamp(pos.x / arena->maze->grid_size,
                                                     0, arena->maze->maze_dim - 1);
-                        uint32_t grid_y = rr_fclamp(y / arena->maze->grid_size,
+                        uint32_t grid_y = rr_fclamp(pos.y / arena->maze->grid_size,
                                                     0, arena->maze->maze_dim - 1);
                         struct rr_maze_grid *grid =
                             rr_component_arena_get_grid(arena, grid_x, grid_y);
@@ -931,7 +931,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
 
                         EntityIdx e = rr_simulation_alloc_mob(
                             &this->simulation, client->player_info->arena,
-                            x, y, id, rarity, rr_simulation_team_id_mobs);
+                            pos.x, pos.y, id, rarity, rr_simulation_team_id_mobs);
                         struct rr_component_mob *mob =
                             rr_simulation_get_mob(&this->simulation, e);
                         mob->no_drop = no_drop;

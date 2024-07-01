@@ -113,7 +113,7 @@ static void title_screen_loadout_button_animate(struct rr_ui_element *this,
     uint8_t id = game->cache.loadout[data->pos].id;
     uint8_t rarity = game->cache.loadout[data->pos].rarity;
     data->secondary_animation =
-        rr_lerp(data->secondary_animation, id == 0, 0.2);
+        rr_lerp(data->secondary_animation, id == 0, 12 * game->lerp_delta);
     if (id != 0)
     {
         data->prev_id = id;
@@ -158,7 +158,7 @@ static void loadout_button_animate(struct rr_ui_element *this,
     uint8_t rarity = slot->rarity;
     data->secondary_animation = rr_lerp(
         data->secondary_animation,
-        id != data->prev_id || rarity != data->prev_rarity || id == 0, 0.2);
+        id != data->prev_id || rarity != data->prev_rarity || id == 0, 12 * game->lerp_delta);
     if (id != 0)
     {
         data->prev_id = id;
@@ -166,10 +166,10 @@ static void loadout_button_animate(struct rr_ui_element *this,
     }
     float cd = (player_info->flower_id == RR_NULL_ENTITY ? 0 :
         slot->client_cooldown) * (1.0f / 255);
-    data->lerp_cd = rr_lerp(data->lerp_cd, cd, 0.2);
+    data->lerp_cd = rr_lerp(data->lerp_cd, cd, 12 * game->lerp_delta);
     float hp = (player_info->flower_id == RR_NULL_ENTITY ? 255 :
         slot->client_health) * (1.0f / 255);
-    data->lerp_hp = rr_lerp(data->lerp_hp, hp, 0.2);
+    data->lerp_hp = rr_lerp(data->lerp_hp, hp, 12 * game->lerp_delta);
     rr_renderer_scale(game->renderer, (1 - data->secondary_animation));
 }
 

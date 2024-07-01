@@ -173,7 +173,7 @@ static void crafting_ring_petal_animate(struct rr_ui_element *this,
         data->secondary_animation,
         data->count == 0 || data->prev_id != game->crafting_data.crafting_id ||
             data->prev_rarity != game->crafting_data.crafting_rarity,
-        0.4);
+        24 * game->lerp_delta);
 
     rr_renderer_scale(game->renderer, game->renderer->scale * this->width / 60);
     rr_renderer_draw_background(game->renderer, rr_rarity_id_max, 1);
@@ -408,7 +408,7 @@ static void crafting_inventory_button_animate(struct rr_ui_element *this,
         data->secondary_animation = count == 0;
 
     data->secondary_animation =
-        rr_lerp(data->secondary_animation, count == 0, 0.2);
+        rr_lerp(data->secondary_animation, count == 0, 12 * game->lerp_delta);
     rr_renderer_scale(game->renderer, game->renderer->scale * this->width / 60);
     rr_renderer_draw_background(game->renderer, rr_rarity_id_max, 1);
     rr_renderer_scale(game->renderer, (1 - data->secondary_animation));

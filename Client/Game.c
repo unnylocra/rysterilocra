@@ -1201,7 +1201,7 @@ void rr_game_tick(struct rr_game *this, float delta)
                 player_info->flower_id != RR_NULL_ENTITY)
             {
                 if (rr_simulation_get_health(this->simulation,
-                    player_info->flower_id)->damage_animation > 0.1)
+                    player_info->flower_id)->damage_animation > 0.25)
                 {
                     float r = rr_frand() * 5;
                     float a = rr_frand() * 2 * M_PI;
