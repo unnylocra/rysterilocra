@@ -156,6 +156,9 @@ struct rr_game
     struct rr_ui_element *abandon_game_tooltip;
     struct rr_ui_element *experience_tooltip;
     struct rr_ui_element *link_reminder_tooltip;
+    struct rr_ui_element *inventory_toggle_button;
+    struct rr_ui_element *mob_gallery_toggle_button;
+    struct rr_ui_element *crafting_toggle_button;
     struct rr_ui_element *window;
     struct rr_ui_element *prev_focused;
     struct rr_ui_element *focused;

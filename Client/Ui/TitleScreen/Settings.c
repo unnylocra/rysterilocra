@@ -261,7 +261,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                                 rr_ui_text_init("Mouse movement", 15,
                                                 0xffffffff),
                                 NULL),
-                                rr_ui_text_init("[m]", 15, 0xffffffff),
+                                rr_ui_text_init("[M]", 15, 0xffffffff),
                             10),
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
@@ -270,7 +270,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                                 rr_ui_text_init("Hold attack", 15,
                                                 0xffffffff),
                                 NULL),
-                                rr_ui_text_init("[k]", 15, 0xffffffff),
+                                rr_ui_text_init("[K]", 15, 0xffffffff),
                             10),
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
@@ -279,7 +279,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                                 rr_ui_text_init("Hold defense", 15,
                                                 0xffffffff),
                                 NULL),
-                                rr_ui_text_init("[l]", 15, 0xffffffff),
+                                rr_ui_text_init("[L]", 15, 0xffffffff),
                             10),
                         rr_ui_set_justify(
                             rr_ui_h_container_init(
@@ -295,7 +295,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                                 rr_ui_toggle_box_init(&game->cache.show_hitboxes),
                                 rr_ui_text_init("Show hitboxes", 15, 0xffffffff),
                                 NULL),
-                                rr_ui_text_init("[h]", 15, 0xffffffff),
+                                rr_ui_text_init("[H]", 15, 0xffffffff),
                             10),
                         rr_ui_set_justify(
                             rr_ui_h_container_init(
@@ -314,7 +314,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                                 rr_ui_text_init("Hide UI", 15,
                                                 0xffffffff),
                                 NULL),
-                                rr_ui_text_init("[i]", 15, 0xffffffff),
+                                rr_ui_text_init("[I]", 15, 0xffffffff),
                             10),
                         rr_ui_set_justify(
                             rr_ui_h_container_init(
@@ -325,7 +325,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                                                 0xffffffff),
                                 NULL),
                             -1, -1),
-                        rr_ui_set_justify(
+                        rr_ui_flex_container_init(
                             rr_ui_h_container_init(
                                 rr_ui_container_init(), 5, 10,
                                 rr_ui_toggle_box_init(
@@ -333,7 +333,8 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                                 rr_ui_text_init("Low performance mode", 15,
                                                 0xffffffff),
                                 NULL),
-                            -1, -1),
+                                rr_ui_text_init("[P]", 15, 0xffffffff),
+                            10),
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
                                 rr_ui_container_init(), 5, 10,

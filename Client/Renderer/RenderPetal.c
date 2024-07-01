@@ -45,6 +45,7 @@ void rr_component_petal_render(EntityIdx entity, struct rr_game *game,
     }
     if (petal->rarity >= rr_rarity_id_exotic)
     {
+        // fixme: looks too different at 60 fps
         uint8_t exo = petal->rarity == rr_rarity_id_exotic;
         struct rr_simulation_animation *particle = rr_particle_alloc(
             &game->particle_manager, rr_animation_type_default);

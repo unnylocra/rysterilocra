@@ -190,6 +190,35 @@ static uint8_t player_alive(struct rr_ui_element *this, struct rr_game *game)
            game->player_info->flower_id != RR_NULL_ENTITY;
 }
 
+static uint8_t left_bottom_menu_closed(struct rr_ui_element *this,
+                                       struct rr_game *game)
+{
+    return game->menu_open != rr_game_menu_inventory &&
+           game->menu_open != rr_game_menu_gallery &&
+           game->menu_open != rr_game_menu_crafting;
+}
+
+static uint8_t inventory_hotkey_should_show(struct rr_ui_element *this,
+                                            struct rr_game *game)
+{
+    return left_bottom_menu_closed(this, game) &&
+           game->focused != game->inventory_toggle_button;
+}
+
+static uint8_t gallery_hotkey_should_show(struct rr_ui_element *this,
+                                          struct rr_game *game)
+{
+    return left_bottom_menu_closed(this, game) &&
+           game->focused != game->mob_gallery_toggle_button;
+}
+
+static uint8_t crafting_hotkey_should_show(struct rr_ui_element *this,
+                                           struct rr_game *game)
+{
+    return left_bottom_menu_closed(this, game) &&
+           game->focused != game->crafting_toggle_button;
+}
+
 static void window_on_event(struct rr_ui_element *this, struct rr_game *game)
 {
     if (game->input_data->mouse_buttons_up_this_tick & 1)
@@ -338,33 +367,36 @@ void rr_game_init(struct rr_game *this)
             rr_ui_set_background(
                 rr_ui_v_container_init(rr_ui_container_init(), 10, 20,
                     rr_ui_v_container_init(rr_ui_container_init(), 0, 10,
-                        rr_ui_text_init("Rysteria", 96, 0xffffffff),
-                        rr_ui_h_container_init(
-                            rr_ui_container_init(), 0, 20,
-                            rr_ui_link_toggle(
-                                rr_ui_set_fill_stroke(
-                                    rr_ui_h_container_init(rr_ui_container_init(), 0, 0,
-                                        rr_ui_text_input_init(350, 30, &this->cache.nickname[0], 16, "_0x4346"), 
-                                        NULL
-                                    ), 
-                                0x00000000, 0x00000000),
-                            simulation_not_ready),
-                            rr_ui_join_button_init(),
+                        rr_ui_v_container_init(rr_ui_container_init(), 0, 10,
+                            rr_ui_text_init("Rysteria", 96, 0xffffffff),
+                            rr_ui_h_container_init(
+                                rr_ui_container_init(), 0, 20,
+                                rr_ui_link_toggle(
+                                    rr_ui_set_fill_stroke(
+                                        rr_ui_h_container_init(rr_ui_container_init(), 0, 0,
+                                            rr_ui_text_input_init(350, 30, &this->cache.nickname[0], 16, "_0x4346"), 
+                                            NULL
+                                        ), 
+                                    0x00000000, 0x00000000),
+                                simulation_not_ready),
+                                rr_ui_join_button_init(),
+                                NULL
+                            ),
+                            /*
+                            rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
+                                rr_ui_biome_button_init("Hell Creek", 0xffff0000, 0),
+                                rr_ui_biome_button_init("Ocean", 0xffcdb423, 1),
+                                NULL
+                            ),
+                            */
+                            rr_ui_set_justify(
+                                rr_ui_h_container_init(rr_ui_container_init(), 0, 10, 
+                                rr_ui_create_squad_button_init(),
+                                rr_ui_squad_button_init(),
+                                NULL
+                            ), 1, -1),
                             NULL
                         ),
-                        /*
-                        rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
-                            rr_ui_biome_button_init("Hell Creek", 0xffff0000, 0),
-                            rr_ui_biome_button_init("Ocean", 0xffcdb423, 1),
-                            NULL
-                        ),
-                        */
-                        rr_ui_set_justify(
-                            rr_ui_h_container_init(rr_ui_container_init(), 0, 10, 
-                            rr_ui_create_squad_button_init(),
-                            rr_ui_squad_button_init(),
-                            NULL
-                        ), 1, -1),
                         rr_ui_set_background(
                             rr_ui_link_toggle(
                                 rr_ui_container_add_element(
@@ -446,6 +478,10 @@ void rr_game_init(struct rr_game *this)
     rr_ui_container_add_element(this->window, rr_ui_finished_game_screen_init());
     rr_ui_container_add_element(this->window, rr_ui_loot_container_init());
 
+    this->inventory_toggle_button = rr_ui_inventory_toggle_button_init();
+    this->mob_gallery_toggle_button = rr_ui_mob_gallery_toggle_button_init();
+    this->crafting_toggle_button = rr_ui_crafting_toggle_button_init();
+
     rr_ui_container_add_element(
         this->window,
         rr_ui_set_justify(
@@ -453,21 +489,36 @@ void rr_game_init(struct rr_game *this)
                 rr_ui_link_toggle(
                     rr_ui_set_justify(
                         rr_ui_v_container_init(rr_ui_container_init(), 10, 10,
-                            rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
-                                rr_ui_inventory_toggle_button_init(),
-                                rr_ui_text_init("[z]", 18, 0xffffffff),
-                                NULL
-                            ),
-                            rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
-                                rr_ui_mob_gallery_toggle_button_init(),
-                                rr_ui_text_init("[v]", 18, 0xffffffff),
-                                NULL
-                            ),
-                            rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
-                                rr_ui_crafting_toggle_button_init(),
-                                rr_ui_text_init("[c]", 18, 0xffffffff),
-                                NULL
-                            ),
+                            rr_ui_set_justify(
+                                rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
+                                    this->inventory_toggle_button,
+                                    rr_ui_link_toggle(
+                                        rr_ui_text_init("[Z]", 18, 0xffffffff),
+                                        inventory_hotkey_should_show
+                                    ),
+                                    NULL
+                                ),
+                            -1, -1),
+                            rr_ui_set_justify(
+                                rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
+                                    this->mob_gallery_toggle_button,
+                                    rr_ui_link_toggle(
+                                        rr_ui_text_init("[V]", 18, 0xffffffff),
+                                        gallery_hotkey_should_show
+                                    ),
+                                    NULL
+                                ),
+                            -1, -1),
+                            rr_ui_set_justify(
+                                rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
+                                    this->crafting_toggle_button,
+                                    rr_ui_link_toggle(
+                                        rr_ui_text_init("[C]", 18, 0xffffffff),
+                                        crafting_hotkey_should_show
+                                    ),
+                                    NULL
+                                ),
+                            -1, -1),
                             NULL
                         ),
                     -1, 1),
@@ -491,7 +542,7 @@ void rr_game_init(struct rr_game *this)
                 rr_ui_v_container_init(rr_ui_container_init(), 15, 15,
                     rr_ui_h_container_init(
                         rr_ui_container_init(), 0, 15,
-                        rr_ui_text_init("[x]", 18, 0xffffffff),
+                        rr_ui_text_init("[X]", 18, 0xffffffff),
                         rr_ui_loadout_button_init(0),
                         rr_ui_loadout_button_init(1),
                         rr_ui_loadout_button_init(2),
@@ -502,7 +553,7 @@ void rr_game_init(struct rr_game *this)
                         rr_ui_loadout_button_init(7),
                         rr_ui_loadout_button_init(8),
                         rr_ui_loadout_button_init(9),
-                        rr_ui_text_init("[x]", 18, 0x00000000),
+                        rr_ui_text_init("[X]", 18, 0x00000000),
                         NULL
                     ),
                     rr_ui_h_container_init(
@@ -1415,6 +1466,8 @@ void rr_game_tick(struct rr_game *this, float delta)
             this->cache.hold_attack ^= 1;
         if (rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 'L'))
             this->cache.hold_defense ^= 1;
+        if (rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 'P'))
+            this->cache.low_performance_mode ^= 1;
     }
     if (this->cache.hide_ui && this->simulation_ready)
         this->menu_open = 0;
