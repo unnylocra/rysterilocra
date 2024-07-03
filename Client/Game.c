@@ -190,35 +190,6 @@ static uint8_t player_alive(struct rr_ui_element *this, struct rr_game *game)
            game->player_info->flower_id != RR_NULL_ENTITY;
 }
 
-static uint8_t left_bottom_menu_closed(struct rr_ui_element *this,
-                                       struct rr_game *game)
-{
-    return game->menu_open != rr_game_menu_inventory &&
-           game->menu_open != rr_game_menu_gallery &&
-           game->menu_open != rr_game_menu_crafting;
-}
-
-static uint8_t inventory_hotkey_should_show(struct rr_ui_element *this,
-                                            struct rr_game *game)
-{
-    return left_bottom_menu_closed(this, game) &&
-           game->focused != game->inventory_toggle_button;
-}
-
-static uint8_t gallery_hotkey_should_show(struct rr_ui_element *this,
-                                          struct rr_game *game)
-{
-    return left_bottom_menu_closed(this, game) &&
-           game->focused != game->mob_gallery_toggle_button;
-}
-
-static uint8_t crafting_hotkey_should_show(struct rr_ui_element *this,
-                                           struct rr_game *game)
-{
-    return left_bottom_menu_closed(this, game) &&
-           game->focused != game->crafting_toggle_button;
-}
-
 static void window_on_event(struct rr_ui_element *this, struct rr_game *game)
 {
     if (game->input_data->mouse_buttons_up_this_tick & 1)
@@ -478,10 +449,6 @@ void rr_game_init(struct rr_game *this)
     rr_ui_container_add_element(this->window, rr_ui_finished_game_screen_init());
     rr_ui_container_add_element(this->window, rr_ui_loot_container_init());
 
-    this->inventory_toggle_button = rr_ui_inventory_toggle_button_init();
-    this->mob_gallery_toggle_button = rr_ui_mob_gallery_toggle_button_init();
-    this->crafting_toggle_button = rr_ui_crafting_toggle_button_init();
-
     rr_ui_container_add_element(
         this->window,
         rr_ui_set_justify(
@@ -489,36 +456,9 @@ void rr_game_init(struct rr_game *this)
                 rr_ui_link_toggle(
                     rr_ui_set_justify(
                         rr_ui_v_container_init(rr_ui_container_init(), 10, 10,
-                            rr_ui_set_justify(
-                                rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
-                                    this->inventory_toggle_button,
-                                    rr_ui_link_toggle(
-                                        rr_ui_text_init("[Z]", 18, 0xffffffff),
-                                        inventory_hotkey_should_show
-                                    ),
-                                    NULL
-                                ),
-                            -1, -1),
-                            rr_ui_set_justify(
-                                rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
-                                    this->mob_gallery_toggle_button,
-                                    rr_ui_link_toggle(
-                                        rr_ui_text_init("[V]", 18, 0xffffffff),
-                                        gallery_hotkey_should_show
-                                    ),
-                                    NULL
-                                ),
-                            -1, -1),
-                            rr_ui_set_justify(
-                                rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
-                                    this->crafting_toggle_button,
-                                    rr_ui_link_toggle(
-                                        rr_ui_text_init("[C]", 18, 0xffffffff),
-                                        crafting_hotkey_should_show
-                                    ),
-                                    NULL
-                                ),
-                            -1, -1),
+                            rr_ui_inventory_toggle_button_init(),
+                            rr_ui_mob_gallery_toggle_button_init(),
+                            rr_ui_crafting_toggle_button_init(),
                             NULL
                         ),
                     -1, 1),

@@ -760,6 +760,15 @@ void crafting_toggle_button_animate(struct rr_ui_element *this,
         else
             game->menu_open = rr_game_menu_crafting;
     }
+
+    struct rr_ui_element *hotkey = this->data;
+    if (game->menu_open == rr_game_menu_inventory ||
+        game->menu_open == rr_game_menu_gallery ||
+        game->menu_open == rr_game_menu_crafting ||
+        game->focused == this)
+        rr_ui_set_background(hotkey, 0x00000000);
+    else
+        rr_ui_set_background(hotkey, 0xffffffff);
 }
 
 struct rr_ui_element *rr_ui_crafting_toggle_button_init()
@@ -770,5 +779,8 @@ struct rr_ui_element *rr_ui_crafting_toggle_button_init()
     this->animate = crafting_toggle_button_animate;
     this->on_event = crafting_toggle_button_on_event;
     this->on_render = crafting_toggle_on_render;
-    return this;
+    struct rr_ui_element *hotkey = rr_ui_text_init("[C]", 18, 0xffffffff);
+    this->data = hotkey;
+    return rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
+                                  this, hotkey, NULL);
 }
