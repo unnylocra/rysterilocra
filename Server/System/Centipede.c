@@ -39,7 +39,7 @@ void rr_system_centipede_foreach_function(EntityIdx id, void *simulation)
         physical = rr_simulation_get_physical(simulation, centipede->parent_id);
         struct rr_vector delta = {physical->x - parent_vector.x,
                                   physical->y - parent_vector.y};
-        if (delta.x == 0.0f && delta.y == 0.0f)
+        if (rr_vector_is_null(&delta))
             delta.x = 1.0f;
 
         rr_vector_set_magnitude(&delta, radius + physical->radius + 0.01f);

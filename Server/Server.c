@@ -1193,13 +1193,20 @@ static void server_tick(struct rr_server *this)
                 continue;
             if (client->player_info != NULL)
             {
-                if (rr_simulation_entity_alive(&this->simulation,
-                                               client->player_info->flower_id))
-                    rr_vector_set(
-                        &rr_simulation_get_physical(
-                             &this->simulation, client->player_info->flower_id)
-                             ->acceleration,
-                        client->player_accel_x, client->player_accel_y);
+                EntityHash flower_id = client->player_info->flower_id;
+                if (rr_simulation_entity_alive(&this->simulation, flower_id))
+                {
+                    struct rr_component_physical *physical =
+                        rr_simulation_get_physical(&this->simulation, flower_id);
+                    struct rr_component_flower *flower =
+                        rr_simulation_get_flower(&this->simulation, flower_id);
+                    rr_vector_set(&physical->acceleration,
+                                  client->player_accel_x,
+                                  client->player_accel_y);
+                    if (!rr_vector_is_null(&physical->acceleration))
+                        rr_component_flower_set_eye_angle(
+                            flower, rr_vector_theta(&physical->acceleration));
+                }
                 if (client->player_info->drops_this_tick_size > 0)
                 {
                     for (uint32_t i = 0;

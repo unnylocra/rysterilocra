@@ -41,7 +41,7 @@ void rr_vector_scale(struct rr_vector *this, float v)
     this->y *= v;
 }
 
-int rr_vector_equals(struct rr_vector *this, struct rr_vector *other)
+uint8_t rr_vector_equals(struct rr_vector *this, struct rr_vector *other)
 {
     return this->x == other->x && this->y == other->y;
 }
@@ -53,7 +53,7 @@ void rr_vector_normalize(struct rr_vector *this)
 
 void rr_vector_set_magnitude(struct rr_vector *this, float mag)
 {
-    if (this->x == 0 && this->y == 0)
+    if (rr_vector_is_null(this))
         return;
     rr_vector_scale(this, mag / sqrtf(this->x * this->x + this->y * this->y));
 }
@@ -74,7 +74,7 @@ void rr_vector_from_polar(struct rr_vector *this, float radius, float angle)
     this->y = radius * sinf(angle);
 }
 
-int rr_vector_magnitude_cmp(struct rr_vector *this, float v)
+int8_t rr_vector_magnitude_cmp(struct rr_vector *this, float v)
 {
     float mag2 = this->x * this->x + this->y * this->y;
     if (mag2 > v * v)
@@ -82,4 +82,9 @@ int rr_vector_magnitude_cmp(struct rr_vector *this, float v)
     if (mag2 == v * v)
         return 0;
     return -1;
+}
+
+uint8_t rr_vector_is_null(struct rr_vector *this)
+{
+    return this->x == 0 && this->y == 0;
 }
