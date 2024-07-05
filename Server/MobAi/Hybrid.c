@@ -566,7 +566,7 @@ void tick_ai_meteor(EntityIdx entity, struct rr_simulation *simulation)
         ai->ticks_until_next_action = 10;
         struct rr_vector normal = {physical->wall_collision.x,
                                    physical->wall_collision.y};
-        if (!rr_vector_is_null(&normal))
+        if (rr_vector_get_magnitude(&normal) != 0)
         {
             float angle = rr_vector_theta(&normal);
             physical->bearing_angle =

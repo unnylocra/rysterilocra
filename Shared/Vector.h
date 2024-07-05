@@ -15,8 +15,6 @@
 
 #pragma once
 
-#include <stdint.h>
-
 struct rr_vector
 {
     float x;
@@ -27,11 +25,10 @@ void rr_vector_set(struct rr_vector *, float, float);
 void rr_vector_add(struct rr_vector *, struct rr_vector *);
 void rr_vector_sub(struct rr_vector *, struct rr_vector *);
 void rr_vector_scale(struct rr_vector *, float);
-uint8_t rr_vector_equals(struct rr_vector *, struct rr_vector *);
+int rr_vector_equals(struct rr_vector *, struct rr_vector *);
 void rr_vector_normalize(struct rr_vector *);
 void rr_vector_set_magnitude(struct rr_vector *, float);
 float rr_vector_get_magnitude(struct rr_vector *);
 float rr_vector_theta(struct rr_vector *);
 void rr_vector_from_polar(struct rr_vector *, float, float);
-int8_t rr_vector_magnitude_cmp(struct rr_vector *, float);
-uint8_t rr_vector_is_null(struct rr_vector *);
+int rr_vector_magnitude_cmp(struct rr_vector *, float);
