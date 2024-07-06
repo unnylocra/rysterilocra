@@ -17,12 +17,12 @@
 
 #include <Client/Game.h>
 
-void rr_system_particle_render_tick(struct rr_game *game, float delta)
+void rr_system_particle_render_tick(struct rr_game *game, struct rr_particle_manager *particle_manager, float delta)
 {
-    for (uint16_t i = 0; i < game->particle_manager.size; ++i)
+    for (uint16_t i = 0; i < particle_manager->size; ++i)
     {
         struct rr_simulation_animation *particle =
-            &game->particle_manager.particles[i];
+            &particle_manager->particles[i];
         if (!game->cache.low_performance_mode)
             rr_renderer_render_particle(game->renderer, particle);
         particle->opacity *= 0.9;
@@ -34,10 +34,10 @@ void rr_system_particle_render_tick(struct rr_game *game, float delta)
             particle->y += particle->velocity.y;
         }
     }
-    for (uint16_t i = game->particle_manager.size; i > 0; --i)
+    for (uint16_t i = particle_manager->size; i > 0; --i)
     {
-        if (game->particle_manager.particles[i - 1].opacity < 0.01)
-            rr_particle_delete(&game->particle_manager,
-                               &game->particle_manager.particles[i - 1]);
+        if (particle_manager->particles[i - 1].opacity < 0.01)
+            rr_particle_delete(particle_manager,
+                               &particle_manager->particles[i - 1]);
     }
 }

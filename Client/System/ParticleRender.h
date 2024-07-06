@@ -16,5 +16,6 @@
 #pragma once
 
 struct rr_game;
+struct rr_particle_manager;
 
-void rr_system_particle_render_tick(struct rr_game *, float);
+void rr_system_particle_render_tick(struct rr_game *, struct rr_particle_manager *, float);

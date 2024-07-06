@@ -895,6 +895,25 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
             this->inventory[id][rarity + 1] += successes;
             this->crafting_data.success_count = successes;
             this->crafting_data.animation = 0;
+            if (successes)
+            {
+                uint8_t s_rarity = rarity + 1;
+                for (uint8_t i = 0; i < s_rarity * s_rarity; ++i)
+                {
+                    struct rr_simulation_animation *particle =
+                        rr_particle_alloc(&this->crafting_particle_manager,
+                                          rr_animation_type_default);
+                    particle->x = 60 * (rr_frand() - 0.5);
+                    particle->y = 60 * (rr_frand() - 0.5);
+                    rr_vector_from_polar(&particle->velocity,
+                                         (2 + 8 * rr_frand()) * s_rarity,
+                                         -M_PI / 2 + rr_frand() - 0.5);
+                    rr_vector_set(&particle->acceleration, 0, 1);
+                    particle->size = (1 + rr_frand()) * sqrtf(s_rarity);
+                    particle->opacity = 1;
+                    particle->color = RR_RARITY_COLORS[s_rarity];
+                }
+            }
             break;
         }
         default:
@@ -1217,7 +1236,7 @@ void rr_game_tick(struct rr_game *this, float delta)
             render_component(health);
             render_component(drop);
             render_component(mob);
-            rr_system_particle_render_tick(this, delta);
+            rr_system_particle_render_tick(this, &this->particle_manager, delta);
             render_component(petal);
             render_component(flower);
             rr_renderer_context_state_free(this->renderer, &state1);
@@ -1311,7 +1330,7 @@ void rr_game_tick(struct rr_game *this, float delta)
             physical->animation_timer = rr_frand() * M_PI * 2;
             physical->parent_id = rand() % 3;
         }
-        rr_system_particle_render_tick(this, delta);
+        rr_system_particle_render_tick(this, &this->title_screen_particle_manager, delta);
         struct rr_renderer_context_state state2;
         for (uint32_t i = 0; i < this->simulation->petal_count; ++i)
         {

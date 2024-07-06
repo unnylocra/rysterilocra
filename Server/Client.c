@@ -220,7 +220,7 @@ int rr_server_client_read_from_api(struct rr_server_client *this,
         this->experience = 10000000000; // lvl 120
         for (uint8_t id = 1; id < rr_petal_id_max; ++id)
             for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
-                this->inventory[id][rarity] = 20;
+                this->inventory[id][rarity] = 1000;
     }
     id = rr_binary_encoder_read_uint8(encoder);
     while (id)

@@ -48,7 +48,9 @@ void rr_component_petal_render(EntityIdx entity, struct rr_game *game,
         // fixme: looks too different at 60 fps
         uint8_t exo = petal->rarity == rr_rarity_id_exotic;
         struct rr_simulation_animation *particle = rr_particle_alloc(
-            &game->particle_manager, rr_animation_type_default);
+            physical->on_title_screen ? &game->title_screen_particle_manager
+                                      : &game->particle_manager,
+            rr_animation_type_default);
         float angle =
             rr_vector_theta(&physical->lerp_velocity) - 0.5 + rr_frand();
         rr_vector_from_polar(&particle->velocity,

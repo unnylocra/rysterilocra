@@ -131,6 +131,8 @@ struct rr_dev_cheats
 struct rr_game
 {
     struct rr_particle_manager particle_manager;
+    struct rr_particle_manager title_screen_particle_manager;
+    struct rr_particle_manager crafting_particle_manager;
     struct rr_game_crafting_data crafting_data;
     struct rr_game_debug_info debug_info;
     struct rr_game_chat chat;
