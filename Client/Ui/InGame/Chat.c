@@ -26,18 +26,6 @@
 #include <Shared/pb.h>
 #include <Client/DOM.h>
 
-struct rr_ui_text_input_metadata
-{
-    uint32_t *buffer; // 4n method
-    char *out;
-    uint32_t length;
-    uint32_t max_length;
-    uint32_t caret_pos;
-    uint32_t drag_pos;
-    uint8_t dragging;
-    uint8_t focused;
-};
-
 static void chat_bar_on_event(struct rr_ui_element *this, struct rr_game *game)
 {
     if (game->input_data->mouse_buttons_up_this_tick & 1)
@@ -88,26 +76,14 @@ static void chat_bar_animate(struct rr_ui_element *this, struct rr_game *game)
     game->chat.chat_active_last_tick = game->chat.chat_active;
 };
 
-static uint8_t chatbar_choose(struct rr_ui_element *this, struct rr_game *game)
+static uint8_t chat_bar_choose(struct rr_ui_element *this, struct rr_game *game)
 {
     return game->chat.chat_active || game->chat.sending[0];
 }
 
-static void chatbar_animate(struct rr_ui_element *this, struct rr_game *game)
-{
-    struct rr_ui_text_input_metadata *data = this->data;
-    data->focused = game->chat.chat_active;
-}
-
-static void chatbar_on_event(struct rr_ui_element *this, struct rr_game *game)
-{
-    uint8_t mouse_over = rr_ui_mouse_over(this, game);
-    if (game->input_data->mouse_buttons_up_this_tick & 1)
-        game->chat.chat_active = mouse_over;
-}
-
 static void chat_animate(struct rr_ui_element *this, struct rr_game *game)
 {
+    rr_ui_default_animate(this, game);
     if (game->cache.disable_chat || game->cache.hide_ui)
     {
         this->completely_hidden = 1;
@@ -145,30 +121,23 @@ struct rr_ui_element *rr_ui_message_box_init(struct rr_game *game)
 
 struct rr_ui_element *rr_ui_chat_bar_init(struct rr_game *game)
 {
-    struct rr_ui_element *chatbar = rr_ui_text_input_init(200, 18, game->chat.sending, 64, "_0x4523");
-    chatbar->animate = chatbar_animate;
-    chatbar->on_event = chatbar_on_event;
-    // fixme: click doesn't work
+    struct rr_ui_element *input = rr_ui_text_input_init(200, 18, game->chat.sending, 64, "_0x4523");
     struct rr_ui_element *text = rr_ui_text_init("Press [Enter] or click here to chat", 14, 0xffffffff);
-    text->prevent_on_event = 1;
-    chatbar->fill = 0xffffffff;
-    chatbar->stroke = 0xff222222;
-    struct rr_ui_element *this = rr_ui_set_background(
-        rr_ui_h_container_init(rr_ui_container_init(), 10, 0,
-        rr_ui_choose_element_init(
-            rr_ui_flex_container_init(
-                rr_ui_text_init("[Global]", 14, 0xffffffff),
-                chatbar,
-                10
-            ),
-            text,
-            chatbar_choose
+    struct rr_ui_element *inner = rr_ui_choose_element_init(
+        rr_ui_flex_container_init(
+            rr_ui_text_init("[Global]", 14, 0xffffffff),
+            input,
+            10
         ),
-        NULL)
-    , 0x80000000);
+        text,
+        chat_bar_choose
+    );
+    inner->prevent_on_event = 1;
+    struct rr_ui_element *this = rr_ui_set_background(
+        rr_ui_h_container_init(rr_ui_container_init(), 10, 0, inner, NULL),
+    0x80000000);
     this->animate = chat_bar_animate;
     this->on_event = chat_bar_on_event;
-    this->elements.start[0]->on_event = this->on_event;
     struct rr_ui_element *chat = rr_ui_v_container_init(rr_ui_container_init(), 10, 10,
         rr_ui_set_justify(rr_ui_message_box_init(game), -1, -1),
         rr_ui_set_justify(this, -1, -1),
