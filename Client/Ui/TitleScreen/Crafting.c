@@ -209,8 +209,8 @@ static void crafting_ring_petal_on_render(struct rr_ui_element *this,
     rr_renderer_set_text_size(renderer, 18);
     rr_renderer_set_line_width(renderer, 18 * 0.12);
 
-    char out[12];
-    sprintf(&out[0], "x%d", data->count);
+    char out[12] = "x";
+    rr_sprintf(&out[1], data->count);
     rr_renderer_stroke_text(renderer, (char const *)&out, 0, 0);
     rr_renderer_fill_text(renderer, (char const *)&out, 0, 0);
 }
@@ -302,8 +302,8 @@ static void crafting_result_container_on_render(struct rr_ui_element *this,
     rr_renderer_set_text_size(renderer, 18);
     rr_renderer_set_line_width(renderer, 18 * 0.12);
 
-    char out[12];
-    sprintf(&out[0], "x%d", game->crafting_data.success_count);
+    char out[12] = "x";
+    rr_sprintf(&out[1], game->crafting_data.success_count);
     rr_renderer_stroke_text(renderer, (char const *)&out, 0, 0);
     rr_renderer_fill_text(renderer, (char const *)&out, 0, 0);
 }
@@ -327,13 +327,38 @@ static struct rr_ui_element *crafting_button_init()
     return this;
 }
 
+static void crafting_attempt_text_animate(struct rr_ui_element *this,
+                                          struct rr_game *game)
+{
+    struct rr_ui_text_metadata *data = this->data;
+    if (game->crafting_data.crafting_id == 0)
+    {
+        data->text = "Attempt ?";
+        rr_ui_set_background(this, 0xff888888);
+        return;
+    }
+    this->fill = RR_RARITY_COLORS[game->crafting_data.crafting_rarity + 1];
+    static char text[100] = {0};
+    snprintf(text, 99, "Attempt %d",
+             game->failed_crafts[game->crafting_data.crafting_id]
+                                [game->crafting_data.crafting_rarity] + 1);
+    data->text = text;
+}
+
+static struct rr_ui_element *crafting_attempt_text_init()
+{
+    struct rr_ui_element *this = rr_ui_text_init("Attempt ?", 14, 0xff888888);
+    this->animate = crafting_attempt_text_animate;
+    return this;
+}
+
 static void crafting_chance_text_animate(struct rr_ui_element *this,
                                          struct rr_game *game)
 {
     struct rr_ui_text_metadata *data = this->data;
     if (game->crafting_data.crafting_id == 0)
     {
-        data->text = "Chance: --%";
+        data->text = "Chance: ?%";
         rr_ui_set_background(this, 0xff888888);
         return;
     }
@@ -350,7 +375,7 @@ static void crafting_chance_text_animate(struct rr_ui_element *this,
 
 static struct rr_ui_element *crafting_chance_text_init()
 {
-    struct rr_ui_element *this = rr_ui_text_init("Chance: --%", 14, 0xff888888);
+    struct rr_ui_element *this = rr_ui_text_init("Chance: ?%", 14, 0xff888888);
     this->animate = crafting_chance_text_animate;
     return this;
 }
@@ -498,8 +523,8 @@ static void crafting_inventory_button_on_render(struct rr_ui_element *this,
     rr_renderer_set_text_size(renderer, 18);
     rr_renderer_set_line_width(renderer, 18 * 0.12);
 
-    char out[12];
-    sprintf(&out[0], "x%d", data->count);
+    char out[12] = "x";
+    rr_sprintf(&out[1], data->count);
     rr_renderer_stroke_text(renderer, (char const *)&out, 0, 0);
     rr_renderer_fill_text(renderer, (char const *)&out, 0, 0);
 }
@@ -556,8 +581,9 @@ struct rr_ui_element *rr_ui_crafting_container_init()
                     rr_ui_h_container_init(
                         rr_ui_container_init(), 0, 25,
                         rr_ui_v_container_init(rr_ui_container_init(), 0, 10,
-                                               rr_ui_static_space_init(38),
+                                               rr_ui_static_space_init(62),
                                                crafting_button_init(),
+                                               crafting_attempt_text_init(),
                                                crafting_chance_text_init(),
                                                crafting_xp_text_init(), NULL),
                         craft, NULL),

@@ -60,7 +60,8 @@ EntityIdx rr_simulation_alloc_player(struct rr_simulation *this,
     physical->friction = 0.75;
     if (player_info->client->dev)
         rr_component_physical_set_angle(physical, M_PI);
-    if (rand() < RAND_MAX / 1000)
+    // easter egg
+    if (rr_frand() < 0.001)
         rr_component_physical_set_angle(physical, rr_frand() * M_PI * 2);
 
     memcpy(rr_simulation_add_flower(this, flower_id)->nickname,

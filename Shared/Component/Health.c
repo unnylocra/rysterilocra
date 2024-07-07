@@ -83,7 +83,7 @@ void rr_component_health_do_damage(struct rr_simulation *simulation,
         return;
     uint8_t no_reduction = this->flags & 4;
     this->flags &= ~4;
-    if (rr_simulation_has_mob(simulation, from))
+    /*if (rr_simulation_has_mob(simulation, from))
     {
         struct rr_component_mob *from_mob = rr_simulation_get_mob(simulation, from);
         if (from_mob->id == rr_mob_id_edmontosaurus)
@@ -95,7 +95,7 @@ void rr_component_health_do_damage(struct rr_simulation *simulation,
                 (from_mob->rarity < mob->rarity || from_mob->rarity - mob->rarity < 2))
                 return; // blame Lans ST
         }
-    }
+    }*/
     if (!no_reduction)
     {
         v *= 1 - this->damage_reduction_ratio;
