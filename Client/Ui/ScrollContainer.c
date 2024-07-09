@@ -48,8 +48,12 @@ static void scroll_container_on_render(struct rr_ui_element *this,
                                        struct rr_game *game)
 {
     struct scroll_container_metadata *data = this->data;
-    if (rr_ui_mouse_over(this, game))
+    if (this->elements.start[0]->abs_height > this->abs_height &&
+        rr_ui_mouse_over(this, game))
+    {
+        game->block_fov_adjustment = 1;
         data->y += game->input_data->scroll_delta * 0.4;
+    }
     if (data->y > this->elements.start[0]->abs_height - this->abs_height)
         data->y = this->elements.start[0]->abs_height - this->abs_height;
     if (data->y < 0)

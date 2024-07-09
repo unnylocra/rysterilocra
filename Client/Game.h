@@ -60,6 +60,10 @@ struct rr_game_crafting_data
     uint32_t success_count;
     uint8_t crafting_id;
     uint8_t crafting_rarity;
+    uint32_t temp_successes;
+    uint32_t temp_fails;
+    uint32_t temp_attempts;
+    double temp_xp;
 };
 
 struct rr_game_chat_message
@@ -182,6 +186,7 @@ struct rr_game
     uint8_t joined_squad : 1;
     uint8_t simulation_ready : 1;
     uint8_t block_ui_input : 1;
+    uint8_t block_fov_adjustment : 1;
     uint8_t is_mobile : 1;
     uint8_t logged_in : 1;
     uint8_t account_linked : 1;

@@ -81,7 +81,8 @@ static void craft_button_on_event(struct rr_ui_element *this,
         if (game->input_data->mouse_buttons_up_this_tick & 1 &&
             game->pressed == this)
         {
-            game->crafting_data.animation = 50;
+            game->crafting_data.animation = 10;
+            game->crafting_data.temp_fails = 0;
             data->clickable = 0;
             struct proto_bug encoder;
             proto_bug_init(&encoder, RR_OUTGOING_PACKET);
@@ -134,6 +135,7 @@ static void crafting_ring_petal_on_event(struct rr_ui_element *this,
         {
             game->crafting_data.count = game->crafting_data.success_count = 0;
             game->crafting_data.crafting_id = game->crafting_data.crafting_rarity = 0;
+            data->count = 0;
         }
         game->cursor = rr_game_cursor_pointer;
     }
@@ -316,6 +318,7 @@ static struct rr_ui_element *crafting_result_container_init()
     this->on_render = crafting_result_container_on_render;
     this->on_event = crafting_result_container_on_event;
     this->should_show = crafting_result_container_should_show;
+    this->animate = rr_ui_instant_hide_animate;
     return this;
 }
 
@@ -457,13 +460,13 @@ static void crafting_inventory_button_on_event(struct rr_ui_element *this,
             if (game->input_data->mouse_buttons_up_this_tick & 1 &&
                 game->pressed == this)
             {
+                game->crafting_data.success_count = 0;
                 if (game->crafting_data.crafting_id != data->id ||
                     game->crafting_data.crafting_rarity != data->rarity)
                 {
                     game->crafting_data.crafting_id = data->id;
                     game->crafting_data.crafting_rarity = data->rarity;
                     game->crafting_data.count = 0;
-                    game->crafting_data.success_count = 0;
                     data->count = rr_game_get_adjusted_inventory_count(
                         game, data->id, data->rarity);
                 }

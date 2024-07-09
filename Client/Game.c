@@ -881,39 +881,24 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
             break;
         case rr_clientbound_craft_result:
         {
-            uint8_t id = proto_bug_read_uint8(&encoder, "craft id");
-            uint8_t rarity = proto_bug_read_uint8(&encoder, "craft rarity");
-            uint32_t successes =
+            this->crafting_data.crafting_id =
+                proto_bug_read_uint8(&encoder, "craft id");
+            this->crafting_data.crafting_rarity =
+                proto_bug_read_uint8(&encoder, "craft rarity");
+            this->crafting_data.temp_successes =
                 proto_bug_read_varuint(&encoder, "success count");
-            uint32_t fails = proto_bug_read_varuint(&encoder, "fail count");
-            uint32_t attempts = proto_bug_read_varuint(&encoder, "attempts");
-            this->cache.experience +=
+            this->crafting_data.temp_fails =
+                proto_bug_read_varuint(&encoder, "fail count");
+            this->crafting_data.temp_attempts =
+                proto_bug_read_varuint(&encoder, "attempts");
+            this->crafting_data.temp_xp =
                 proto_bug_read_float64(&encoder, "craft xp");
-            this->failed_crafts[id][rarity] = attempts;
-            this->inventory[id][rarity] -= fails;
-            this->crafting_data.count -= fails;
-            this->inventory[id][rarity + 1] += successes;
-            this->crafting_data.success_count = successes;
-            this->crafting_data.animation = 0;
-            if (successes)
-            {
-                uint8_t s_rarity = rarity + 1;
-                for (uint8_t i = 0; i < s_rarity * s_rarity; ++i)
-                {
-                    struct rr_simulation_animation *particle =
-                        rr_particle_alloc(&this->crafting_particle_manager,
-                                          rr_animation_type_default);
-                    particle->x = 60 * (rr_frand() - 0.5);
-                    particle->y = 60 * (rr_frand() - 0.5);
-                    rr_vector_from_polar(&particle->velocity,
-                                         (2 + 8 * rr_frand()) * s_rarity,
-                                         -M_PI / 2 + rr_frand() - 0.5);
-                    rr_vector_set(&particle->acceleration, 0, 1);
-                    particle->size = (1 + rr_frand()) * sqrtf(s_rarity);
-                    particle->opacity = 1;
-                    particle->color = RR_RARITY_COLORS[s_rarity];
-                }
-            }
+            this->crafting_data.animation =
+                powf(1.25, this->crafting_data.crafting_rarity);
+            if (this->crafting_data.temp_successes == 0)
+                this->crafting_data.animation *=
+                    (5 - (this->crafting_data.count -
+                          this->crafting_data.temp_fails)) / 5.0f;
             break;
         }
         default:
@@ -1360,9 +1345,43 @@ void rr_game_tick(struct rr_game *this, float delta)
         rr_renderer_context_state_free(this->renderer, &state1);
     }
     // ui
-    this->crafting_data.animation -= delta;
-    if (this->crafting_data.animation < 0)
-        this->crafting_data.animation = 0;
+    if (this->crafting_data.animation > 0)
+    {
+        this->crafting_data.animation -= delta;
+        if (this->crafting_data.animation < 0)
+            this->crafting_data.animation = 0;
+        if (this->crafting_data.animation == 0 && this->crafting_data.temp_fails)
+        {
+            uint8_t id = this->crafting_data.crafting_id;
+            uint8_t rarity = this->crafting_data.crafting_rarity;
+            uint8_t s_rarity = rarity + 1;
+            this->cache.experience += this->crafting_data.temp_xp;
+            this->failed_crafts[id][rarity] = this->crafting_data.temp_attempts;
+            this->inventory[id][rarity] -= this->crafting_data.temp_fails;
+            this->crafting_data.count -= this->crafting_data.temp_fails;
+            this->inventory[id][s_rarity] += this->crafting_data.temp_successes;
+            this->crafting_data.success_count =
+                this->crafting_data.temp_successes;
+            if (this->crafting_data.temp_successes)
+            {
+                for (uint8_t i = 0; i < s_rarity * s_rarity; ++i)
+                {
+                    struct rr_simulation_animation *particle =
+                        rr_particle_alloc(&this->crafting_particle_manager,
+                                          rr_animation_type_default);
+                    particle->x = 60 * (rr_frand() - 0.5);
+                    particle->y = 60 * (rr_frand() - 0.5);
+                    rr_vector_from_polar(&particle->velocity,
+                                         (2 + 8 * rr_frand()) * s_rarity,
+                                         -M_PI / 2 + rr_frand() - 0.5);
+                    rr_vector_set(&particle->acceleration, 0, 1);
+                    particle->size = (1 + rr_frand()) * sqrtf(s_rarity);
+                    particle->opacity = 1;
+                    particle->color = RR_RARITY_COLORS[s_rarity];
+                }
+            }
+        }
+    }
     this->prev_focused = this->focused;
     this->cursor = rr_game_cursor_default;
     if (!this->block_ui_input)
@@ -1378,6 +1397,7 @@ void rr_game_tick(struct rr_game *this, float delta)
             this->prev_focused->on_event(this->prev_focused, this);
     }
     this->block_ui_input = 0;
+    this->block_fov_adjustment = 0;
     rr_ui_container_refactor(this->window, this);
     rr_ui_render_element(this->window, this);
     rr_dom_set_cursor(this->cursor);
@@ -1430,7 +1450,7 @@ void rr_game_tick(struct rr_game *this, float delta)
     }
     if (this->cache.hide_ui && this->simulation_ready)
         this->menu_open = 0;
-    if (this->menu_open == 0)
+    if (!this->block_fov_adjustment)
         this->player_info->fov_adjustment =
             rr_fclamp(this->player_info->fov_adjustment -
             this->input_data->scroll_delta * 0.001, 0, 1);
