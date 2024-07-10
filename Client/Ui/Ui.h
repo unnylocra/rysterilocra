@@ -212,7 +212,7 @@ extern struct rr_ui_element *rr_ui_mob_tooltip_init(uint8_t, uint8_t);
 extern struct rr_ui_element *rr_ui_mob_gallery_toggle_button_init();
 extern struct rr_ui_element *rr_ui_mob_container_init();
 
-extern struct rr_ui_element *rr_ui_crafting_container_init();
+extern struct rr_ui_element *rr_ui_crafting_container_init(struct rr_game *);
 extern struct rr_ui_element *rr_ui_crafting_toggle_button_init();
 
 extern struct rr_ui_element *rr_ui_finished_game_screen_init();

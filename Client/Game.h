@@ -56,6 +56,7 @@ struct rr_game_debug_info
 struct rr_game_crafting_data
 {
     float animation;
+    float autocraft_animation;
     uint32_t count;
     uint32_t success_count;
     uint8_t crafting_id;
@@ -64,6 +65,7 @@ struct rr_game_crafting_data
     uint32_t temp_fails;
     uint32_t temp_attempts;
     double temp_xp;
+    uint8_t autocraft;
 };
 
 struct rr_game_chat_message
@@ -191,6 +193,7 @@ struct rr_game
     uint8_t logged_in : 1;
     uint8_t account_linked : 1;
     uint8_t is_dev : 1;
+    uint8_t text_input_focused : 1;
     uint8_t socket_error;
     uint8_t menu_open;
     uint8_t ticks_until_text_cache;

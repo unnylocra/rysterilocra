@@ -52,7 +52,7 @@
 #include <Shared/pb.h>
 #include <Shared/MagicNumber.h>
 
-static void validate_loadout(struct rr_game *this)
+static void rr_game_validate_loadout(struct rr_game *this)
 {
     memset(this->loadout_counts, 0, sizeof this->loadout_counts);
     for (uint8_t i = 0; i < 20; ++i)
@@ -69,29 +69,44 @@ static void validate_loadout(struct rr_game *this)
     }
 }
 
-void read_account(struct proto_bug *decoder, struct rr_game *game)
+static void rr_game_read_account(struct rr_game *this, struct proto_bug *decoder)
 {
-    memset(game->inventory, 0, sizeof game->inventory);
-    char uuid[sizeof game->rivet_account.uuid];
-    proto_bug_read_string(decoder, uuid, sizeof game->rivet_account.uuid,
+    memset(this->inventory, 0, sizeof this->inventory);
+    char uuid[sizeof this->rivet_account.uuid];
+    proto_bug_read_string(decoder, uuid, sizeof this->rivet_account.uuid,
                           "uuid");
-    game->cache.experience = proto_bug_read_float64(decoder, "xp");
+    this->cache.experience = proto_bug_read_float64(decoder, "xp");
     uint8_t id;
     while ((id = proto_bug_read_uint8(decoder, "id")))
     {
         uint8_t rarity = proto_bug_read_uint8(decoder, "rarity");
         uint32_t count = proto_bug_read_varuint(decoder, "count");
-        game->inventory[id][rarity] = count;
+        this->inventory[id][rarity] = count;
     }
     while ((id = proto_bug_read_uint8(decoder, "id")))
     {
         uint8_t rarity = proto_bug_read_uint8(decoder, "rarity");
         uint32_t count = proto_bug_read_varuint(decoder, "count");
-        game->failed_crafts[id][rarity] = count;
+        this->failed_crafts[id][rarity] = count;
     }
 }
 
-static void update_significant_rarity(struct rr_game *this)
+uint32_t rr_game_get_adjusted_inventory_count(struct rr_game *this, uint8_t id,
+                                              uint8_t rarity)
+{
+    uint32_t cnt =
+        this->inventory[id][rarity] - this->loadout_counts[id][rarity];
+    if (id == this->crafting_data.crafting_id)
+    {
+        if (rarity == this->crafting_data.crafting_rarity)
+            cnt -= this->crafting_data.count;
+        else if (rarity == this->crafting_data.crafting_rarity + 1)
+            cnt -= this->crafting_data.success_count;
+    }
+    return cnt;
+}
+
+static void rr_game_update_significant_rarity(struct rr_game *this)
 {
     uint32_t count = 0;
     for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
@@ -105,6 +120,99 @@ static void update_significant_rarity(struct rr_game *this)
                 break;
             }
         }
+}
+
+static void rr_game_crafting_tick(struct rr_game *this, float delta)
+{
+    if (this->crafting_data.animation > 0)
+    {
+        this->crafting_data.animation -= delta;
+        if (this->crafting_data.animation < 0)
+            this->crafting_data.animation = 0;
+        if (this->crafting_data.animation == 0 && this->crafting_data.temp_fails)
+        {
+            uint8_t id = this->crafting_data.crafting_id;
+            uint8_t rarity = this->crafting_data.crafting_rarity;
+            uint8_t s_rarity = rarity + 1;
+            this->cache.experience += this->crafting_data.temp_xp;
+            this->failed_crafts[id][rarity] = this->crafting_data.temp_attempts;
+            this->inventory[id][rarity] -= this->crafting_data.temp_fails;
+            this->crafting_data.count -= this->crafting_data.temp_fails;
+            this->inventory[id][s_rarity] += this->crafting_data.temp_successes;
+            this->crafting_data.success_count =
+                this->crafting_data.temp_successes;
+            if (this->crafting_data.temp_successes)
+            {
+                for (uint8_t i = 0; i < s_rarity * s_rarity; ++i)
+                {
+                    struct rr_simulation_animation *particle =
+                        rr_particle_alloc(&this->crafting_particle_manager,
+                                          rr_animation_type_default);
+                    particle->x = 60 * (rr_frand() - 0.5);
+                    particle->y = 60 * (rr_frand() - 0.5);
+                    rr_vector_from_polar(&particle->velocity,
+                                         (2 + 8 * rr_frand()) * s_rarity,
+                                         -M_PI / 2 + rr_frand() - 0.5);
+                    rr_vector_set(&particle->acceleration, 0, 1);
+                    particle->size = (1 + rr_frand()) * sqrtf(s_rarity);
+                    particle->opacity = 1;
+                    particle->color = RR_RARITY_COLORS[s_rarity];
+                }
+            }
+        }
+    }
+}
+
+static void rr_game_autocraft_tick(struct rr_game *this, float delta)
+{
+    if (this->crafting_data.animation == 0)
+    {
+        this->crafting_data.autocraft_animation -= delta;
+        if (this->crafting_data.autocraft_animation < 0 ||
+            !this->crafting_data.autocraft)
+            this->crafting_data.autocraft_animation = 0;
+    }
+    if (!this->socket_ready || this->menu_open != rr_game_menu_crafting)
+        this->crafting_data.autocraft = 0;
+    if (!this->crafting_data.autocraft || this->crafting_data.animation > 0 ||
+        this->crafting_data.autocraft_animation > 0)
+        return;
+    for (uint8_t id = 1; id <= rr_petal_id_third_eye; ++id)
+        for (uint8_t rarity = 0; rarity < rr_rarity_id_max - 1; ++rarity)
+        {
+            if (this->inventory[id][rarity] < this->slots_unlocked + 4)
+                continue;
+            uint32_t count =
+                this->inventory[id][rarity] - this->loadout_counts[id][rarity];
+            if (count < 5)
+                continue;
+            this->crafting_data.crafting_id = id;
+            this->crafting_data.crafting_rarity = rarity;
+            this->crafting_data.count = this->inventory[id][rarity] -
+                                        this->slots_unlocked + 1;
+            if (count < this->crafting_data.count)
+                this->crafting_data.count = count;
+            this->crafting_data.success_count = 0;
+            this->crafting_data.animation = 10;
+            this->crafting_data.autocraft_animation = 1;
+            this->crafting_data.temp_fails = 0;
+            struct proto_bug encoder;
+            proto_bug_init(&encoder, RR_OUTGOING_PACKET);
+            proto_bug_write_uint8(&encoder, this->socket.quick_verification, "qv");
+            proto_bug_write_uint8(&encoder, rr_serverbound_petals_craft,
+                                  "header");
+            proto_bug_write_uint8(&encoder, this->crafting_data.crafting_id,
+                                  "craft id");
+            proto_bug_write_uint8(&encoder, this->crafting_data.crafting_rarity,
+                                  "craft rarity");
+            proto_bug_write_varuint(&encoder, this->crafting_data.count,
+                                    "craft count");
+            rr_websocket_send(&this->socket, encoder.current - encoder.start);
+            return;
+        }
+    this->crafting_data.autocraft = 0;
+    this->crafting_data.count = this->crafting_data.success_count = 0;
+    this->crafting_data.crafting_id = this->crafting_data.crafting_rarity = 0;
 }
 
 void rr_api_on_get_password(char *s, void *captures)
@@ -518,7 +626,7 @@ void rr_game_init(struct rr_game *this)
 
     rr_ui_container_add_element(this->window, rr_ui_container_add_element(rr_ui_inventory_container_init(), close_menu_button_init(25))->container);
     rr_ui_container_add_element(this->window, rr_ui_container_add_element(rr_ui_mob_container_init(), close_menu_button_init(25))->container);
-    rr_ui_container_add_element(this->window, rr_ui_container_add_element(rr_ui_crafting_container_init(), close_menu_button_init(25))->container);
+    rr_ui_container_add_element(this->window, rr_ui_container_add_element(rr_ui_crafting_container_init(this), close_menu_button_init(25))->container);
     rr_ui_container_add_element(this->window, rr_ui_container_add_element(rr_ui_settings_container_init(this), close_menu_button_init(25))->container);
     rr_ui_container_add_element(this->window, rr_ui_container_add_element(rr_ui_account_container_init(this), close_menu_button_init(25))->container);
     rr_ui_container_add_element(this->window, rr_ui_container_add_element(rr_ui_dev_panel_container_init(this), close_menu_button_init(25))->container);
@@ -877,7 +985,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
             this->joined_squad = 0;
             break;
         case rr_clientbound_account_result:
-            read_account(&encoder, this);
+            rr_game_read_account(this, &encoder);
             break;
         case rr_clientbound_craft_result:
         {
@@ -1157,10 +1265,11 @@ void rr_game_tick(struct rr_game *this, float delta)
     struct timeval end;
 
     gettimeofday(&start, NULL);
+    this->text_input_focused = rr_is_text_input_focused();
     this->slots_unlocked =
         RR_SLOT_COUNT_FROM_LEVEL(level_from_xp(this->cache.experience));
-    validate_loadout(this);
-    update_significant_rarity(this);
+    rr_game_validate_loadout(this);
+    rr_game_update_significant_rarity(this);
 
     rr_game_cache_data(this);
 
@@ -1345,43 +1454,6 @@ void rr_game_tick(struct rr_game *this, float delta)
         rr_renderer_context_state_free(this->renderer, &state1);
     }
     // ui
-    if (this->crafting_data.animation > 0)
-    {
-        this->crafting_data.animation -= delta;
-        if (this->crafting_data.animation < 0)
-            this->crafting_data.animation = 0;
-        if (this->crafting_data.animation == 0 && this->crafting_data.temp_fails)
-        {
-            uint8_t id = this->crafting_data.crafting_id;
-            uint8_t rarity = this->crafting_data.crafting_rarity;
-            uint8_t s_rarity = rarity + 1;
-            this->cache.experience += this->crafting_data.temp_xp;
-            this->failed_crafts[id][rarity] = this->crafting_data.temp_attempts;
-            this->inventory[id][rarity] -= this->crafting_data.temp_fails;
-            this->crafting_data.count -= this->crafting_data.temp_fails;
-            this->inventory[id][s_rarity] += this->crafting_data.temp_successes;
-            this->crafting_data.success_count =
-                this->crafting_data.temp_successes;
-            if (this->crafting_data.temp_successes)
-            {
-                for (uint8_t i = 0; i < s_rarity * s_rarity; ++i)
-                {
-                    struct rr_simulation_animation *particle =
-                        rr_particle_alloc(&this->crafting_particle_manager,
-                                          rr_animation_type_default);
-                    particle->x = 60 * (rr_frand() - 0.5);
-                    particle->y = 60 * (rr_frand() - 0.5);
-                    rr_vector_from_polar(&particle->velocity,
-                                         (2 + 8 * rr_frand()) * s_rarity,
-                                         -M_PI / 2 + rr_frand() - 0.5);
-                    rr_vector_set(&particle->acceleration, 0, 1);
-                    particle->size = (1 + rr_frand()) * sqrtf(s_rarity);
-                    particle->opacity = 1;
-                    particle->color = RR_RARITY_COLORS[s_rarity];
-                }
-            }
-        }
-    }
     this->prev_focused = this->focused;
     this->cursor = rr_game_cursor_default;
     if (!this->block_ui_input)
@@ -1401,6 +1473,8 @@ void rr_game_tick(struct rr_game *this, float delta)
     rr_ui_container_refactor(this->window, this);
     rr_ui_render_element(this->window, this);
     rr_dom_set_cursor(this->cursor);
+    rr_game_crafting_tick(this, delta);
+    rr_game_autocraft_tick(this, delta);
 #ifndef EMSCRIPTEN
     lws_service(this->socket.socket_context, -1);
 #endif
@@ -1431,7 +1505,7 @@ void rr_game_tick(struct rr_game *this, float delta)
     }
     else if (--this->ticks_until_reconnect == 0)
         rr_game_connect_socket(this);
-    if (!rr_is_text_input_focused())
+    if (!this->text_input_focused)
     {
         if (rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 186))
             this->cache.displaying_debug_information ^= 1;
@@ -1570,19 +1644,4 @@ void rr_rivet_lobby_on_find(char *s, char *token, uint16_t port, void *_game)
     sprintf(link, "ws%s://%s:%u\n", port == 443 ? "s" : "", s, port);
     memcpy(game->rivet_player_token, token, 400);
     rr_websocket_connect_to(&game->socket, link);
-}
-
-uint32_t rr_game_get_adjusted_inventory_count(struct rr_game *game, uint8_t id,
-                                              uint8_t rarity)
-{
-    uint32_t cnt =
-        game->inventory[id][rarity] - game->loadout_counts[id][rarity];
-    if (id == game->crafting_data.crafting_id)
-    {
-        if (rarity == game->crafting_data.crafting_rarity)
-            cnt -= game->crafting_data.count;
-        else if (rarity == game->crafting_data.crafting_rarity + 1)
-            cnt -= game->crafting_data.success_count;
-    }
-    return cnt;
 }

@@ -69,7 +69,23 @@ static uint8_t can_craft(struct rr_game *game)
            game->crafting_data.count >= PETALS_PER_CRAFT &&
            game->crafting_data.crafting_id != 0 &&
            game->crafting_data.crafting_rarity < rr_rarity_id_max - 1 &&
-           game->crafting_data.animation == 0;
+           game->crafting_data.animation == 0 &&
+           !game->crafting_data.autocraft;
+}
+
+static uint8_t can_autocraft(struct rr_game *game)
+{
+    for (uint8_t id = 1; id <= rr_petal_id_third_eye; ++id)
+        for (uint8_t rarity = 0; rarity < rr_rarity_id_max - 1; ++rarity)
+        {
+            if (game->inventory[id][rarity] < game->slots_unlocked + 4)
+                continue;
+            if (game->inventory[id][rarity] -
+                game->loadout_counts[id][rarity] < 5)
+                continue;
+            return 1;
+        }
+    return 0;
 }
 
 static void craft_button_on_event(struct rr_ui_element *this,
@@ -82,6 +98,7 @@ static void craft_button_on_event(struct rr_ui_element *this,
             game->pressed == this)
         {
             game->crafting_data.animation = 10;
+            game->crafting_data.autocraft_animation = 1;
             game->crafting_data.temp_fails = 0;
             data->clickable = 0;
             struct proto_bug encoder;
@@ -128,14 +145,13 @@ static void crafting_ring_petal_on_event(struct rr_ui_element *this,
     if (game->crafting_data.crafting_id == 0)
         return;
     struct crafting_ring_button_metadata *data = this->data;
-    if (game->crafting_data.animation == 0)
+    if (game->crafting_data.animation == 0 && !game->crafting_data.autocraft)
     {
         if (game->input_data->mouse_buttons_up_this_tick & 1 &&
             game->pressed == this)
         {
-            game->crafting_data.count = game->crafting_data.success_count = 0;
+            data->count = game->crafting_data.count = game->crafting_data.success_count = 0;
             game->crafting_data.crafting_id = game->crafting_data.crafting_rarity = 0;
-            data->count = 0;
         }
         game->cursor = rr_game_cursor_pointer;
     }
@@ -150,11 +166,15 @@ static void crafting_ring_petal_on_event(struct rr_ui_element *this,
 static void crafting_result_container_on_event(struct rr_ui_element *this,
                                                struct rr_game *game)
 {
-    if (game->input_data->mouse_buttons_up_this_tick & 1 &&
-        game->pressed == this)
+    if (!game->crafting_data.autocraft)
     {
-        game->crafting_data.count = game->crafting_data.success_count = 0;
-        game->crafting_data.crafting_id = game->crafting_data.crafting_rarity = 0;
+        if (game->input_data->mouse_buttons_up_this_tick & 1 &&
+            game->pressed == this)
+        {
+            game->crafting_data.count = game->crafting_data.success_count = 0;
+            game->crafting_data.crafting_id = game->crafting_data.crafting_rarity = 0;
+        }
+        game->cursor = rr_game_cursor_pointer;
     }
     if (game->crafting_data.success_count > 0)
         rr_ui_render_tooltip_above(
@@ -162,7 +182,6 @@ static void crafting_result_container_on_event(struct rr_ui_element *this,
             game->petal_tooltips[game->crafting_data.crafting_id]
                                 [game->crafting_data.crafting_rarity + 1],
             game);
-    game->cursor = rr_game_cursor_pointer;
 }
 
 static void crafting_ring_petal_animate(struct rr_ui_element *this,
@@ -455,7 +474,7 @@ static void crafting_inventory_button_on_event(struct rr_ui_element *this,
     if (data->count > 0)
     {
         if (count >= PETALS_PER_CRAFT && data->rarity < rr_rarity_id_max - 1 &&
-            game->crafting_data.animation == 0)
+            game->crafting_data.animation == 0 && !game->crafting_data.autocraft)
         {
             if (game->input_data->mouse_buttons_up_this_tick & 1 &&
                 game->pressed == this)
@@ -509,7 +528,7 @@ static void crafting_inventory_button_on_render(struct rr_ui_element *this,
     if (game->crafting_data.crafting_id == data->id &&
         game->crafting_data.crafting_rarity == data->rarity)
         count += game->crafting_data.count;
-    if (count < 5)
+    if (count < 5 && data->rarity < rr_rarity_id_max - 1)
         rr_renderer_draw_background(renderer, rr_rarity_id_max + 2, 1);
     else
         rr_renderer_draw_background(renderer, data->rarity, 1);
@@ -561,7 +580,26 @@ static uint8_t crafting_container_should_show(struct rr_ui_element *this,
     return r;
 }
 
-struct rr_ui_element *rr_ui_crafting_container_init()
+static void toggle_autocraft_on_event(struct rr_ui_element *this,
+                                      struct rr_game *game)
+{
+    if (game->crafting_data.autocraft || can_autocraft(game))
+    {
+        if (game->input_data->mouse_buttons_up_this_tick & 1)
+            *((uint8_t *)this->data) ^= 1;
+        game->cursor = rr_game_cursor_pointer;
+    }
+}
+
+static struct rr_ui_element *toggle_autocraft_button_init(struct rr_game *game)
+{
+    struct rr_ui_element *this =
+        rr_ui_toggle_box_init(&game->crafting_data.autocraft);
+    this->on_event = toggle_autocraft_on_event;
+    return this;
+}
+
+struct rr_ui_element *rr_ui_crafting_container_init(struct rr_game *game)
 {
     struct rr_ui_element *this =
         rr_ui_2d_container_init(rr_rarity_id_max, 6, 15, 15);
@@ -590,7 +628,13 @@ struct rr_ui_element *rr_ui_crafting_container_init()
                                                crafting_chance_text_init(),
                                                crafting_xp_text_init(), NULL),
                         craft, NULL),
-                    rr_ui_scroll_container_init(this, 300), NULL),
+                    rr_ui_scroll_container_init(this, 300),
+                    rr_ui_h_container_init(
+                        rr_ui_container_init(), 0, 10,
+                        rr_ui_text_init("Autocraft", 14, 0xffffffff),
+                        toggle_autocraft_button_init(game),
+                        NULL),
+                    NULL),
                 -1, 1),
             10),
         0x40ffffff);
@@ -784,7 +828,7 @@ void crafting_toggle_button_animate(struct rr_ui_element *this,
                                     struct rr_game *game)
 {
     if (rr_bitset_get(game->input_data->keys_pressed_this_tick, 'C') &&
-        !rr_is_text_input_focused())
+        !game->text_input_focused)
     {
         if (game->menu_open == rr_game_menu_crafting)
             game->menu_open = rr_game_menu_none;

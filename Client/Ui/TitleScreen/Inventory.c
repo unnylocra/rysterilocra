@@ -276,7 +276,7 @@ void inventory_toggle_button_animate(struct rr_ui_element *this,
                                      struct rr_game *game)
 {
     if (rr_bitset_get(game->input_data->keys_pressed_this_tick, 'Z') &&
-        !rr_is_text_input_focused())
+        !game->text_input_focused)
     {
         if (game->menu_open == rr_game_menu_inventory)
             game->menu_open = rr_game_menu_none;
