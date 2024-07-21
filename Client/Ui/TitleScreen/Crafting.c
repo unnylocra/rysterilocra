@@ -75,7 +75,7 @@ static uint8_t can_craft(struct rr_game *game)
 
 static uint8_t can_autocraft(struct rr_game *game)
 {
-    for (uint8_t id = 1; id <= rr_petal_id_third_eye; ++id)
+    for (uint8_t id = 1; id <= rr_petal_id_nest; ++id)
         for (uint8_t rarity = 0; rarity < rr_rarity_id_max - 1; ++rarity)
         {
             if (game->inventory[id][rarity] < game->slots_unlocked + 4)
@@ -603,7 +603,7 @@ struct rr_ui_element *rr_ui_crafting_container_init(struct rr_game *game)
 {
     struct rr_ui_element *this =
         rr_ui_2d_container_init(rr_rarity_id_max, 6, 15, 15);
-    for (uint8_t id = 1; id <= rr_petal_id_third_eye; ++id)
+    for (uint8_t id = 1; id <= rr_petal_id_nest; ++id)
         for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
             rr_ui_container_add_element(
                 this, crafting_inventory_button_init(id, rarity));

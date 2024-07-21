@@ -129,8 +129,27 @@ static void colliding_with_function(uint64_t i, void *_captures)
     float distance = rr_vector_get_magnitude(&delta);
     if (distance == 0)
         return;
-    float v2_coeff = physical1->mass / (physical1->mass + physical2->mass);
-    float v1_coeff = physical2->mass / (physical1->mass + physical2->mass);
+    float v2_coeff, v1_coeff;
+    if (physical1->mass == -1 && physical2->mass == -1)
+    {
+        v2_coeff = 0.5f;
+        v1_coeff = 0.5f;
+    }
+    else if (physical1->mass == -1)
+    {
+        v2_coeff = 1.0f;
+        v1_coeff = 0.0f;
+    }
+    else if (physical2->mass == -1)
+    {
+        v2_coeff = 0.0f;
+        v1_coeff = 1.0f;
+    }
+    else
+    {
+        v2_coeff = physical1->mass / (physical1->mass + physical2->mass);
+        v1_coeff = physical2->mass / (physical1->mass + physical2->mass);
+    }
     {
         float overlap = (distance - physical1->radius - physical2->radius);
         physical1->collision_velocity.x +=
@@ -168,15 +187,14 @@ physical2->velocity.y -= delta.x * vel_2;
 */
 // printf("%f %f\n", vf_1, vf_2);
 #define KNOCKBACK_CONST (8.0f / 2)
-        float coeff = (physical2->mass) / (physical1->mass + physical2->mass);
         rr_vector_normalize(&delta);
         physical1->acceleration.x -=
-            coeff * KNOCKBACK_CONST * delta.x * physical2->knockback_scale;
+            v1_coeff * KNOCKBACK_CONST * delta.x * physical2->knockback_scale;
         physical1->acceleration.y -=
-            coeff * KNOCKBACK_CONST * delta.y * physical2->knockback_scale;
-        physical2->acceleration.x -= (coeff - 1) * KNOCKBACK_CONST * delta.x *
+            v1_coeff * KNOCKBACK_CONST * delta.y * physical2->knockback_scale;
+        physical2->acceleration.x -= (v1_coeff - 1) * KNOCKBACK_CONST * delta.x *
                                      physical1->knockback_scale;
-        physical2->acceleration.y -= (coeff - 1) * KNOCKBACK_CONST * delta.y *
+        physical2->acceleration.y -= (v1_coeff - 1) * KNOCKBACK_CONST * delta.y *
                                      physical1->knockback_scale;
 #undef KNOCKBACK_CONST
     }

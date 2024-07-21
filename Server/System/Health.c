@@ -150,7 +150,8 @@ static void damage_effect(struct rr_simulation *simulation, EntityIdx target,
                 if (!dev_cheat_enabled(simulation, relations->owner, no_aggro))
                     ai->target_entity = relations->owner;
             }
-            else if (!dev_cheat_enabled(simulation, attacker, no_aggro))
+            else if (!rr_simulation_has_nest(simulation, attacker) &&
+                     !dev_cheat_enabled(simulation, attacker, no_aggro))
                 ai->target_entity =
                     rr_simulation_get_entity_hash(simulation, attacker);
         }

@@ -51,6 +51,7 @@ set(SRCS
     ../Shared/Component/Flower.c
     ../Shared/Component/Health.c
     ../Shared/Component/Mob.c
+    ../Shared/Component/Nest.c
     ../Shared/Component/Petal.c
     ../Shared/Component/Physical.c
     ../Shared/Component/PlayerInfo.c

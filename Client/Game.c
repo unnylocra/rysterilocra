@@ -177,7 +177,7 @@ static void rr_game_autocraft_tick(struct rr_game *this, float delta)
     if (!this->crafting_data.autocraft || this->crafting_data.animation > 0 ||
         this->crafting_data.autocraft_animation > 0)
         return;
-    for (uint8_t id = 1; id <= rr_petal_id_third_eye; ++id)
+    for (uint8_t id = 1; id <= rr_petal_id_nest; ++id)
         for (uint8_t rarity = 0; rarity < rr_rarity_id_max - 1; ++rarity)
         {
             if (this->inventory[id][rarity] < this->slots_unlocked + 4)
@@ -1116,6 +1116,18 @@ void render_web_component(EntityIdx entity, struct rr_game *this,
     rr_renderer_context_state_free(this->renderer, &state);
 }
 
+void render_nest_component(EntityIdx entity, struct rr_game *this,
+                           struct rr_simulation *simulation)
+{
+    struct rr_renderer_context_state state;
+    rr_renderer_context_state_init(this->renderer, &state);
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, entity);
+    rr_renderer_translate(this->renderer, physical->lerp_x, physical->lerp_y);
+    rr_component_nest_render(entity, this, simulation);
+    rr_renderer_context_state_free(this->renderer, &state);
+}
+
 void player_info_finder(struct rr_game *this)
 {
     struct rr_simulation *simulation = this->simulation;
@@ -1326,6 +1338,7 @@ void rr_game_tick(struct rr_game *this, float delta)
             this->deletion_simulation->COMPONENT##_vector[i], this,            \
             this->deletion_simulation);
 
+            render_component(nest);
             render_component(web);
             render_component(health);
             render_component(drop);

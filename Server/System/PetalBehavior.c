@@ -17,6 +17,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <Server/Client.h>
 #include <Server/EntityAllocation.h>
@@ -309,6 +310,14 @@ static void system_flower_petal_movement_logic(
             petal->effect_delay = 20;
             break;
         }
+        case rr_petal_id_nest:
+        {
+            if ((player_info->input & 2) == 0)
+                break;
+            petal->effect_delay = 5 * 25;
+            rr_component_petal_set_detached(petal, 1);
+            break;
+        }
         case rr_petal_id_seed:
         {
             if (petal->detached)
@@ -495,6 +504,134 @@ static void petal_modifiers(struct rr_simulation *simulation,
         to_rotate * ((rot_count % 3) ? (rot_count % 3 == 2) ? 0 : -1 : 1);
 }
 
+static void
+system_egg_hatching_logic(struct rr_simulation *simulation,
+                          struct rr_component_player_info *player_info,
+                          struct rr_component_player_info_petal *p_petal)
+{
+    struct rr_component_petal *petal =
+        rr_simulation_get_petal(simulation, p_petal->entity_hash);
+    if (petal->effect_delay > 0)
+        return;
+    rr_simulation_request_entity_deletion(simulation, p_petal->entity_hash);
+    uint8_t m_id, m_rar;
+    if (petal->id == rr_petal_id_egg)
+    {
+        m_id = rr_mob_id_trex;
+        m_rar = petal->rarity >= 1 ? petal->rarity - 1 : 0;
+    }
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, p_petal->entity_hash);
+    struct rr_component_relations *relations =
+        rr_simulation_get_relations(simulation, p_petal->entity_hash);
+    struct rr_component_relations *flower_relations =
+        rr_simulation_get_relations(simulation, player_info->flower_id);
+    EntityIdx mob_id = rr_simulation_alloc_mob(
+        simulation, physical->arena, physical->x, physical->y, m_id, m_rar,
+        flower_relations->team);
+    p_petal->entity_hash = rr_simulation_get_entity_hash(simulation, mob_id);
+    struct rr_component_relations *mob_relations =
+        rr_simulation_get_relations(simulation, mob_id);
+    rr_component_relations_set_owner(mob_relations, player_info->flower_id);
+    rr_component_relations_update_root_owner(simulation, mob_relations);
+    mob_relations->nest = relations->nest;
+    rr_simulation_get_mob(simulation, mob_id)->player_spawned = 1;
+}
+
+static void
+system_nest_egg_choosing_logic(struct rr_simulation *simulation,
+                               struct rr_component_player_info *player_info,
+                               EntityHash id)
+{
+    struct rr_component_relations *relations =
+        rr_simulation_get_relations(simulation, id);
+    struct rr_component_physical *flower_physical =
+        rr_simulation_get_physical(simulation, player_info->flower_id);
+    if (relations->nest != RR_NULL_ENTITY &&
+        !rr_simulation_entity_alive(simulation, relations->nest))
+        relations->nest = RR_NULL_ENTITY;
+    if (relations->nest != RR_NULL_ENTITY)
+    {
+        struct rr_component_physical *nest_physical =
+            rr_simulation_get_physical(simulation, relations->nest);
+        struct rr_vector delta = {nest_physical->x - flower_physical->x,
+                                  nest_physical->y - flower_physical->y};
+        if (rr_vector_magnitude_cmp(&delta, 5000) == 1)
+            relations->nest = RR_NULL_ENTITY;
+    }
+    if (relations->nest != RR_NULL_ENTITY)
+        return;
+    struct rr_component_relations *flower_relations =
+        rr_simulation_get_relations(simulation, player_info->flower_id);
+    if (flower_relations->nest != RR_NULL_ENTITY &&
+        rr_simulation_entity_alive(simulation, flower_relations->nest))
+    {
+        relations->nest = flower_relations->nest;
+        if (rr_frand() < 0.5)
+            return;
+    }
+    EntityIdx nest_vector[RR_SQUAD_MEMBER_COUNT - 1];
+    uint8_t nest_count = 0;
+    for (uint32_t i = 0; i < simulation->nest_count; ++i)
+    {
+        EntityIdx nest_id = simulation->nest_vector[i];
+        struct rr_component_relations *nest_relations =
+            rr_simulation_get_relations(simulation, nest_id);
+        if (nest_relations->owner == player_info->flower_id)
+            continue;
+        struct rr_component_player_info *p_info =
+            rr_simulation_get_player_info(simulation, nest_relations->root_owner);
+        if (p_info->squad != player_info->squad)
+            continue;
+        struct rr_component_physical *nest_physical =
+            rr_simulation_get_physical(simulation, nest_id);
+        struct rr_vector delta = {nest_physical->x - flower_physical->x,
+                                  nest_physical->y - flower_physical->y};
+        if (rr_vector_magnitude_cmp(&delta, 5000) == 1)
+            continue;
+        nest_vector[nest_count++] = nest_id;
+    }
+    if (nest_count > 0)
+        relations->nest =
+            rr_simulation_get_entity_hash(simulation,
+                                          nest_vector[rand() % nest_count]);
+}
+
+static void system_nest_egg_movement_logic(struct rr_simulation *simulation,
+                                           EntityHash id)
+{
+    struct rr_component_petal *petal =
+        rr_simulation_get_petal(simulation, id);
+    struct rr_component_relations *relations =
+        rr_simulation_get_relations(simulation, id);
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, id);
+    struct rr_component_nest *nest =
+        rr_simulation_get_nest(simulation, relations->nest);
+    struct rr_component_physical *nest_physical =
+        rr_simulation_get_physical(simulation, relations->nest);
+    petal->effect_delay -= 2;
+    if (petal->effect_delay < 0)
+        petal->effect_delay = 0;
+    struct rr_vector position_vector = {physical->x, physical->y};
+    struct rr_vector nest_vector = {nest_physical->x, nest_physical->y};
+    struct rr_vector chase_vector;
+    float angle = 0;
+    float radius = 0;
+    if (nest->rotation_count > 0)
+    {
+        angle = 2 * M_PI * nest->rotation_pos / nest->rotation_count +
+                    nest->global_rotation;
+        radius = 100;
+    }
+    nest->rotation_pos++;
+    rr_vector_from_polar(&chase_vector, radius, angle);
+    rr_vector_add(&chase_vector, &nest_vector);
+    rr_vector_sub(&chase_vector, &position_vector);
+    rr_vector_scale(&chase_vector, 0.5);
+    rr_vector_add(&physical->acceleration, &chase_vector);
+}
+
 static void rr_system_petal_reload_foreach_function(EntityIdx id,
                                                     void *simulation)
 {
@@ -535,12 +672,18 @@ static void rr_system_petal_reload_foreach_function(EntityIdx id,
                 if (cd > max_cd)
                     max_cd = cd;
                 if (--p_petal->cooldown_ticks <= 0)
+                {
                     p_petal->entity_hash = rr_simulation_get_entity_hash(
                         simulation,
                         rr_simulation_alloc_petal(
                             simulation, player_info->arena, flower_physical->x,
                             flower_physical->y, slot->id, slot->rarity,
                             player_info->flower_id));
+                    struct rr_component_petal *petal =
+                        rr_simulation_get_petal(simulation, p_petal->entity_hash);
+                    petal->slot = slot;
+                    petal->p_petal = p_petal;
+                }
             }
             else
             {
@@ -557,7 +700,22 @@ static void rr_system_petal_reload_foreach_function(EntityIdx id,
                                                           p_petal->entity_hash);
                     continue;
                 }
-                if (rr_simulation_has_mob(simulation, p_petal->entity_hash))
+                if (data->id == rr_petal_id_egg)
+                {
+                    system_nest_egg_choosing_logic(simulation, player_info,
+                                                   p_petal->entity_hash);
+                    if (rr_simulation_has_petal(simulation, p_petal->entity_hash))
+                    {
+                        if (rr_simulation_get_relations(simulation,
+                                p_petal->entity_hash)->nest != RR_NULL_ENTITY)
+                            system_nest_egg_movement_logic(simulation,
+                                                           p_petal->entity_hash);
+                        system_egg_hatching_logic(simulation, player_info, p_petal);
+                    }
+                }
+                if (!rr_simulation_has_petal(simulation, p_petal->entity_hash) ||
+                    rr_simulation_get_relations(simulation,
+                        p_petal->entity_hash)->nest != RR_NULL_ENTITY)
                 {
                     if (inner == 0 || data->clump_radius == 0)
                         --rotation_pos;
@@ -566,45 +724,6 @@ static void rr_system_petal_reload_foreach_function(EntityIdx id,
                 system_flower_petal_movement_logic(
                     simulation, p_petal->entity_hash, player_info,
                     rotation_pos - 1, outer, inner, data);
-                if (data->id == rr_petal_id_egg)
-                {
-                    struct rr_component_petal *petal = rr_simulation_get_petal(
-                        simulation, p_petal->entity_hash);
-                    if (petal->effect_delay > 0)
-                        continue;
-                    rr_component_petal_set_detached(petal, 1);
-                    struct rr_component_physical *petal_physical =
-                        rr_simulation_get_physical(simulation,
-                                                   p_petal->entity_hash);
-                    rr_simulation_request_entity_deletion(simulation,
-                                                          p_petal->entity_hash);
-                    p_petal->entity_hash = RR_NULL_ENTITY;
-                    if (petal->rarity == 0)
-                        return;
-                    uint8_t m_id, m_rar;
-                    if (data->id == rr_petal_id_egg)
-                    {
-                        m_id = rr_mob_id_trex;
-                        m_rar = petal->rarity >= 1 ? petal->rarity - 1 : 0;
-                    }
-                    EntityIdx mob_id = rr_simulation_alloc_mob(
-                        simulation, petal_physical->arena, petal_physical->x,
-                        petal_physical->y, m_id, m_rar,
-                        rr_simulation_get_relations(simulation,
-                                                    player_info->flower_id)
-                            ->team);
-                    p_petal->entity_hash =
-                        rr_simulation_get_entity_hash(simulation, mob_id);
-                    struct rr_component_relations *relations =
-                        rr_simulation_get_relations(simulation, mob_id);
-                    rr_component_relations_set_owner(
-                        relations, rr_simulation_get_entity_hash(
-                                       simulation, player_info->flower_id));
-                    rr_component_relations_update_root_owner(simulation,
-                                                             relations);
-                    rr_simulation_get_mob(simulation, mob_id)->player_spawned =
-                        1;
-                }
             }
         }
         rr_component_player_info_set_slot_cd(player_info, outer, max_cd);
@@ -681,7 +800,76 @@ static void system_petal_misc_logic(EntityIdx id, void *_simulation)
                 rr_component_physical_set_x(flower_physical, physical->x);
                 rr_component_physical_set_y(flower_physical, physical->y);
             }
+            if (petal->id == rr_petal_id_nest)
+            {
+                struct rr_component_relations *flower_relations =
+                    rr_simulation_get_relations(simulation, relations->owner);
+                if (flower_relations->nest != RR_NULL_ENTITY &&
+                    rr_simulation_entity_alive(simulation, flower_relations->nest))
+                {
+                    struct rr_component_nest *old_nest =
+                        rr_simulation_get_nest(simulation, flower_relations->nest);
+                    if (old_nest->rarity < petal->rarity)
+                        rr_simulation_request_entity_deletion(
+                            simulation, flower_relations->nest);
+                    else
+                        return;
+                }
+                EntityIdx nest_id = rr_simulation_alloc_entity(simulation);
+                petal->p_petal->entity_hash = flower_relations->nest =
+                    rr_simulation_get_entity_hash(simulation, nest_id);
+                struct rr_component_nest *nest =
+                    rr_simulation_add_nest(simulation, nest_id);
+                nest->rarity = petal->rarity;
+                struct rr_component_physical *nest_physical =
+                    rr_simulation_add_physical(simulation, nest_id);
+                rr_component_physical_set_x(nest_physical, physical->x);
+                rr_component_physical_set_y(nest_physical, physical->y);
+                rr_component_physical_set_radius(nest_physical, 250);
+                rr_component_physical_set_angle(nest_physical, rr_frand() * 2 * M_PI);
+                nest_physical->mass = -1; // inf
+                nest_physical->friction = 0.75;
+                nest_physical->arena = physical->arena;
+                struct rr_component_relations *nest_relations =
+                    rr_simulation_add_relations(simulation, nest_id);
+                rr_component_relations_set_team(nest_relations, relations->team);
+                rr_component_relations_set_owner(nest_relations, relations->owner);
+                rr_component_relations_update_root_owner(simulation, nest_relations);
+                struct rr_component_health *nest_health =
+                    rr_simulation_add_health(simulation, nest_id);
+                uint8_t stats_rarity = nest->rarity > 0 ? nest->rarity - 1 : 0;
+                rr_component_health_set_max_health(
+                    nest_health, 150 * RR_MOB_RARITY_SCALING[stats_rarity].health);
+                rr_component_health_set_health(nest_health, nest_health->max_health);
+                nest_health->damage = 0;
+                nest_health->damage_reduction =
+                    5 * RR_MOB_RARITY_SCALING[stats_rarity].damage;
+            }
         }
+    }
+}
+
+static void system_nest_logic(EntityIdx id, void *_simulation)
+{
+    struct rr_simulation *simulation = _simulation;
+    struct rr_component_relations *relations =
+        rr_simulation_get_relations(simulation, id);
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, id);
+    struct rr_component_nest *nest = rr_simulation_get_nest(simulation, id);
+    nest->global_rotation += 0.1;
+    nest->rotation_count = nest->rotation_pos;
+    nest->rotation_pos = 0;
+    if (!rr_simulation_entity_alive(simulation, relations->owner))
+        rr_simulation_request_entity_deletion(simulation, id);
+    else
+    {
+        struct rr_component_physical *flower_physical =
+            rr_simulation_get_physical(simulation, relations->owner);
+        struct rr_vector delta = {physical->x - flower_physical->x,
+                                  physical->y - flower_physical->y};
+        if (rr_vector_magnitude_cmp(&delta, 5000) == 1)
+            rr_simulation_request_entity_deletion(simulation, id);
     }
 }
 
@@ -691,4 +879,6 @@ void rr_system_petal_behavior_tick(struct rr_simulation *simulation)
                                        rr_system_petal_reload_foreach_function);
     rr_simulation_for_each_petal(simulation, simulation,
                                  system_petal_misc_logic);
+    rr_simulation_for_each_nest(simulation, simulation,
+                                system_nest_logic);
 }

@@ -31,6 +31,7 @@ struct rr_component_relations
     EntityIdx parent_id;
     RR_SERVER_ONLY(uint8_t protocol_state;)
     uint8_t team;
+    RR_SERVER_ONLY(EntityHash nest;)
 };
 
 void rr_component_relations_init(struct rr_component_relations *,

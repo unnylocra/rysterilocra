@@ -60,6 +60,7 @@ set(SRCS
     Renderer/RenderFlower.c
     Renderer/RenderHealth.c
     Renderer/RenderMob.c
+    Renderer/RenderNest.c
     Renderer/RenderPetal.c
     Renderer/RenderWeb.c
     Storage.c
@@ -114,6 +115,7 @@ set(SRCS
     ../Shared/Component/Flower.c
     ../Shared/Component/Health.c
     ../Shared/Component/Mob.c
+    ../Shared/Component/Nest.c
     ../Shared/Component/Petal.c
     ../Shared/Component/Physical.c
     ../Shared/Component/PlayerInfo.c

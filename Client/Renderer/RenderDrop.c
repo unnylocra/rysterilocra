@@ -34,7 +34,7 @@ void rr_component_drop_render(EntityIdx entity, struct rr_game *game,
         uint8_t min_rarity = game->significant_rarity >= 2 ?
                                  game->significant_rarity - 2 : 0;
         if (drop->id == rr_petal_id_bone || drop->id == rr_petal_id_lightning ||
-            drop->id == rr_petal_id_third_eye)
+            drop->id == rr_petal_id_third_eye || drop->id == rr_petal_id_nest)
             min_rarity = game->significant_rarity >= 3 ?
                              game->significant_rarity - 3 : 0;
         if (drop->id == rr_petal_id_seed || drop->id == rr_petal_id_peas ||

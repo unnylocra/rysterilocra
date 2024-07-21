@@ -75,6 +75,7 @@ static uint8_t should_entities_collide(struct rr_simulation *this, EntityIdx a,
     exclude(web, petal);
     exclude(drop, drop);
     exclude(drop, mob);
+    exclude(nest, petal);
     uint8_t team1 = rr_simulation_get_relations(this, a)->team;
     uint8_t team2 = rr_simulation_get_relations(this, b)->team;
     if (team1 != team2)
@@ -83,6 +84,8 @@ static uint8_t should_entities_collide(struct rr_simulation *this, EntityIdx a,
     exclude(petal, flower);
     exclude(petal, mob);
     exclude(flower, mob);
+    exclude(nest, flower);
+    exclude(nest, mob);
 #undef exclude
 
     return 1;

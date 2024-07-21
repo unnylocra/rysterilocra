@@ -35,5 +35,7 @@ void rr_component_petal_render(EntityIdx, struct rr_game *,
                                struct rr_simulation *);
 void rr_component_web_render(EntityIdx, struct rr_game *,
                              struct rr_simulation *);
+void rr_component_nest_render(EntityIdx, struct rr_game *,
+                              struct rr_simulation *);
 
 void render_background(struct rr_component_player_info *, struct rr_game *);

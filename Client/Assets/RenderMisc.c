@@ -15,10 +15,13 @@
 
 #include <Client/Assets/RenderFunctions.h>
 
+#include <math.h>
 #include <stdlib.h>
 
 #include <Client/Assets/Render.h>
 #include <Client/Renderer/Renderer.h>
+#include <Shared/Utilities.h>
+#include <Shared/Vector.h>
 
 #define TILES_SIZE 3
 #define PROP_SIZE 2
@@ -92,6 +95,28 @@ static void asset_web_draw(struct rr_renderer *renderer)
     rr_renderer_scale(renderer, 0.1);
 }
 
+static void asset_nest_draw(struct rr_renderer *renderer)
+{
+    rr_renderer_scale(renderer, 250);
+    rr_renderer_set_fill(renderer, 0xff4e270b);
+    rr_renderer_begin_path(renderer);
+    rr_renderer_arc(renderer, 0, 0, 1);
+    rr_renderer_fill(renderer);
+    for (uint8_t i = 0; i < 100; ++i)
+    {
+        struct rr_renderer_context_state state;
+        rr_renderer_context_state_init(renderer, &state);
+        struct rr_vector vector;
+        rr_vector_from_polar(&vector, 0.9 + 0.2 * rr_frand(),
+                             -2 * M_PI * i / 100 + M_PI + 0.2 * rr_frand() - 0.1);
+        rr_renderer_translate(renderer, vector.x, vector.y);
+        rr_renderer_rotate(renderer, -2 * M_PI * i / 100 + 0.2 * rr_frand() - 0.1);
+        rr_renderer_scale(renderer, 0.03);
+        rr_renderer_draw_nest_stick(renderer);
+        rr_renderer_context_state_free(renderer, &state);
+    }
+}
+
 void rr_renderer_draw_tile_hell_creek(struct rr_renderer *renderer, uint8_t pos)
 {
     render_sprite_from_cache(renderer, &background_tiles, pos);
@@ -113,6 +138,40 @@ void rr_renderer_draw_web(struct rr_renderer *renderer)
                              2 * TILES_SIZE + PROP_SIZE);
 }
 
+void rr_renderer_draw_nest(struct rr_renderer *renderer)
+{
+    render_sprite_from_cache(renderer, &background_tiles,
+                             2 * TILES_SIZE + PROP_SIZE + 1);
+}
+
+void rr_renderer_draw_nest_stick(struct rr_renderer *renderer)
+{
+    struct rr_renderer_context_state state;
+    rr_renderer_context_state_init(renderer, &state);
+    rr_renderer_translate(renderer, -303, -123);
+    rr_renderer_set_fill(renderer, 0xff582601);
+    rr_renderer_set_stroke(renderer, 0xff000000);
+    rr_renderer_set_line_width(renderer, 1);
+    rr_renderer_set_line_join(renderer, 1);
+    rr_renderer_begin_path(renderer);
+    rr_renderer_move_to(renderer, 302.901, 137.729);
+    rr_renderer_bezier_curve_to(renderer, 301.686, 137.729, 300.701, 136.745, 300.701, 135.531);
+    rr_renderer_line_to(renderer, 300.701, 120.008);
+    rr_renderer_line_to(renderer, 295.975, 111.379);
+    rr_renderer_bezier_curve_to(renderer, 295.403, 110.335, 295.786, 109.024, 296.831, 108.452);
+    rr_renderer_bezier_curve_to(renderer, 297.876, 107.881, 299.185, 108.264, 299.756, 109.308);
+    rr_renderer_line_to(renderer, 303.517, 116.171);
+    rr_renderer_line_to(renderer, 305.988, 111.74);
+    rr_renderer_bezier_curve_to(renderer, 306.596, 110.648, 308.014, 110.317, 309.043, 111.028);
+    rr_renderer_bezier_curve_to(renderer, 309.966, 111.664, 310.234, 112.909, 309.655, 113.869);
+    rr_renderer_line_to(renderer, 305.1, 121.41);
+    rr_renderer_line_to(renderer, 305.1, 135.531);
+    rr_renderer_bezier_curve_to(renderer, 305.1, 136.745, 304.116, 137.729, 302.901, 137.729);
+    rr_renderer_fill(renderer);
+    rr_renderer_stroke(renderer);
+    rr_renderer_context_state_free(renderer, &state);
+}
+
 void rr_renderer_tiles_init()
 {
     rr_renderer_spritesheet_init(
@@ -120,5 +179,6 @@ void rr_renderer_tiles_init()
         rr_hc_tile_2_draw, 256, 256, rr_hc_tile_3_draw, 256, 256,
         rr_ga_tile_1_draw, 256, 256, rr_ga_tile_2_draw, 256, 256,
         rr_ga_tile_3_draw, 800, 800, rr_prop_fern_draw, 800, 800,
-        rr_prop_moss_draw, 250, 250, asset_web_draw, 0);
+        rr_prop_moss_draw, 250, 250, asset_web_draw, 700, 700, asset_nest_draw,
+        0);
 }

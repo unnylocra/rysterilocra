@@ -35,6 +35,8 @@ struct rr_component_petal
     RR_SERVER_ONLY(uint8_t no_rotation : 1;)
     RR_SERVER_ONLY(uint8_t protocol_state;)
     RR_SERVER_ONLY(int16_t effect_delay;)
+    RR_SERVER_ONLY(struct rr_component_player_info_petal_slot *slot;)
+    RR_SERVER_ONLY(struct rr_component_player_info_petal *p_petal;)
 };
 
 void rr_component_petal_init(struct rr_component_petal *,

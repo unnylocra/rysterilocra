@@ -49,7 +49,9 @@ uint8_t has_new_target(struct rr_component_ai *ai,
         else
             target_id = rr_simulation_find_nearest_enemy(
                 simulation, ai->parent_id, 1800,
-                rr_simulation_get_physical(simulation, relations->owner),
+                relations->nest == RR_NULL_ENTITY
+                    ? rr_simulation_get_physical(simulation, relations->owner)
+                    : rr_simulation_get_physical(simulation, relations->nest),
                 is_close_enough_to_parent);
         ai->target_entity =
             rr_simulation_get_entity_hash(simulation, target_id);
@@ -161,10 +163,12 @@ uint8_t tick_summon_return_to_owner(EntityIdx entity,
         rr_simulation_request_entity_deletion(simulation, entity);
         return 1;
     }
-    struct rr_component_physical *flower_physical =
-        rr_simulation_get_physical(simulation, relations->owner);
-    float dx = flower_physical->x - physical->x;
-    float dy = flower_physical->y - physical->y;
+    struct rr_component_physical *parent_physical =
+        relations->nest == RR_NULL_ENTITY
+            ? rr_simulation_get_physical(simulation, relations->owner)
+            : rr_simulation_get_physical(simulation, relations->nest);
+    float dx = parent_physical->x - physical->x;
+    float dy = parent_physical->y - physical->y;
     if (ai->ai_state == rr_ai_state_returning_to_owner &&
         dx * dx + dy * dy > (250 + physical->radius) * (250 + physical->radius))
     {

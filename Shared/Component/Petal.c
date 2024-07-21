@@ -64,6 +64,8 @@ void rr_component_petal_free(struct rr_component_petal *this,
     struct rr_component_web *web = rr_simulation_add_web(simulation, id);
     struct rr_component_physical *petal_phys =
         rr_simulation_get_physical(simulation, this->parent_id);
+    struct rr_component_relations *petal_rel =
+        rr_simulation_get_relations(simulation, this->parent_id);
     rr_component_physical_set_x(physical, petal_phys->x);
     rr_component_physical_set_y(physical, petal_phys->y);
     rr_component_physical_set_radius(
@@ -74,10 +76,8 @@ void rr_component_petal_free(struct rr_component_petal *this,
     physical->arena = petal_phys->arena;
     web->ticks_until_death = 125;
     web->slow_factor = 0.05 + powf(0.56, this->rarity);
-    relations->team =
-        rr_simulation_get_relations(simulation, this->parent_id)->team;
-    rr_component_relations_set_owner(relations,
-        rr_simulation_get_relations(simulation, this->parent_id)->owner);
+    rr_component_relations_set_team(relations, petal_rel->team);
+    rr_component_relations_set_owner(relations, petal_rel->owner);
     rr_component_relations_update_root_owner(simulation, relations);
 #endif
 }

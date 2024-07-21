@@ -1516,6 +1516,13 @@ void rr_renderer_draw_petal(struct rr_renderer *renderer, uint8_t id,
             rr_renderer_fill(renderer);
             rr_renderer_scale(renderer, 1 / 0.6f);
             break;
+        case rr_petal_id_nest:
+            for (uint8_t i = 0; i < 6; ++i)
+            {
+                rr_renderer_draw_nest_stick(renderer);
+                rr_renderer_rotate(renderer, 2 * M_PI / 6);
+            }
+            break;
         case rr_petal_id_mandible:
             rr_renderer_scale(renderer, 0.09);
             rr_renderer_set_fill(renderer, 0xff171612);
