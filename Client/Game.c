@@ -178,18 +178,24 @@ static void rr_game_autocraft_tick(struct rr_game *this, float delta)
         this->crafting_data.autocraft_animation > 0)
         return;
     for (uint8_t id = 1; id <= rr_petal_id_nest; ++id)
+    {
+        uint32_t sum = 0;
+        for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
+            sum += this->inventory[id][rarity];
         for (uint8_t rarity = 0; rarity < rr_rarity_id_max - 1; ++rarity)
         {
-            if (this->inventory[id][rarity] < this->slots_unlocked + 4)
-                continue;
+            if (sum < this->slots_unlocked + 4)
+                break;
             uint32_t count =
                 this->inventory[id][rarity] - this->loadout_counts[id][rarity];
             if (count < 5)
+            {
+                sum -= this->inventory[id][rarity];
                 continue;
+            }
             this->crafting_data.crafting_id = id;
             this->crafting_data.crafting_rarity = rarity;
-            this->crafting_data.count = this->inventory[id][rarity] -
-                                        this->slots_unlocked + 1;
+            this->crafting_data.count = sum - this->slots_unlocked + 1;
             if (count < this->crafting_data.count)
                 this->crafting_data.count = count;
             this->crafting_data.success_count = 0;
@@ -210,6 +216,7 @@ static void rr_game_autocraft_tick(struct rr_game *this, float delta)
             rr_websocket_send(&this->socket, encoder.current - encoder.start);
             return;
         }
+    }
     this->crafting_data.autocraft = 0;
     this->crafting_data.count = this->crafting_data.success_count = 0;
     this->crafting_data.crafting_id = this->crafting_data.crafting_rarity = 0;

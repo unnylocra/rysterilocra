@@ -33,6 +33,7 @@ struct rr_component_health
     RR_CLIENT_ONLY(uint8_t prev_health_delay_ticks;)
     float max_health;
     RR_CLIENT_ONLY(float damage_animation;)
+    RR_CLIENT_ONLY(float uranium_animation;)
     RR_SERVER_ONLY(float damage;)
     RR_SERVER_ONLY(float secondary_damage;)
     RR_SERVER_ONLY(float damage_reduction;)

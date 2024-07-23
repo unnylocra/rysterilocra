@@ -37,6 +37,7 @@ struct crafting_ring_metadata
 {
     float angle;
     float v_angle;
+    float clump;
 };
 
 struct crafting_ring_button_metadata
@@ -76,15 +77,23 @@ static uint8_t can_craft(struct rr_game *game)
 static uint8_t can_autocraft(struct rr_game *game)
 {
     for (uint8_t id = 1; id <= rr_petal_id_nest; ++id)
+    {
+        uint32_t sum = 0;
+        for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
+            sum += game->inventory[id][rarity];
         for (uint8_t rarity = 0; rarity < rr_rarity_id_max - 1; ++rarity)
         {
-            if (game->inventory[id][rarity] < game->slots_unlocked + 4)
-                continue;
+            if (sum < game->slots_unlocked + 4)
+                break;
             if (game->inventory[id][rarity] -
                 game->loadout_counts[id][rarity] < 5)
+            {
+                sum -= game->inventory[id][rarity];
                 continue;
-            return 1;
+            }
+            return game->socket_ready;
         }
+    }
     return 0;
 }
 
@@ -257,19 +266,27 @@ static void crafting_ring_on_render(struct rr_ui_element *this,
 {
     struct crafting_ring_metadata *data = this->data;
     if (game->crafting_data.animation != 0)
+    {
         data->v_angle = 0.1;
+        data->clump += 0.2;
+    }
+    else
+    {
+        data->v_angle *= 0.8;
+        data->clump = rr_angle_lerp(data->clump, 0, 0.2);
+    }
     data->angle += data->v_angle;
-    data->v_angle *= 0.8;
     struct rr_renderer_context_state state;
     for (uint32_t i = 0; i < this->elements.size; ++i)
     {
+        struct rr_vector vector;
+        rr_vector_from_polar(&vector, 70 + 50 * cosf(data->clump),
+                             i * 2 * M_PI / this->elements.size + data->angle);
         rr_renderer_context_state_init(game->renderer, &state);
         rr_renderer_translate(
             game->renderer,
-            game->renderer->scale *
-                cosf(i * 2 * M_PI / this->elements.size + data->angle) * 120,
-            game->renderer->scale *
-                sinf(i * 2 * M_PI / this->elements.size + data->angle) * 120);
+            game->renderer->scale * vector.x,
+            game->renderer->scale * vector.y);
         rr_ui_render_element(this->elements.start[i], game);
         rr_renderer_context_state_free(game->renderer, &state);
     }

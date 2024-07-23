@@ -114,8 +114,8 @@ void system_interpolation_for_each_function(EntityIdx entity, void *_captures)
             player_info->flower_id == RR_NULL_ENTITY)
             player_info->fov_adjustment = 1;
         player_info->camera_fov_last_tick = player_info->camera_fov;
-        float fov = RR_BASE_FOV + (player_info->camera_fov - RR_BASE_FOV) *
-            player_info->fov_adjustment;
+        float fov = rr_lerp(RR_BASE_FOV, player_info->camera_fov,
+                            player_info->fov_adjustment);
         if (player_info->lerp_camera_fov == 0)
             player_info->lerp_camera_fov = fov;
         if (player_info->lerp_camera_x == 0)
@@ -141,6 +141,10 @@ void system_interpolation_for_each_function(EntityIdx entity, void *_captures)
             if (health->damage_animation < 0.25)
                 health->damage_animation = 1;
         }
+        health->uranium_animation =
+            rr_lerp(health->uranium_animation, 0, 10 * delta);
+        if (health->flags & 8)
+            health->uranium_animation = 1;
         if (health->lerp_health == 0)
             health->lerp_health = health->health;
         if (health->lerp_prev_health == 0)

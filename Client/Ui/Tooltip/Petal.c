@@ -138,7 +138,7 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     else if (id == rr_petal_id_uranium)
     {
         char *extra = malloc((sizeof *extra) * 16);
-        sprintf(extra, "%s", rr_sprintf(fmt, 500 + 375 * rarity));
+        sprintf(extra, "%s", rr_sprintf(fmt, 200 * (rarity + 1)));
         rr_ui_container_add_element(
             this,
             rr_ui_set_justify(rr_ui_h_container_init(

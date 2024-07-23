@@ -57,11 +57,13 @@ static void uranium_damage(EntityIdx target, void *_captures)
                               physical->y - captures->y};
 
     if (rr_vector_magnitude_cmp(&delta,
-                                500 + 375 * captures->petal_rarity) == -1)
+                                200 * (captures->petal_rarity + 1)) == -1)
     {
         health->flags |= 4;
         rr_component_health_do_damage(simulation, health, captures->flower_id,
-                                      captures->damage);
+                                      rr_simulation_has_flower(simulation, target)
+                                          ? captures->damage / 2
+                                          : captures->damage);
         struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);
         if (ai->target_entity == RR_NULL_ENTITY &&
             !dev_cheat_enabled(simulation, captures->flower_id, no_aggro))
@@ -72,19 +74,19 @@ static void uranium_damage(EntityIdx target, void *_captures)
 static void uranium_petal_system(struct rr_simulation *simulation,
                                  struct rr_component_petal *petal)
 {
+    struct rr_component_health *health =
+        rr_simulation_get_health(simulation, petal->parent_id);
     if (petal->effect_delay == 0)
     {
         struct rr_component_relations *relations =
             rr_simulation_get_relations(simulation, petal->parent_id);
-        struct rr_component_health *health =
-            rr_simulation_get_health(simulation, petal->parent_id);
         struct rr_component_physical *physical =
             rr_simulation_get_physical(simulation, petal->parent_id);
         if (!rr_simulation_entity_alive(simulation, relations->owner))
             return;
         petal->effect_delay =
             RR_PETAL_DATA[rr_petal_id_uranium].secondary_cooldown;
-        rr_component_health_set_flags(health, health->flags | 2);
+        rr_component_health_set_flags(health, health->flags | 8);
         struct uranium_captures captures = {simulation,    relations->owner,
                                             petal->rarity, physical->x,
                                             physical->y,   health->damage};
@@ -95,6 +97,8 @@ static void uranium_petal_system(struct rr_simulation *simulation,
             500 + 375 * captures.petal_rarity,
             &captures, uranium_damage);
     }
+    else
+        rr_component_health_set_flags(health, health->flags & (~8));
 }
 
 static void system_petal_detach(struct rr_simulation *simulation,
@@ -170,6 +174,8 @@ static void system_flower_petal_movement_logic(
     uint32_t outer_pos, uint32_t inner_pos,
     struct rr_petal_data const *petal_data)
 {
+    if (player_info->rotation_count == 0)
+        return;
     struct rr_component_petal *petal = rr_simulation_get_petal(simulation, id);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, id);
@@ -600,14 +606,17 @@ system_nest_egg_choosing_logic(struct rr_simulation *simulation,
 static void system_nest_egg_movement_logic(struct rr_simulation *simulation,
                                            EntityHash id)
 {
-    struct rr_component_petal *petal =
-        rr_simulation_get_petal(simulation, id);
     struct rr_component_relations *relations =
         rr_simulation_get_relations(simulation, id);
-    struct rr_component_physical *physical =
-        rr_simulation_get_physical(simulation, id);
     struct rr_component_nest *nest =
         rr_simulation_get_nest(simulation, relations->nest);
+    nest->rotation_pos++;
+    if (nest->rotation_count == 0)
+        return;
+    struct rr_component_petal *petal =
+        rr_simulation_get_petal(simulation, id);
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, id);
     struct rr_component_physical *nest_physical =
         rr_simulation_get_physical(simulation, relations->nest);
     petal->effect_delay -= 2;
@@ -616,19 +625,13 @@ static void system_nest_egg_movement_logic(struct rr_simulation *simulation,
     struct rr_vector position_vector = {physical->x, physical->y};
     struct rr_vector nest_vector = {nest_physical->x, nest_physical->y};
     struct rr_vector chase_vector;
-    float angle = 0;
-    float radius = 0;
-    if (nest->rotation_count > 0)
-    {
-        angle = 2 * M_PI * nest->rotation_pos / nest->rotation_count +
-                    nest->global_rotation;
-        radius = 100;
-    }
-    nest->rotation_pos++;
+    float angle = 2 * M_PI * (nest->rotation_pos - 1) / nest->rotation_count +
+                      nest->global_rotation;
+    float radius = 100;
     rr_vector_from_polar(&chase_vector, radius, angle);
     rr_vector_add(&chase_vector, &nest_vector);
     rr_vector_sub(&chase_vector, &position_vector);
-    rr_vector_scale(&chase_vector, 0.5);
+    rr_vector_scale(&chase_vector, 0.25);
     rr_vector_add(&physical->acceleration, &chase_vector);
 }
 

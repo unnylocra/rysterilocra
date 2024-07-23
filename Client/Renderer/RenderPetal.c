@@ -33,16 +33,28 @@ void rr_component_petal_render(EntityIdx entity, struct rr_game *game,
         rr_simulation_get_petal(simulation, entity);
     struct rr_component_health *health =
         rr_simulation_get_health(simulation, entity);
-    rr_renderer_set_global_alpha(renderer, 1 - physical->deletion_animation);
-    rr_renderer_scale(renderer, 1 + physical->deletion_animation * 0.5);
     if (petal->id == rr_petal_id_uranium)
     {
         rr_renderer_set_fill(renderer, 0x2063bf2e);
         rr_renderer_begin_path(renderer);
-        rr_renderer_arc(renderer, 0, 0,
-                        30 + 5 * sinf(physical->animation_timer * 0.1));
+        if (physical->on_title_screen)
+        {
+            rr_renderer_arc(renderer, 0, 0,
+                            (30 + 5 * sinf(physical->animation_timer * 3)) *
+                                physical->radius / 15);
+        }
+        else
+        {
+            float radius = 200 * (petal->rarity + 1);
+            rr_renderer_set_global_alpha(renderer,
+                                         0.5 * health->uranium_animation);
+            rr_renderer_arc(renderer, 0, 0,
+                            radius * (1 - health->uranium_animation));
+        }
         rr_renderer_fill(renderer);
     }
+    rr_renderer_set_global_alpha(renderer, 1 - physical->deletion_animation);
+    rr_renderer_scale(renderer, 1 + physical->deletion_animation * 0.5);
     if (petal->rarity >= rr_rarity_id_exotic)
     {
         // fixme: looks too different at 60 fps
