@@ -142,7 +142,7 @@ void system_interpolation_for_each_function(EntityIdx entity, void *_captures)
                 health->damage_animation = 1;
         }
         health->uranium_animation =
-            rr_lerp(health->uranium_animation, 0, 10 * delta);
+            rr_lerp(health->uranium_animation, 0, 7.5 * delta);
         if (health->flags & 8)
             health->uranium_animation = 1;
         if (health->lerp_health == 0)

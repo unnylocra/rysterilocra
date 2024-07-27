@@ -1054,49 +1054,55 @@ void render_health_component(EntityIdx entity, struct rr_game *this,
 void render_mob_component(EntityIdx entity, struct rr_game *this,
                           struct rr_simulation *simulation)
 {
-    struct rr_renderer_context_state state;
-    rr_renderer_context_state_init(this->renderer, &state);
+    struct rr_renderer_context_state state1;
+    struct rr_renderer_context_state state2;
+    rr_renderer_context_state_init(this->renderer, &state1);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
     rr_renderer_translate(this->renderer, physical->lerp_x, physical->lerp_y);
+    rr_renderer_context_state_init(this->renderer, &state2);
     rr_component_mob_render(entity, this, simulation);
+    rr_renderer_context_state_free(this->renderer, &state2);
     if (this->cache.show_hitboxes)
     {
-        struct rr_component_mob *mob = rr_simulation_get_mob(simulation, entity);
-        rr_renderer_scale(this->renderer, 1 / (1 + physical->deletion_animation * 0.5));
-        rr_renderer_scale(this->renderer, 1 / RR_MOB_RARITY_SCALING[mob->rarity].radius);
+        struct rr_component_mob *mob =
+            rr_simulation_get_mob(simulation, entity);
         rr_renderer_begin_path(this->renderer);
-        rr_renderer_reset_color_filter(this->renderer);
         rr_renderer_set_stroke(this->renderer, RR_RARITY_COLORS[mob->rarity]);
         rr_renderer_set_line_width(this->renderer, 2);
+        rr_renderer_set_global_alpha(this->renderer,
+                                     1 - physical->deletion_animation);
         rr_renderer_arc(this->renderer, 0, 0, physical->radius);
         rr_renderer_stroke(this->renderer);
     }
-    rr_renderer_context_state_free(this->renderer, &state);
+    rr_renderer_context_state_free(this->renderer, &state1);
 }
 
 void render_petal_component(EntityIdx entity, struct rr_game *this,
                             struct rr_simulation *simulation)
 {
-    struct rr_renderer_context_state state;
-    rr_renderer_context_state_init(this->renderer, &state);
+    struct rr_renderer_context_state state1;
+    struct rr_renderer_context_state state2;
+    rr_renderer_context_state_init(this->renderer, &state1);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
     rr_renderer_translate(this->renderer, physical->lerp_x, physical->lerp_y);
+    rr_renderer_context_state_init(this->renderer, &state2);
     rr_component_petal_render(entity, this, simulation);
+    rr_renderer_context_state_free(this->renderer, &state2);
     if (this->cache.show_hitboxes)
     {
-        struct rr_component_petal *petal = rr_simulation_get_petal(simulation, entity);
-        rr_renderer_scale(this->renderer, 1 / (1 + physical->deletion_animation * 0.5));
-        rr_renderer_scale(this->renderer, 10 / physical->radius);
+        struct rr_component_petal *petal =
+            rr_simulation_get_petal(simulation, entity);
         rr_renderer_begin_path(this->renderer);
-        rr_renderer_reset_color_filter(this->renderer);
         rr_renderer_set_stroke(this->renderer, RR_RARITY_COLORS[petal->rarity]);
-        rr_renderer_set_line_width(this->renderer, 3);
+        rr_renderer_set_line_width(this->renderer, 2);
+        rr_renderer_set_global_alpha(this->renderer,
+                                     1 - physical->deletion_animation);
         rr_renderer_arc(this->renderer, 0, 0, physical->radius);
         rr_renderer_stroke(this->renderer);
     }
-    rr_renderer_context_state_free(this->renderer, &state);
+    rr_renderer_context_state_free(this->renderer, &state1);
 }
 
 void render_flower_component(EntityIdx entity, struct rr_game *this,

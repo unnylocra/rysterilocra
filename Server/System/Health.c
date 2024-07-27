@@ -49,9 +49,9 @@ static void system_default_idle_heal(EntityIdx entity, void *captures)
     if (health->health == 0)
         rr_simulation_request_entity_deletion(this, entity);
     else
-        // heal 0.5% of max hp per second (0.0002 is 0.005 / 25)
+        // heal 0.25% of max hp per second (0.0001 is 0.0025 / 25)
         rr_component_health_set_health(health, health->health +
-                                               health->max_health * 0.0002);
+                                               health->max_health * 0.0001);
 }
 
 struct lightning_captures

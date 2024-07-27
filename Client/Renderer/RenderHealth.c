@@ -33,15 +33,15 @@ void rr_component_health_render(EntityIdx entity, struct rr_game *game,
         return;
     rr_renderer_set_global_alpha(renderer, 1 - physical->deletion_animation);
     rr_renderer_scale(renderer, 1 + physical->deletion_animation * 0.5);
-    if (rr_simulation_has_flower(simulation, entity))
+    /*if (rr_simulation_has_flower(simulation, entity))
     {
         struct rr_component_relations *relations =
             rr_simulation_get_relations(simulation, entity);
 
-        if (relations->owner == game->player_info->parent_id)
+        if ((EntityIdx)relations->owner == game->player_info->parent_id)
             if (health->lerp_health / health->max_health > 0.99)
                 return;
-    }
+    }*/
 
     float length = 40;
 
@@ -82,6 +82,8 @@ void rr_component_health_render(EntityIdx entity, struct rr_game *game,
         rr_renderer_stroke_text(renderer, out, length, 18);
         rr_renderer_fill_text(renderer, out, length, 18);
     }
+    else if (rr_simulation_has_nest(simulation, entity))
+        length = 75;
     // the health bar
     rr_renderer_set_line_cap(renderer, 1);
     rr_renderer_set_stroke(renderer, 0xff222222);

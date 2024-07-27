@@ -47,7 +47,7 @@ void rr_component_petal_render(EntityIdx entity, struct rr_game *game,
         {
             float radius = 200 * (petal->rarity + 1);
             rr_renderer_set_global_alpha(renderer,
-                                         0.5 * health->uranium_animation);
+                                         0.75 * health->uranium_animation);
             rr_renderer_arc(renderer, 0, 0,
                             radius * (1 - health->uranium_animation));
         }

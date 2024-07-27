@@ -630,6 +630,19 @@ struct rr_ui_element *rr_ui_crafting_container_init(struct rr_game *game)
     rr_ui_container_add_element(craft, crafting_result_container_init());
     craft->abs_width = craft->width = 300;
     craft->abs_height = craft->height = 300;
+    struct rr_ui_element *fixed = rr_ui_container_init();
+    rr_ui_container_add_element(fixed,
+        rr_ui_v_container_init(rr_ui_container_init(), 0, 10,
+            rr_ui_static_space_init(62),
+            crafting_button_init(),
+            crafting_attempt_text_init(),
+            crafting_chance_text_init(),
+            crafting_xp_text_init(),
+            NULL
+        )
+    );
+    fixed->abs_width = fixed->width = fixed->elements.start[0]->width;
+    fixed->abs_height = fixed->height = fixed->elements.start[0]->height;
     struct rr_ui_element *c = rr_ui_set_background(
         rr_ui_pad(
             rr_ui_set_justify(
@@ -638,13 +651,7 @@ struct rr_ui_element *rr_ui_crafting_container_init(struct rr_game *game)
                     rr_ui_text_init("Crafting", 24, 0xffffffff),
                     rr_ui_h_container_init(
                         rr_ui_container_init(), 0, 25,
-                        rr_ui_v_container_init(rr_ui_container_init(), 0, 10,
-                                               rr_ui_static_space_init(62),
-                                               crafting_button_init(),
-                                               crafting_attempt_text_init(),
-                                               crafting_chance_text_init(),
-                                               crafting_xp_text_init(), NULL),
-                        craft, NULL),
+                        fixed, craft, NULL),
                     rr_ui_scroll_container_init(this, 300),
                     rr_ui_h_container_init(
                         rr_ui_container_init(), 0, 10,

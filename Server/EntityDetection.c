@@ -42,8 +42,8 @@ void shg_cb_enemy(EntityIdx potential, void *_captures)
         (rr_simulation_has_flower(simulation, potential) ||
          rr_simulation_has_mob(simulation, potential) ||
          (rr_simulation_has_petal(simulation, potential) &&
-          rr_simulation_get_petal(simulation, potential)->id ==
-              rr_petal_id_seed &&
+          (rr_simulation_get_petal(simulation, potential)->id == rr_petal_id_seed ||
+           rr_simulation_get_petal(simulation, potential)->id == rr_petal_id_nest) &&
           rr_simulation_get_petal(simulation, potential)->detached));
     if (!allow)
         return;
