@@ -782,6 +782,12 @@ static void system_petal_misc_logic(EntityIdx id, void *_simulation)
                         ->squad))
                 rr_simulation_request_entity_deletion(simulation, id);
         }
+        else if (petal->id == rr_petal_id_nest)
+        {
+            struct rr_component_physical *physical =
+                rr_simulation_get_physical(simulation, id);
+            rr_component_physical_set_radius(physical, physical->radius + 0.08);
+        }
         if (--petal->effect_delay <= 0)
         {
             rr_simulation_request_entity_deletion(simulation, id);

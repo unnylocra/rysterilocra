@@ -59,7 +59,7 @@ static void set_special_zone(uint8_t biome, uint8_t (*fun)(), uint32_t x,
 }
 
 #define ALL_MOBS 255
-#define NO_TRICE_ORNITH_METEOR 254
+#define DIFFICULT_MOBS 254
 
 uint8_t fern_zone() { return rr_mob_id_fern; }
 uint8_t pter_meteor_zone()
@@ -81,7 +81,7 @@ uint8_t anky_trex_zone()
 uint8_t edmo_zone() { return rr_mob_id_edmontosaurus; }
 // ~x5 tree chance
 uint8_t tree_zone() {
-    return rr_frand() > 0.0025 ? NO_TRICE_ORNITH_METEOR : rr_mob_id_tree;
+    return rr_frand() > 0.0025 ? DIFFICULT_MOBS : rr_mob_id_tree;
 }
 uint8_t pter_zone() {
     return rr_frand() > 0.2 ? rr_mob_id_pteranodon : ALL_MOBS;
@@ -181,18 +181,19 @@ static void spawn_mob(struct rr_simulation *this, uint32_t grid_x,
     struct rr_maze_grid *grid =
         rr_component_arena_get_grid(arena, grid_x, grid_y);
     uint8_t id;
-
     if (grid->spawn_function != NULL && rr_frand() < 1)
     {
         id = grid->spawn_function();
         if (id == ALL_MOBS)
             id = get_spawn_id(RR_GLOBAL_BIOME, grid);
-        else if (id == NO_TRICE_ORNITH_METEOR)
+        else if (id == DIFFICULT_MOBS)
             for (uint8_t i = 0; i < 10; ++i)
             {
                 id = get_spawn_id(RR_GLOBAL_BIOME, grid);
-                if (id != rr_mob_id_triceratops &&
+                if (id != rr_mob_id_dakotaraptor &&
                     id != rr_mob_id_ornithomimus &&
+                    id != rr_mob_id_triceratops &&
+                    id != rr_mob_id_fern &&
                     id != rr_mob_id_meteor)
                     break;
             }
@@ -265,6 +266,8 @@ static void despawn_mob(EntityIdx entity, void *_simulation)
     struct rr_component_arena *arena = rr_simulation_get_arena(this, 1);
     struct rr_component_mob *mob = rr_simulation_get_mob(this, entity);
     struct rr_component_ai *ai = rr_simulation_get_ai(this, entity);
+    if (mob->player_spawned)
+        return;
     if (rr_component_arena_get_grid(
             arena,
             rr_fclamp(physical->x / arena->maze->grid_size, 0,

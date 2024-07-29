@@ -167,23 +167,27 @@ uint8_t tick_summon_return_to_owner(EntityIdx entity,
         relations->nest == RR_NULL_ENTITY
             ? rr_simulation_get_physical(simulation, relations->owner)
             : rr_simulation_get_physical(simulation, relations->nest);
-    float dx = parent_physical->x - physical->x;
-    float dy = parent_physical->y - physical->y;
-    if (ai->ai_state == rr_ai_state_returning_to_owner &&
-        dx * dx + dy * dy > (250 + physical->radius) * (250 + physical->radius))
+    struct rr_vector delta = {parent_physical->x - physical->x,
+                              parent_physical->y - physical->y};
+    if (rr_vector_magnitude_cmp(&delta, 5000) == 1)
     {
-        struct rr_vector accel = {dx, dy};
+        rr_simulation_request_entity_deletion(simulation, entity);
+        return 1;
+    }
+    if (ai->ai_state == rr_ai_state_returning_to_owner &&
+        rr_vector_magnitude_cmp(&delta, 250 + physical->radius) == 1)
+    {
+        struct rr_vector accel = delta;
         rr_vector_set_magnitude(&accel, RR_PLAYER_SPEED * 1.2);
         rr_vector_add(&physical->acceleration, &accel);
         rr_component_physical_set_angle(physical, rr_vector_theta(&accel));
         ai->target_entity = RR_NULL_ENTITY;
         return 1;
     }
-    else if (dx * dx + dy * dy >
-             (1000 + physical->radius) * (1000 + physical->radius))
+    else if (rr_vector_magnitude_cmp(&delta, 1000 + physical->radius) == 1)
     {
         ai->ai_state = rr_ai_state_returning_to_owner;
-        struct rr_vector accel = {dx, dy};
+        struct rr_vector accel = delta;
         rr_vector_set_magnitude(&accel, RR_PLAYER_SPEED * 1.2);
         rr_vector_add(&physical->acceleration, &accel);
         rr_component_physical_set_angle(physical, rr_vector_theta(&accel));
