@@ -41,6 +41,11 @@ void rr_particle_delete(struct rr_particle_manager *this,
     --this->size;
 }
 
+void rr_particle_manager_clear(struct rr_particle_manager *this)
+{
+    this->size = 0;
+}
+
 void rr_renderer_render_particle(struct rr_renderer *renderer,
                                  struct rr_simulation_animation *this)
 {
@@ -74,6 +79,13 @@ void rr_renderer_render_particle(struct rr_renderer *renderer,
         sprintf(a, "%d", this->damage);
         rr_renderer_stroke_text(renderer, a, this->x, this->y);
         rr_renderer_fill_text(renderer, a, this->x, this->y);
+        break;
+    case rr_animation_type_area_damage:
+        rr_renderer_set_fill(renderer, this->color);
+        rr_renderer_begin_path(renderer);
+        rr_renderer_arc(renderer, this->x, this->y,
+                        this->size * (1 - this->opacity));
+        rr_renderer_fill(renderer);
         break;
     default:
         break;

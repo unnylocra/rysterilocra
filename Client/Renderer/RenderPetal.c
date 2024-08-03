@@ -33,54 +33,71 @@ void rr_component_petal_render(EntityIdx entity, struct rr_game *game,
         rr_simulation_get_petal(simulation, entity);
     struct rr_component_health *health =
         rr_simulation_get_health(simulation, entity);
-    if (petal->id == rr_petal_id_uranium)
+    rr_renderer_set_global_alpha(renderer, 1 - physical->deletion_animation);
+    rr_renderer_scale(renderer, 1 + physical->deletion_animation * 0.5);
+    if (petal->id == rr_petal_id_uranium && physical->on_title_screen)
     {
         rr_renderer_set_fill(renderer, 0x2063bf2e);
         rr_renderer_begin_path(renderer);
-        if (physical->on_title_screen)
-        {
-            rr_renderer_arc(renderer, 0, 0,
-                            (30 + 5 * sinf(physical->animation_timer * 3)) *
-                                physical->radius / 15);
-        }
-        else
-        {
-            float radius = 200 * (petal->rarity + 1);
-            rr_renderer_set_global_alpha(renderer,
-                                         0.75 * health->uranium_animation);
-            rr_renderer_arc(renderer, 0, 0,
-                            radius * (1 - health->uranium_animation));
-        }
+        rr_renderer_arc(renderer, 0, 0,
+                        (25 + 10 * (petal->rarity > 1 ? petal->rarity - 1 : 1) *
+                            (1 + sinf(physical->animation_timer * 3))) *
+                            physical->radius / 15);
         rr_renderer_fill(renderer);
     }
-    rr_renderer_set_global_alpha(renderer, 1 - physical->deletion_animation);
-    rr_renderer_scale(renderer, 1 + physical->deletion_animation * 0.5);
     if (petal->rarity >= rr_rarity_id_exotic)
     {
-        // fixme: looks too different at 60 fps
-        uint8_t exo = petal->rarity == rr_rarity_id_exotic;
-        struct rr_simulation_animation *particle = rr_particle_alloc(
+        struct rr_particle_manager *particle_manager =
             physical->on_title_screen ? &game->title_screen_particle_manager
-                                      : &game->particle_manager,
-            rr_animation_type_default);
-        float angle =
-            rr_vector_theta(&physical->lerp_velocity) - 0.5 + rr_frand();
-        rr_vector_from_polar(&particle->velocity,
-                             (5 + rr_frand() * 3) * (exo ? 0.5 : 1), angle);
+                                      : &game->particle_manager;
+        float exotic_coeff = petal->rarity == rr_rarity_id_exotic ? 0.5 : 1;
+        float size_coeff =
+            physical->on_title_screen ? physical->radius / 20 : 1;
+        float fireball_coeff = petal->id == rr_petal_id_fireball ? 2 : 1;
+        float pos_offset = 0;
+        if (physical->on_title_screen)
+        {
+            if (petal->id == rr_petal_id_magnet ||
+                petal->id == rr_petal_id_crest)
+                pos_offset = physical->radius * rr_frand();
+        }
+        else if (physical->radius > 10)
+            pos_offset = (physical->radius - 10) * 2.2;
+        struct rr_simulation_animation *particle =
+            rr_particle_alloc(particle_manager, rr_animation_type_default);
         particle->x = physical->lerp_x;
         particle->y = physical->lerp_y;
-        if (physical->on_title_screen &&
-            (petal->id == rr_petal_id_magnet || petal->id == rr_petal_id_crest))
+        if (pos_offset > 0)
         {
-            float angle = rr_frand() * 2 * M_PI;
-            float dist = rr_frand() * physical->radius;
-            particle->x += cosf(angle) * dist;
-            particle->y += sinf(angle) * dist;
+            struct rr_vector vector;
+            rr_vector_from_polar(&vector, pos_offset, 2 * M_PI * rr_frand());
+            particle->x += vector.x;
+            particle->y += vector.y;
         }
-        particle->size = (3 + rr_frand() * 2) * (exo ? 0.5 : 1) *
-                         (physical->on_title_screen ? physical->radius / 20 : 1);
-        particle->opacity = (0.3 + rr_frand() * 0.2) * (exo ? 0.5 : 1);
+        rr_vector_from_polar(&particle->velocity,
+                             (3 + 2 * rr_frand()) * exotic_coeff * size_coeff,
+                             2 * M_PI * rr_frand());
+        particle->friction = 0.9;
+        particle->size = (3 + 2 * rr_frand()) * exotic_coeff * size_coeff;
+        particle->opacity = (0.3 + 0.2 * rr_frand()) *
+                                exotic_coeff * fireball_coeff;
+        particle->disappearance = 4;
         particle->color = 0xffffffff;
+        if (petal->id == rr_petal_id_fireball)
+        {
+            switch (rand() % 3)
+            {
+            case 0:
+                particle->color = 0xffbc0303;
+                break;
+            case 1:
+                particle->color = 0xffce5d0b;
+                break;
+            case 2:
+                particle->color = 0xffd4cc08;
+                break;
+            }
+        }
     }
     if (game->cache.tint_petals)
         rr_renderer_add_color_filter(renderer, RR_RARITY_COLORS[petal->rarity],

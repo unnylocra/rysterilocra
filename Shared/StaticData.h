@@ -25,6 +25,7 @@ enum rr_animation_type
     rr_animation_type_lightningbolt = 1,
     rr_animation_type_damagenumber = 2,
     rr_animation_type_chat = 3,
+    rr_animation_type_area_damage = 4,
 };
 
 enum rr_serverbound_packet_header
@@ -112,13 +113,14 @@ enum rr_petal_id
     rr_petal_id_lightning, // 22
     rr_petal_id_third_eye, // 23
     rr_petal_id_nest,      // 24
+    rr_petal_id_fireball,  // 25
 
-    rr_petal_id_mandible,  // 25
-    rr_petal_id_wax,       // 26
-    rr_petal_id_sand,      // 27
-    rr_petal_id_mint,      // 28
+    rr_petal_id_mandible,  // 26
+    rr_petal_id_wax,       // 27
+    rr_petal_id_sand,      // 28
+    rr_petal_id_mint,      // 29
 
-    rr_petal_id_max,       // 29
+    rr_petal_id_max,       // 30
 };
 
 enum rr_mob_id

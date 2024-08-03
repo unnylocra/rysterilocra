@@ -90,6 +90,7 @@ static void lightning_petal_system(struct rr_simulation *simulation,
     struct rr_simulation_animation *animation =
         &simulation->animations[simulation->animation_length++];
     animation->type = rr_animation_type_lightningbolt;
+    animation->owner = petal->parent_id;
     EntityIdx chain[16] = {petal->parent_id, first};
     animation->points[0].x = petal_physical->x;
     animation->points[0].y = petal_physical->y;
@@ -133,6 +134,78 @@ static void lightning_petal_system(struct rr_simulation *simulation,
     }
     animation->length = captures.length;
     rr_simulation_request_entity_deletion(simulation, petal->parent_id);
+}
+
+struct fireball_captures
+{
+    struct rr_simulation *simulation;
+    EntityIdx petal_id;
+    EntityIdx exclude;
+};
+
+static void fireball_damage(EntityIdx target, void *_captures)
+{
+    struct fireball_captures *captures = _captures;
+    struct rr_simulation *simulation = captures->simulation;
+    if (target == captures->exclude)
+        return;
+    if (!rr_simulation_has_mob(simulation, target) &&
+        !rr_simulation_has_flower(simulation, target) &&
+        !rr_simulation_has_nest(simulation, target))
+        return;
+    struct rr_component_relations *relations =
+        rr_simulation_get_relations(simulation, captures->petal_id);
+    struct rr_component_relations *target_relations =
+        rr_simulation_get_relations(simulation, target);
+    if (relations->team == target_relations->team)
+        return;
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, captures->petal_id);
+    struct rr_component_physical *target_physical =
+        rr_simulation_get_physical(simulation, target);
+    struct rr_component_petal *petal =
+        rr_simulation_get_petal(simulation, captures->petal_id);
+    struct rr_vector delta = {physical->x - target_physical->x,
+                              physical->y - target_physical->y};
+    float radius = 50 * (petal->rarity + 1);
+    if (rr_vector_magnitude_cmp(&delta, radius + target_physical->radius) == 1)
+        return;
+    struct rr_component_health *health =
+        rr_simulation_get_health(simulation, captures->petal_id);
+    struct rr_component_health *target_health =
+        rr_simulation_get_health(simulation, target);
+    float damage = 0.2 * health->damage;
+    target_health->flags |= 4;
+    rr_component_health_do_damage(simulation, target_health,
+                                  relations->owner, damage);
+    if (!rr_simulation_has_ai(simulation, target))
+        return;
+    struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);
+    if (ai->target_entity == RR_NULL_ENTITY &&
+        !dev_cheat_enabled(simulation, relations->owner, no_aggro))
+        ai->target_entity = relations->owner;
+}
+
+static void fireball_petal_system(struct rr_simulation *simulation,
+                                  struct rr_component_petal *petal,
+                                  EntityIdx exclude)
+{
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, petal->parent_id);
+    struct rr_component_arena *arena =
+        rr_simulation_get_arena(simulation, physical->arena);
+    float radius = 50 * (petal->rarity + 1);
+    struct fireball_captures captures = {simulation, petal->parent_id, exclude};
+    rr_spatial_hash_query(&arena->spatial_hash, physical->x, physical->y,
+                          radius, radius, &captures, fireball_damage);
+    struct rr_simulation_animation *animation =
+        &simulation->animations[simulation->animation_length++];
+    animation->type = rr_animation_type_area_damage;
+    animation->owner = petal->parent_id;
+    animation->x = physical->x;
+    animation->y = physical->y;
+    animation->size = radius;
+    animation->color_type = 1;
 }
 
 static void damage_effect(struct rr_simulation *simulation, EntityIdx target,
@@ -182,9 +255,9 @@ static void damage_effect(struct rr_simulation *simulation, EntityIdx target,
                 (1 - physical->slow_resist);
         }
         else if (petal->id == rr_petal_id_lightning)
-        {
             lightning_petal_system(simulation, petal, target);
-        }
+        else if (petal->id == rr_petal_id_fireball)
+            fireball_petal_system(simulation, petal, target);
         else if (petal->id == rr_petal_id_mandible)
         {
             struct rr_component_health *health =

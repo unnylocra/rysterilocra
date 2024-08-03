@@ -133,6 +133,7 @@ void rr_component_health_do_damage(struct rr_simulation *simulation,
     struct rr_simulation_animation *animation =
         &simulation->animations[simulation->animation_length++];
     animation->type = rr_animation_type_damagenumber;
+    animation->owner = from;
     animation->x = physical->x;
     animation->y = physical->y;
     animation->damage = damage;

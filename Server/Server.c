@@ -137,6 +137,15 @@ static void write_animation_function(struct rr_simulation *simulation,
                                      uint32_t pos)
 {
     struct rr_simulation_animation *animation = &simulation->animations[pos];
+    if (animation->type != rr_animation_type_chat &&
+        client->player_info == NULL)
+        return;
+    if (animation->type != rr_animation_type_chat &&
+        dev_cheat_enabled(simulation, animation->owner, invisible) &&
+        rr_simulation_get_relations(simulation, animation->owner)->root_owner !=
+            rr_simulation_get_entity_hash(simulation,
+                                          client->player_info->parent_id))
+        return;
     if (animation->type == rr_animation_type_damagenumber &&
         animation->squad != client->squad)
         return;
@@ -160,6 +169,12 @@ static void write_animation_function(struct rr_simulation *simulation,
     case rr_animation_type_chat:
         proto_bug_write_string(encoder, animation->name, 64, "name");
         proto_bug_write_string(encoder, animation->message, 64, "chat");
+        break;
+    case rr_animation_type_area_damage:
+        proto_bug_write_float32(encoder, animation->x, "ani x");
+        proto_bug_write_float32(encoder, animation->y, "ani y");
+        proto_bug_write_float32(encoder, animation->size, "size");
+        proto_bug_write_uint8(encoder, animation->color_type, "color type");
         break;
     }
 }

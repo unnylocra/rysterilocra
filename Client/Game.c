@@ -143,6 +143,7 @@ static void rr_game_crafting_tick(struct rr_game *this, float delta)
                 this->crafting_data.temp_successes;
             if (this->crafting_data.temp_successes)
             {
+                rr_particle_manager_clear(&this->crafting_particle_manager);
                 for (uint8_t i = 0; i < s_rarity * s_rarity; ++i)
                 {
                     struct rr_simulation_animation *particle =
@@ -154,8 +155,10 @@ static void rr_game_crafting_tick(struct rr_game *this, float delta)
                                          (2 + 8 * rr_frand()) * s_rarity,
                                          -M_PI / 2 + rr_frand() - 0.5);
                     rr_vector_set(&particle->acceleration, 0, 1);
+                    particle->friction = 0.9;
                     particle->size = (1 + rr_frand()) * sqrtf(s_rarity);
                     particle->opacity = 1;
+                    particle->disappearance = 4;
                     particle->color = RR_RARITY_COLORS[s_rarity];
                 }
             }
@@ -177,7 +180,7 @@ static void rr_game_autocraft_tick(struct rr_game *this, float delta)
     if (!this->crafting_data.autocraft || this->crafting_data.animation > 0 ||
         this->crafting_data.autocraft_animation > 0)
         return;
-    for (uint8_t id = 1; id <= rr_petal_id_nest; ++id)
+    for (uint8_t id = 1; id <= rr_petal_id_fireball; ++id)
     {
         uint32_t sum = 0;
         for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
@@ -763,7 +766,10 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
         this->socket_ready = 0;
         this->socket_error = 1;
         if (this->simulation_ready)
+        {
             rr_simulation_init(this->simulation);
+            rr_particle_manager_clear(&this->title_screen_particle_manager);
+        }
         this->simulation_ready = 0;
         this->socket.recieved_first_packet = 0;
         this->ticks_until_reconnect = 30 + 30 * rr_frand();
@@ -856,6 +862,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                 {
                     rr_simulation_init(this->simulation);
                     rr_simulation_init(this->deletion_simulation);
+                    rr_particle_manager_clear(&this->particle_manager);
                     this->simulation_ready = 1;
                 }
                 rr_simulation_read_binary(this, &encoder);
@@ -863,7 +870,11 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
             else
             {
                 if (this->simulation_ready)
+                {
                     rr_simulation_init(this->simulation);
+                    rr_particle_manager_clear(
+                        &this->title_screen_particle_manager);
+                }
                 this->simulation_ready = 0;
                 proto_bug_init(&encoder, RR_OUTGOING_PACKET);
                 proto_bug_write_uint8(&encoder, this->socket.quick_verification, "qv");
@@ -929,10 +940,11 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
         {
             while (proto_bug_read_uint8(&encoder, "continue"))
             {
-                struct rr_simulation_animation *particle = rr_particle_alloc(
-                    &this->particle_manager,
-                    proto_bug_read_uint8(&encoder, "ani type"));
-                switch (particle->type)
+                struct rr_simulation_animation *particle;
+                uint8_t type = proto_bug_read_uint8(&encoder, "ani type");
+                if (type != rr_animation_type_chat)
+                    particle = rr_particle_alloc(&this->particle_manager, type);
+                switch (type)
                 {
                 case rr_animation_type_lightningbolt:
                     particle->length =
@@ -945,6 +957,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                             proto_bug_read_float32(&encoder, "ani y");
                     }
                     particle->opacity = 0.8;
+                    particle->disappearance = 6;
                     break;
                 case rr_animation_type_damagenumber:
                 {
@@ -953,26 +966,41 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     particle->velocity.x = (rr_frand() - 0.5) * 25;
                     particle->velocity.y = -15 + rr_frand() * 5;
                     particle->acceleration.y = 0.75;
+                    particle->friction = 0.9;
                     particle->damage =
                         proto_bug_read_varuint(&encoder, "damage");
                     particle->opacity = 1;
+                    particle->disappearance = 6;
                     break;
                 }
                 case rr_animation_type_chat:
-                    rr_particle_delete(&this->particle_manager, particle);
                     if (this->chat.at < 9)
                         this->chat.at++;
                     else
                     {
                         for (uint8_t i = 0; i < 9; i++)
-                        {
                             this->chat.messages[i] = this->chat.messages[i + 1];
-                        }
                     }
                     struct rr_game_chat_message *message = &this->chat.messages[this->chat.at];
                     proto_bug_read_string(&encoder, message->sender_name, 64, "name");
                     proto_bug_read_string(&encoder, message->message, 64, "chat");
                     sprintf(message->text, "%s: %s", message->sender_name, message->message);
+                    break;
+                case rr_animation_type_area_damage:
+                    particle->x = proto_bug_read_float32(&encoder, "ani x");
+                    particle->y = proto_bug_read_float32(&encoder, "ani y");
+                    particle->size = proto_bug_read_float32(&encoder, "size");
+                    switch (proto_bug_read_uint8(&encoder, "color type"))
+                    {
+                    case 0:
+                        particle->color = 0x2063bf2e;
+                        break;
+                    case 1:
+                        particle->color = 0x80ce5d0b;
+                        break;
+                    }
+                    particle->opacity = 1;
+                    particle->disappearance = 10 * sqrtf(500 / particle->size);
                     break;
                 default:
                     break;
@@ -984,7 +1012,10 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
             this->socket_error =
                 3 + proto_bug_read_uint8(&encoder, "fail type");
             if (this->simulation_ready)
+            {
                 rr_simulation_init(this->simulation);
+                rr_particle_manager_clear(&this->title_screen_particle_manager);
+            }
             this->simulation_ready = 0;
             this->joined_squad = 0;
             break;
@@ -1445,6 +1476,8 @@ void rr_game_tick(struct rr_game *this, float delta)
             }
             petal->id = id_chosen;
             petal->rarity = rarity_chosen;
+            if (id_chosen == rr_petal_id_uranium)
+                physical->lerp_x -= 150;
             physical->velocity.x = rr_frand() * 40 + 80;
             physical->velocity.y = rr_frand() * 5 + 15;
             physical->animation_timer = rr_frand() * M_PI * 2;
@@ -1469,7 +1502,7 @@ void rr_game_tick(struct rr_game *this, float delta)
             rr_component_petal_render(this->simulation->petal_vector[i], this,
                                       sim);
             rr_renderer_context_state_free(this->renderer, &state2);
-            if (physical->lerp_x > 1000)
+            if (physical->lerp_x > 1200)
             {
                 __rr_simulation_pending_deletion_free_components(
                     this->simulation->petal_vector[i], sim);

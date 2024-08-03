@@ -25,10 +25,11 @@ void rr_system_particle_render_tick(struct rr_game *game, struct rr_particle_man
             &particle_manager->particles[i];
         if (!game->cache.low_performance_mode)
             rr_renderer_render_particle(game->renderer, particle);
-        particle->opacity *= 0.9;
+        particle->opacity = rr_lerp(particle->opacity, 0,
+                                    particle->disappearance * delta);
         if (particle->type != rr_animation_type_lightningbolt)
         {
-            rr_vector_scale(&particle->velocity, 0.9);
+            rr_vector_scale(&particle->velocity, particle->friction);
             rr_vector_add(&particle->velocity, &particle->acceleration);
             particle->x += particle->velocity.x;
             particle->y += particle->velocity.y;

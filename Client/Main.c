@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <Client/Game.h>
 #include <Client/InputData.h>
@@ -126,6 +127,7 @@ void rr_paste_event(struct rr_game *this, char *buf)
 void rr_main_loop(struct rr_game *this)
 {
     printf("client on version %llu\n", RR_SECRET8 ^ 255);
+    srand(time(0));
 #ifdef EMSCRIPTEN
     EM_ASM(
         {

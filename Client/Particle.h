@@ -33,5 +33,6 @@ struct rr_simulation_animation *rr_particle_alloc(struct rr_particle_manager *,
                                                   uint8_t);
 void rr_particle_delete(struct rr_particle_manager *,
                         struct rr_simulation_animation *);
+void rr_particle_manager_clear(struct rr_particle_manager *);
 void rr_renderer_render_particle(struct rr_renderer *,
                                  struct rr_simulation_animation *);

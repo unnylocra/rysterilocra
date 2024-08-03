@@ -25,8 +25,8 @@
     (rr_simulation_has_player_info(simulation,                                 \
         rr_simulation_get_relations(simulation, entity)->root_owner) &&        \
         rr_simulation_get_player_info(simulation,                              \
-            rr_simulation_get_relations(simulation, entity)->root_owner)->     \
-                client->dev_cheats.cheat_name)
+            rr_simulation_get_relations(simulation, entity)->root_owner)       \
+                ->client->dev_cheats.cheat_name)
 
 struct rr_binary_encoder;
 

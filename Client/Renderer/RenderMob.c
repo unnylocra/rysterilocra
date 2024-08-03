@@ -58,11 +58,13 @@ void rr_component_mob_render(EntityIdx entity, struct rr_game *game,
                              (rr_frand() * 5 + 5) *
                                  RR_MOB_RARITY_SCALING[mob->rarity].radius,
                              angle);
+        particle->friction = 0.9;
         particle->x = physical->lerp_x + cosf(angle) * dist;
         particle->y = physical->lerp_y + sinf(angle) * dist;
         particle->size =
             (4 + rr_frand() * 2) * RR_MOB_RARITY_SCALING[mob->rarity].radius;
         particle->opacity = 0.8;
+        particle->disappearance = 6;
         particle->color = 0xffab3423;
     }
     if (physical->animation_timer > 2 * M_PI)

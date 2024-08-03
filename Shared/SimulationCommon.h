@@ -39,14 +39,14 @@ struct rr_spatial_hash;
 struct rr_simulation_animation
 {
     uint8_t type;
-#ifdef RR_CLIENT
-    float opacity;
-    uint32_t color;
-#endif
+    RR_SERVER_ONLY(EntityIdx owner);
+    RR_CLIENT_ONLY(float opacity;)
+    RR_CLIENT_ONLY(float disappearance;)
     union
     {
         uint8_t length;
-        uint8_t squad;
+        RR_SERVER_ONLY(uint8_t squad;)
+        RR_SERVER_ONLY(uint8_t color_type;)
     };
     union
     {
@@ -55,15 +55,15 @@ struct rr_simulation_animation
         {
             float x;
             float y;
-            struct rr_vector velocity;
-            struct rr_vector acceleration;
             float size;
             uint32_t damage;
-#ifdef RR_SERVER
-            uint8_t chat_type;
-            char message[64];
-            char name[64];
-#endif
+            RR_CLIENT_ONLY(uint32_t color;)
+            RR_CLIENT_ONLY(struct rr_vector velocity;)
+            RR_CLIENT_ONLY(struct rr_vector acceleration;)
+            RR_CLIENT_ONLY(float friction;)
+            RR_SERVER_ONLY(uint8_t chat_type;)
+            RR_SERVER_ONLY(char message[64];)
+            RR_SERVER_ONLY(char name[64];)
         };
     };
 };
