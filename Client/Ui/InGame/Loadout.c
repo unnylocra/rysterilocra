@@ -85,8 +85,7 @@ static void petal_switch_button_event(struct rr_ui_element *this,
     if (slot->id != 0)
         rr_ui_render_tooltip_above(this,
             game->petal_tooltips[slot->id][slot->rarity], game);
-    if ((slot1->id != 0 || slot2->id != 0) &&
-        game->player_info->flower_id != RR_NULL_ENTITY)
+    if ((slot1->id != 0 || slot2->id != 0) && !game->flower_dead)
         game->cursor = rr_game_cursor_pointer;
 }
 
@@ -164,11 +163,9 @@ static void loadout_button_animate(struct rr_ui_element *this,
         data->prev_id = id;
         data->prev_rarity = rarity;
     }
-    float cd = (player_info->flower_id == RR_NULL_ENTITY ? 0 :
-        slot->client_cooldown) * (1.0f / 255);
+    float cd = (game->flower_dead ? 0 : slot->client_cooldown) * (1.0f / 255);
     data->lerp_cd = rr_lerp(data->lerp_cd, cd, 12 * game->lerp_delta);
-    float hp = (player_info->flower_id == RR_NULL_ENTITY ? 255 :
-        slot->client_health) * (1.0f / 255);
+    float hp = (game->flower_dead ? 255 : slot->client_health) * (1.0f / 255);
     data->lerp_hp = rr_lerp(data->lerp_hp, hp, 12 * game->lerp_delta);
     rr_renderer_scale(game->renderer, (1 - data->secondary_animation));
 }

@@ -25,7 +25,8 @@
 #define FOR_EACH_PUBLIC_FIELD                                                  \
     X(eye_angle, float32)                                                      \
     X(face_flags, uint8)                                                       \
-    X(level, varuint)
+    X(level, varuint)                                                          \
+    X(dead, uint8)
 
 enum
 {
@@ -33,7 +34,8 @@ enum
     state_flags_level = 0b000010,
     state_flags_eye_angle = 0b000100,
     state_flags_nickname = 0b001000,
-    state_flags_all = 0b001111
+    state_flags_dead = 0b010000,
+    state_flags_all = 0b011111
 };
 
 void rr_component_flower_init(struct rr_component_flower *this,
@@ -43,7 +45,10 @@ void rr_component_flower_init(struct rr_component_flower *this,
 }
 
 #ifdef RR_SERVER
+#include <math.h>
+
 #include <Server/Simulation.h>
+#include <Server/Client.h>
 #endif
 
 void rr_component_flower_free(struct rr_component_flower *this,
@@ -64,6 +69,49 @@ void rr_component_flower_free(struct rr_component_flower *this,
 }
 
 #ifdef RR_SERVER
+void rr_component_flower_set_dead(struct rr_component_flower *this,
+                                  struct rr_simulation *simulation,
+                                  uint8_t dead)
+{
+    this->protocol_state |= (this->dead != dead) * state_flags_dead;
+    this->dead = dead;
+    struct rr_component_relations *relations =
+        rr_simulation_get_relations(simulation, this->parent_id);
+    struct rr_component_player_info *player_info =
+        rr_simulation_get_player_info(simulation, relations->owner);
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, this->parent_id);
+    struct rr_component_health *health =
+        rr_simulation_get_health(simulation, this->parent_id);
+    if (dead)
+    {
+        player_info->input = 0;
+        player_info->client->player_accel_x = 0;
+        player_info->client->player_accel_y = 0;
+        if (player_info->client->dev)
+            rr_component_flower_set_face_flags(this, this->face_flags & ~3);
+        else
+            rr_component_flower_set_face_flags(this, this->face_flags | 1);
+        rr_component_physical_set_angle(physical, 2 * M_PI * rr_frand());
+        rr_component_health_set_health(health, 0);
+    }
+    else
+    {
+        for (uint8_t outer = 0; outer < player_info->slot_count; ++outer)
+            for (uint8_t inner = 0; inner < player_info->slots[outer].count;
+                 ++inner)
+                player_info->slots[outer].petals[inner].cooldown_ticks =
+                    RR_PETAL_DATA[player_info->slots[outer].id].cooldown;
+        rr_component_physical_set_angle(physical, this->saved_angle);
+        health->damage_paused = 25;
+        health->health = 1;
+        if (dev_cheat_enabled(simulation, this->parent_id, invulnerable))
+            rr_component_health_set_health(health, health->max_health);
+        else
+            rr_component_health_set_health(health, 0.1 * health->max_health);
+    }
+}
+
 void rr_component_flower_write(struct rr_component_flower *this,
                                struct proto_bug *encoder, int is_creation,
                                struct rr_component_player_info *client)

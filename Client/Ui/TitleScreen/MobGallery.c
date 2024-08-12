@@ -117,7 +117,7 @@ static uint8_t mob_container_should_show(struct rr_ui_element *this,
 {
     uint8_t r = game->menu_open == rr_game_menu_gallery &&
                 (!game->simulation_ready || (!game->cache.hide_ui &&
-                game->player_info->flower_id == RR_NULL_ENTITY));
+                                             game->flower_dead));
     if (!r && game->menu_open == rr_game_menu_gallery)
         game->menu_open = 0;
     return r;

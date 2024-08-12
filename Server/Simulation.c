@@ -230,6 +230,8 @@ static void count_flower_vicinity(EntityIdx entity, void *_simulation)
     struct rr_component_arena *arena = rr_simulation_get_arena(this, 1);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(this, entity);
+    if (is_dead_flower(this, entity))
+        return;
     if (dev_cheat_enabled(this, entity, no_grid_influence))
         return;
 #define FOV 3072
@@ -299,7 +301,7 @@ static void despawn_mob(EntityIdx entity, void *_simulation)
 
 static float get_max_points(struct rr_maze_grid *grid)
 {
-    return 3 * (0.2 + (grid->player_count) * 1.2) *
+    return 2 * (0.2 + (grid->player_count) * 1.2) *
            powf(1.1, grid->overload_factor);
 }
 static int tick_grid(struct rr_simulation *this, struct rr_maze_grid *grid,

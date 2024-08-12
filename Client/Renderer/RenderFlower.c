@@ -28,56 +28,73 @@ void rr_component_flower_render(EntityIdx entity, struct rr_game *game,
         rr_simulation_get_physical(simulation, entity);
     struct rr_component_flower *flower =
         rr_simulation_get_flower(simulation, entity);
+    struct rr_renderer_context_state state;
     rr_renderer_add_color_filter(
         renderer, 0xffff0000,
         0.5 * rr_simulation_get_health(simulation, entity)->damage_animation);
     rr_renderer_set_global_alpha(renderer, (1 - physical->deletion_animation) *
-                                 renderer->state.global_alpha);
+                                               renderer->state.global_alpha);
     rr_renderer_scale(renderer, 1 + physical->deletion_animation * 0.5);
+    rr_renderer_scale(renderer, physical->radius / 25);
+    rr_renderer_rotate(renderer, physical->lerp_angle);
     rr_renderer_set_stroke(renderer, 0xffcfbb50);
     rr_renderer_set_fill(renderer, 0xffffe763);
-    rr_renderer_rotate(renderer, physical->lerp_angle);
     rr_renderer_set_line_width(renderer, 3);
     rr_renderer_begin_path(renderer);
-    rr_renderer_arc(renderer, 0, 0, physical->radius);
+    rr_renderer_arc(renderer, 0, 0, 25);
     rr_renderer_fill(renderer);
     rr_renderer_stroke(renderer);
-    rr_renderer_scale(renderer, physical->radius / 25);
-    struct rr_renderer_context_state state;
-    rr_renderer_context_state_init(renderer, &state);
-    rr_renderer_set_fill(renderer, 0xff222222);
-    rr_renderer_begin_path(renderer);
-    rr_renderer_ellipse(renderer, -7, -5, 3.25, 6.5);
-    rr_renderer_fill(renderer);
-    rr_renderer_begin_path(renderer);
-    rr_renderer_ellipse(renderer, 7, -5, 3.25, 6.5);
-    rr_renderer_fill(renderer);
-    rr_renderer_begin_path(renderer);
-    rr_renderer_ellipse(renderer, -7, -5, 3, 6);
-    rr_renderer_ellipse(renderer, 7, -5, 3, 6);
-    rr_renderer_clip(renderer);
-    rr_renderer_set_fill(renderer, 0xffffffff);
-    rr_renderer_begin_path(renderer);
-    rr_renderer_arc(renderer, -7 + flower->lerp_eye_x, -5 + flower->lerp_eye_y,
-                    3);
-    rr_renderer_fill(renderer);
-    rr_renderer_begin_path(renderer);
-    rr_renderer_arc(renderer, 7 + flower->lerp_eye_x, -5 + flower->lerp_eye_y,
-                    3);
-    rr_renderer_fill(renderer);
-    rr_renderer_context_state_free(renderer, &state);
     rr_renderer_set_stroke(renderer, 0xff222222);
     rr_renderer_set_line_width(renderer, 1.5);
     rr_renderer_set_line_cap(renderer, 1);
+    if (flower->dead)
+    {
+        rr_renderer_begin_path(renderer);
+        rr_renderer_move_to(renderer, -10, -8);
+        rr_renderer_line_to(renderer, -4, -2);
+        rr_renderer_move_to(renderer, -4, -8);
+        rr_renderer_line_to(renderer, -10, -2);
+        rr_renderer_move_to(renderer, 10, -8);
+        rr_renderer_line_to(renderer, 4, -2);
+        rr_renderer_move_to(renderer, 4, -8);
+        rr_renderer_line_to(renderer, 10, -2);
+        rr_renderer_stroke(renderer);
+    }
+    else
+    {
+        rr_renderer_context_state_init(renderer, &state);
+        rr_renderer_set_fill(renderer, 0xff222222);
+        rr_renderer_begin_path(renderer);
+        rr_renderer_ellipse(renderer, -7, -5, 3.25, 6.5);
+        rr_renderer_fill(renderer);
+        rr_renderer_begin_path(renderer);
+        rr_renderer_ellipse(renderer, 7, -5, 3.25, 6.5);
+        rr_renderer_fill(renderer);
+        rr_renderer_begin_path(renderer);
+        rr_renderer_ellipse(renderer, -7, -5, 3, 6);
+        rr_renderer_ellipse(renderer, 7, -5, 3, 6);
+        rr_renderer_clip(renderer);
+        rr_renderer_set_fill(renderer, 0xffffffff);
+        rr_renderer_begin_path(renderer);
+        rr_renderer_arc(renderer, -7 + flower->lerp_eye_x, -5 + flower->lerp_eye_y,
+                        3);
+        rr_renderer_fill(renderer);
+        rr_renderer_begin_path(renderer);
+        rr_renderer_arc(renderer, 7 + flower->lerp_eye_x, -5 + flower->lerp_eye_y,
+                        3);
+        rr_renderer_fill(renderer);
+        rr_renderer_context_state_free(renderer, &state);
+    }
     rr_renderer_begin_path(renderer);
     rr_renderer_move_to(renderer, -6, 10);
     rr_renderer_quadratic_curve_to(renderer, 0, flower->lerp_mouth, 6, 10);
     rr_renderer_stroke(renderer);
-    rr_renderer_set_fill(renderer, 0xffffe763);
-    if (flower->lerp_mouth <= 8 && state.global_alpha > 0.5)
+    if (flower->lerp_mouth <= 8 && !flower->dead &&
+        renderer->state.global_alpha > 0.5)
     {
         rr_renderer_context_state_init(renderer, &state);
         rr_renderer_translate(renderer, 0, -flower->lerp_mouth - 7.8);
+        rr_renderer_set_fill(renderer, 0xffffe763);
         rr_renderer_begin_path(renderer);
         rr_renderer_move_to(renderer, -12, 0);
         rr_renderer_line_to(renderer, 12, 0);
@@ -94,11 +111,22 @@ void rr_component_flower_render(EntityIdx entity, struct rr_game *game,
     }
     if (flower->face_flags & 16)
     {
-        rr_renderer_translate(renderer, 0, -15);
-        rr_renderer_scale(renderer, 0.625);
-        rr_renderer_draw_petal(renderer, rr_petal_id_third_eye, 1);
-        rr_renderer_scale(renderer, 1.6);
-        rr_renderer_translate(renderer, 0, 15);
+        if (flower->dead)
+        {
+            rr_renderer_begin_path(renderer);
+            rr_renderer_move_to(renderer, 2, -17);
+            rr_renderer_line_to(renderer, -2, -13);
+            rr_renderer_move_to(renderer, -2, -17);
+            rr_renderer_line_to(renderer, 2, -13);
+            rr_renderer_stroke(renderer);
+        }
+        else
+        {
+            rr_renderer_translate(renderer, 0, -15);
+            rr_renderer_scale(renderer, 0.625);
+            rr_renderer_draw_petal(renderer, rr_petal_id_third_eye, 1);
+            rr_renderer_scale(renderer, 1.6);
+            rr_renderer_translate(renderer, 0, 15);
+        }
     }
-    rr_renderer_rotate(renderer, -physical->lerp_angle);
 }

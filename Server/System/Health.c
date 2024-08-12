@@ -46,8 +46,16 @@ static void system_default_idle_heal(EntityIdx entity, void *captures)
         health->poison = 0;
     if (health->damage_paused > 0)
         health->damage_paused -= 1;
+    if (is_dead_flower(this, entity))
+        return;
     if (health->health == 0)
-        rr_simulation_request_entity_deletion(this, entity);
+    {
+        if (rr_simulation_has_flower(this, entity))
+            rr_component_flower_set_dead(rr_simulation_get_flower(this, entity),
+                                         this, 1);
+        else
+            rr_simulation_request_entity_deletion(this, entity);
+    }
     else
         // heal 0.25% of max hp per second (0.0001 is 0.0025 / 25)
         rr_component_health_set_health(health, health->health +
@@ -133,7 +141,8 @@ static void lightning_petal_system(struct rr_simulation *simulation,
         captures.curr_y = physical->y;
     }
     animation->length = captures.length;
-    rr_simulation_request_entity_deletion(simulation, petal->parent_id);
+    if (!dev_cheat_enabled(simulation, petal->parent_id, invulnerable))
+        rr_simulation_request_entity_deletion(simulation, petal->parent_id);
 }
 
 struct fireball_captures
@@ -206,6 +215,8 @@ static void fireball_petal_system(struct rr_simulation *simulation,
     animation->y = physical->y;
     animation->size = radius;
     animation->color_type = 1;
+    if (!dev_cheat_enabled(simulation, petal->parent_id, invulnerable))
+        rr_simulation_request_entity_deletion(simulation, petal->parent_id);
 }
 
 static void damage_effect(struct rr_simulation *simulation, EntityIdx target,

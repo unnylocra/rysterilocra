@@ -61,8 +61,6 @@ void rr_component_petal_render(EntityIdx entity, struct rr_game *game,
                 petal->id == rr_petal_id_crest)
                 pos_offset = physical->radius * rr_frand();
         }
-        else if (physical->radius > 10)
-            pos_offset = (physical->radius - 10) * 2.2;
         struct rr_simulation_animation *particle =
             rr_particle_alloc(particle_manager, rr_animation_type_default);
         particle->x = physical->lerp_x;

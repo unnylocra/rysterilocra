@@ -133,7 +133,7 @@ struct rr_ui_element *rr_ui_mob_tooltip_init(uint8_t id, uint8_t rarity)
                                RR_MOB_LOOT_RARITY_COEFFICIENTS[rarity]) -
                            pow(1 - (1 - start) * seed,
                                RR_MOB_LOOT_RARITY_COEFFICIENTS[rarity]);
-            if (chance * 100 < 0.01)
+            if (chance * 100 < 0.001)
                 continue;
             char *d = malloc((sizeof *d) * 16);
             float pct = 100 * chance;
@@ -141,7 +141,7 @@ struct rr_ui_element *rr_ui_mob_tooltip_init(uint8_t id, uint8_t rarity)
                 sprintf(d, "%.1f%%", pct);
             else if (pct > 0.1)
                 sprintf(d, "%.2f%%", pct);
-            else if (pct > 0.01)
+            else
                 sprintf(d, "%.3f%%", pct);
             rr_ui_container_add_element(
                 temp, rr_ui_v_container_init(

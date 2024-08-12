@@ -121,6 +121,8 @@ void rr_simulation_read_binary(struct rr_game *game, struct proto_bug *encoder)
     game->player_info = rr_simulation_get_player_info(
         this, proto_bug_read_varuint(encoder, "pinfo id"));
     this->game_over = proto_bug_read_uint8(encoder, "game over");
+    game->flower_dead = game->player_info->flower_id == RR_NULL_ENTITY ||
+                        is_dead_flower(this, game->player_info->flower_id);
     this->updated_this_tick = 1;
 }
 

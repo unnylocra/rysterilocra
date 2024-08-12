@@ -103,6 +103,9 @@ static void rr_server_client_create_player_info(struct rr_server *server,
         player_info->slots[i].id = id;
         player_info->slots[i].rarity = rarity;
         player_info->slots[i].count = RR_PETAL_DATA[id].count[rarity];
+        for (uint64_t j = 0; j < player_info->slots[i].count; ++j)
+            player_info->slots[i].petals[j].cooldown_ticks =
+                RR_PETAL_DATA[id].cooldown;
 
         id = member->loadout[i + 10].id;
         rarity = member->loadout[i + 10].rarity;
@@ -528,7 +531,9 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
         {
             if (client->player_info == NULL)
                 break;
-            if (client->player_info->flower_id == RR_NULL_ENTITY)
+            if (client->player_info->flower_id == RR_NULL_ENTITY ||
+                is_dead_flower(&this->simulation,
+                               client->player_info->flower_id))
                 break;
             uint8_t movementFlags =
                 proto_bug_read_uint8(&encoder, "movement kb flags");
@@ -582,7 +587,9 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
         {
             if (client->player_info == NULL)
                 break;
-            if (client->player_info->flower_id == RR_NULL_ENTITY)
+            if (client->player_info->flower_id == RR_NULL_ENTITY ||
+                is_dead_flower(&this->simulation,
+                               client->player_info->flower_id))
                 break;
             uint8_t pos = proto_bug_read_uint8(&encoder, "petal switch");
             while (pos != 0 && pos <= 10)
@@ -710,10 +717,14 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                     {
                         if (rr_simulation_entity_alive(
                                 &this->simulation,
-                                client->player_info->flower_id))
-                            rr_simulation_request_entity_deletion(
-                                &this->simulation,
-                                client->player_info->flower_id);
+                                client->player_info->flower_id) &&
+                            !is_dead_flower(&this->simulation,
+                                            client->player_info->flower_id))
+                            rr_component_flower_set_dead(
+                                rr_simulation_get_flower(
+                                    &this->simulation,
+                                    client->player_info->flower_id),
+                                &this->simulation, 1);
                         else
                         {
                             rr_simulation_request_entity_deletion(
@@ -1208,8 +1219,10 @@ static void server_tick(struct rr_server *this)
                 continue;
             if (client->player_info != NULL)
             {
-                if (rr_simulation_entity_alive(&this->simulation,
-                                               client->player_info->flower_id))
+                if (rr_simulation_entity_alive(
+                        &this->simulation, client->player_info->flower_id) &&
+                    !is_dead_flower(&this->simulation,
+                                    client->player_info->flower_id))
                     rr_vector_set(
                         &rr_simulation_get_physical(
                              &this->simulation, client->player_info->flower_id)

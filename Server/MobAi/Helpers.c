@@ -158,7 +158,8 @@ uint8_t tick_summon_return_to_owner(EntityIdx entity,
         rr_simulation_get_physical(simulation, entity);
     struct rr_component_relations *relations =
         rr_simulation_get_relations(simulation, entity);
-    if (!rr_simulation_entity_alive(simulation, relations->owner))
+    if (!rr_simulation_entity_alive(simulation, relations->owner) ||
+        is_dead_flower(simulation, relations->owner))
     {
         rr_simulation_request_entity_deletion(simulation, entity);
         return 1;

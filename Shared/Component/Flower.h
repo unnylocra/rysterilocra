@@ -19,6 +19,10 @@
 #include <Shared/Entity.h>
 #include <Shared/Utilities.h>
 
+#define is_dead_flower(simulation, entity)                                     \
+    (rr_simulation_has_flower(simulation, entity) &&                           \
+     rr_simulation_get_flower(simulation, entity)->dead)
+
 struct rr_simulation;
 struct proto_bug;
 RR_CLIENT_ONLY(struct rr_renderer;)
@@ -27,8 +31,10 @@ RR_SERVER_ONLY(struct rr_component_player_info;)
 struct rr_component_flower
 {
     EntityIdx parent_id;
+    uint8_t dead;
     uint8_t face_flags;
     RR_SERVER_ONLY(uint8_t protocol_state;)
+    RR_SERVER_ONLY(float saved_angle;)
     float eye_angle;
     uint32_t level;
     RR_CLIENT_ONLY(float eye_x;)
@@ -43,6 +49,10 @@ void rr_component_flower_init(struct rr_component_flower *,
                               struct rr_simulation *);
 void rr_component_flower_free(struct rr_component_flower *,
                               struct rr_simulation *);
+
+RR_SERVER_ONLY(void rr_component_flower_set_dead(struct rr_component_flower *,
+                                                 struct rr_simulation *,
+                                                 uint8_t);)
 
 RR_SERVER_ONLY(void rr_component_flower_write(
                    struct rr_component_flower *, struct proto_bug *, int,

@@ -54,9 +54,9 @@ static void system_insert_entities(EntityIdx entity, void *_captures)
     {
         struct rr_component_health *health =
             rr_simulation_get_health(this, entity);
+        rr_component_health_set_flags(health, health->flags & (~2));
         if (health->health == 0)
             return;
-        rr_component_health_set_flags(health, health->flags & (~2));
     }
     rr_spatial_hash_insert(
         &rr_simulation_get_arena(this, physical->arena)->spatial_hash, entity);

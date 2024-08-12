@@ -44,7 +44,7 @@ static uint8_t chosen_text = 1;
 
 static uint8_t game_over(struct rr_ui_element *this, struct rr_game *game)
 {
-    uint8_t dead = game->player_info->flower_id == RR_NULL_ENTITY;
+    uint8_t dead = game->flower_dead;
     if (dead && !dead_last_tick)
         chosen_text = rr_frand() >= 0.001;
     dead_last_tick = dead;
@@ -64,12 +64,14 @@ struct rr_ui_element *rr_ui_finished_game_screen_init()
     leave_game->on_event = continue_to_squad_event;
     struct rr_ui_element *this = rr_ui_v_container_init(
         rr_ui_container_init(), 10, 10,
+        rr_ui_static_space_init(60),
         rr_ui_choose_element_init(
             rr_ui_text_init("You Died", 48, 0xffffffff),
             // easter egg
             rr_ui_text_init("Skill Issue", 48, 0xffffffff),
             text_choose
         ),
+        rr_ui_static_space_init(100),
         leave_game,
         rr_ui_static_space_init(1),
         rr_ui_text_init("[Shift + Enter]", 14, 0xffffffff),

@@ -284,9 +284,8 @@ static uint8_t ui_not_hidden_and_simulation_ready(struct rr_ui_element *this,
 static uint8_t ui_not_hidden_and_player_dead(struct rr_ui_element *this,
                                              struct rr_game *game)
 {
-    return (!game->cache.hide_ui &&
-           game->player_info->flower_id == RR_NULL_ENTITY) ||
-           !game->simulation_ready;
+    return (!game->cache.hide_ui && game->flower_dead) ||
+            !game->simulation_ready;
 }
 
 static uint8_t socket_ready(struct rr_ui_element *this, struct rr_game *game)
@@ -304,8 +303,7 @@ static uint8_t socket_pending_or_ready(struct rr_ui_element *this,
 
 static uint8_t player_alive(struct rr_ui_element *this, struct rr_game *game)
 {
-    return game->simulation_ready &&
-           game->player_info->flower_id != RR_NULL_ENTITY;
+    return game->simulation_ready && !game->flower_dead;
 }
 
 static void window_on_event(struct rr_ui_element *this, struct rr_game *game)
@@ -1372,30 +1370,42 @@ void rr_game_tick(struct rr_game *this, float delta)
             rr_component_arena_render(player_info->arena, this,
                                       this->simulation);
 
-#define render_component(COMPONENT)                                            \
+#define render_component(COMPONENT, filter)                                    \
     for (uint32_t i = 0; i < this->simulation->COMPONENT##_count; ++i)         \
-        render_##COMPONENT##_component(                                        \
-            this->simulation->COMPONENT##_vector[i], this, this->simulation);  \
+        if (filter(this->simulation, this->simulation->COMPONENT##_vector[i])) \
+            render_##COMPONENT##_component(                                    \
+                this->simulation->COMPONENT##_vector[i], this,                 \
+                this->simulation);                                             \
     for (uint32_t i = 0; i < this->deletion_simulation->COMPONENT##_count;     \
          ++i)                                                                  \
-        render_##COMPONENT##_component(                                        \
-            this->deletion_simulation->COMPONENT##_vector[i], this,            \
-            this->deletion_simulation);
+        if (filter(this->deletion_simulation,                                  \
+                   this->deletion_simulation->COMPONENT##_vector[i]))          \
+            render_##COMPONENT##_component(                                    \
+                this->deletion_simulation->COMPONENT##_vector[i], this,        \
+                this->deletion_simulation);
 
-            render_component(nest);
-            render_component(web);
-            render_component(health);
-            render_component(drop);
-            render_component(mob);
+#define no_filter(simulation, id) 1
+#define dead_flower_filter(simulation, id)                                     \
+    rr_simulation_get_flower(simulation, id)->dead
+#define alive_flower_filter(simulation, id)                                    \
+    rr_simulation_get_flower(simulation, id)->dead == 0
+
+            render_component(nest, no_filter);
+            render_component(web, no_filter);
+            render_component(health, no_filter);
+            render_component(flower, dead_flower_filter);
+            render_component(drop, no_filter);
+            render_component(mob, no_filter);
             rr_system_particle_render_tick(this, &this->particle_manager, delta);
-            render_component(petal);
-            render_component(flower);
+            render_component(petal, no_filter);
+            render_component(flower, alive_flower_filter);
             rr_renderer_context_state_free(this->renderer, &state1);
 #undef render_component
         }
     }
     else
     {
+        this->flower_dead = 1;
         struct rr_renderer_context_state state1;
         rr_renderer_context_state_init(this->renderer, &state1);
         rr_renderer_translate(this->renderer, this->renderer->width / 2,
@@ -1547,7 +1557,7 @@ void rr_game_tick(struct rr_game *this, float delta)
                 rr_write_serverbound_packet_mobile(this);
             rr_write_dev_cheat_packets(this, 0);
         }
-        if (this->player_info->flower_id == RR_NULL_ENTITY &&
+        if (this->flower_dead &&
             rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 13) &&
             (!this->simulation_ready ||
              rr_bitset_get(this->input_data->keys_pressed, 16)))

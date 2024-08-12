@@ -117,19 +117,6 @@ static void system_petal_detach(struct rr_simulation *simulation,
     ppetal->cooldown_ticks = petal_data->cooldown;
 }
 
-static EntityIdx squad_has_dead_player(struct rr_simulation *simulation,
-                                       uint8_t squad)
-{
-    for (uint32_t i = 0; i < simulation->player_info_count; ++i)
-    {
-        struct rr_component_player_info *pl = rr_simulation_get_player_info(
-            simulation, simulation->player_info_vector[i]);
-        if (pl->flower_id == RR_NULL_ENTITY && pl->squad == squad)
-            return pl->parent_id;
-    }
-    return RR_NULL_ENTITY;
-}
-
 static uint8_t is_close_enough_to_parent(struct rr_simulation *simulation,
                                          EntityIdx seeker, EntityIdx target,
                                          void *captures)
@@ -275,6 +262,8 @@ static void system_flower_petal_movement_logic(
                 for (uint32_t i = 0; i < simulation->flower_count; ++i)
                 {
                     EntityIdx potential = simulation->flower_vector[i];
+                    if (is_dead_flower(simulation, potential))
+                        continue;
                     struct rr_component_physical *target_physical =
                         rr_simulation_get_physical(simulation, potential);
                     struct rr_vector delta = {
@@ -329,10 +318,34 @@ static void system_flower_petal_movement_logic(
         }
         case rr_petal_id_seed:
         {
-            if (petal->detached)
-                return;
-            if (squad_has_dead_player(simulation, player_info->squad))
+            EntityIdx closest_target = RR_NULL_ENTITY;
+            float closest_dist = 200;
+            for (uint32_t i = 0; i < simulation->flower_count; ++i)
             {
+                EntityIdx target = simulation->flower_vector[i];
+                if (!is_dead_flower(simulation, target))
+                    continue;
+                struct rr_component_physical *target_physical =
+                    rr_simulation_get_physical(simulation, target);
+                struct rr_vector delta = {target_physical->x - physical->x,
+                                          target_physical->y - physical->y};
+                if (rr_vector_magnitude_cmp(
+                        &delta, closest_dist + target_physical->radius) == 1)
+                    continue;
+                closest_target = target;
+                closest_dist =
+                    rr_vector_get_magnitude(&delta) - target_physical->radius;
+            }
+            if (closest_target != RR_NULL_ENTITY)
+            {
+                struct rr_component_physical *target_physical =
+                    rr_simulation_get_physical(simulation, closest_target);
+                petal->bind_target =
+                    rr_simulation_get_entity_hash(simulation, closest_target);
+                rr_vector_from_polar(
+                    &petal->bind_pos,
+                    (target_physical->radius - physical->radius) * rr_frand(),
+                    2 * M_PI * rr_frand());
                 petal->effect_delay =
                     25 * RR_PETAL_RARITY_SCALE[petal->rarity].seed_cooldown;
                 rr_component_petal_set_detached(petal, 1);
@@ -387,7 +400,7 @@ static void system_flower_petal_movement_logic(
     else
         return;
 
-    float holdingRadius = 75;
+    float holdingRadius = 50 + flower_physical->radius;
     uint8_t should_extend = player_info->input & 1 && !petal->no_rotation &&
                             petal_data->id != rr_petal_id_uranium &&
                             petal_data->id != rr_petal_id_magnet &&
@@ -395,9 +408,10 @@ static void system_flower_petal_movement_logic(
     if (petal->id == rr_petal_id_gravel && petal->detached)
         should_extend = player_info->input & 1;
     if (should_extend)
-        holdingRadius = 150 + player_info->modifiers.petal_extension;
+        holdingRadius = 125 + flower_physical->radius +
+                            player_info->modifiers.petal_extension;
     else if (player_info->input & 2)
-        holdingRadius = 45;
+        holdingRadius = 20 + flower_physical->radius;
     struct rr_vector chase_vector;
     rr_vector_from_polar(&chase_vector, holdingRadius, curr_angle);
     rr_vector_add(&chase_vector, &flower_vector);
@@ -462,8 +476,6 @@ static void petal_modifiers(struct rr_simulation *simulation,
     uint8_t rot_count = 0;
     float bone_diminish_factor = 1;
     float feather_diminish_factor = 1;
-    rr_component_player_info_set_camera_fov(player_info,
-        RR_BASE_FOV / player_info->client->dev_cheats.fov_percent);
     float to_rotate = 0.1;
     for (uint64_t outer = 0; outer < player_info->slot_count; ++outer)
     {
@@ -648,7 +660,10 @@ static void rr_system_petal_reload_foreach_function(EntityIdx id,
 {
     struct rr_component_player_info *player_info =
         rr_simulation_get_player_info(simulation, id);
-    if (!rr_simulation_entity_alive(simulation, player_info->flower_id))
+    rr_component_player_info_set_camera_fov(
+        player_info, RR_BASE_FOV / player_info->client->dev_cheats.fov_percent);
+    if (!rr_simulation_entity_alive(simulation, player_info->flower_id) ||
+        is_dead_flower(simulation, player_info->flower_id))
         return;
     struct rr_component_physical *flower_physical =
         rr_simulation_get_physical(simulation, player_info->flower_id);
@@ -751,7 +766,8 @@ static void system_petal_misc_logic(EntityIdx id, void *_simulation)
         rr_simulation_get_physical(simulation, id);
     struct rr_component_relations *relations =
         rr_simulation_get_relations(simulation, id);
-    if (!rr_simulation_entity_alive(simulation, relations->owner))
+    if (!rr_simulation_entity_alive(simulation, relations->owner) ||
+        is_dead_flower(simulation, relations->owner))
     {
         rr_simulation_request_entity_deletion(simulation, id);
         return;
@@ -781,43 +797,30 @@ static void system_petal_misc_logic(EntityIdx id, void *_simulation)
                                  physical->angle);
         else if (petal->id == rr_petal_id_seed)
         {
-            EntityHash player_info = relations->root_owner;
-            if (!rr_simulation_entity_alive(simulation, player_info))
+            if (!rr_simulation_entity_alive(simulation, petal->bind_target) ||
+                !is_dead_flower(simulation, petal->bind_target))
+            {
                 rr_simulation_request_entity_deletion(simulation, id);
-            if (!squad_has_dead_player(
-                    simulation,
-                    rr_simulation_get_player_info(simulation, player_info)
-                        ->squad))
-                rr_simulation_request_entity_deletion(simulation, id);
-        }
-        else if (petal->id == rr_petal_id_nest)
-        {
-            struct rr_component_physical *physical =
-                rr_simulation_get_physical(simulation, id);
-            rr_component_physical_set_radius(physical, physical->radius + 0.08);
+                return;
+            }
+            struct rr_component_physical *target_physical =
+                rr_simulation_get_physical(simulation, petal->bind_target);
+            struct rr_vector delta = {target_physical->x - physical->x,
+                                      target_physical->y - physical->y};
+            rr_vector_add(&delta, &petal->bind_pos);
+            rr_vector_scale(&delta, 0.4);
+            rr_vector_add(&physical->acceleration, &delta);
         }
         if (--petal->effect_delay <= 0)
         {
             rr_simulation_request_entity_deletion(simulation, id);
             if (petal->id == rr_petal_id_seed)
             {
-                EntityIdx player_info =
-                    rr_simulation_get_relations(simulation, relations->owner)
-                        ->owner;
-                EntityIdx to_rev = squad_has_dead_player(
-                    simulation,
-                    rr_simulation_get_player_info(simulation, player_info)
-                        ->squad);
-                if (to_rev == RR_NULL_ENTITY)
-                    return;
-                EntityIdx flower = rr_simulation_alloc_player(
-                    simulation, physical->arena, to_rev);
-                struct rr_component_physical *flower_physical =
-                    rr_simulation_get_physical(simulation, flower);
-                rr_component_physical_set_x(flower_physical, physical->x);
-                rr_component_physical_set_y(flower_physical, physical->y);
+                struct rr_component_flower *target_flower =
+                    rr_simulation_get_flower(simulation, petal->bind_target);
+                rr_component_flower_set_dead(target_flower, simulation, 0);
             }
-            if (petal->id == rr_petal_id_nest)
+            else if (petal->id == rr_petal_id_nest)
             {
                 struct rr_component_relations *flower_relations =
                     rr_simulation_get_relations(simulation, relations->owner);
@@ -877,7 +880,8 @@ static void system_nest_logic(EntityIdx id, void *_simulation)
     nest->global_rotation += 0.1;
     nest->rotation_count = nest->rotation_pos;
     nest->rotation_pos = 0;
-    if (!rr_simulation_entity_alive(simulation, relations->owner))
+    if (!rr_simulation_entity_alive(simulation, relations->owner) ||
+        is_dead_flower(simulation, relations->owner))
         rr_simulation_request_entity_deletion(simulation, id);
     else
     {

@@ -36,6 +36,8 @@ static void drop_pick_up(EntityIdx entity, void *_captures)
         rr_simulation_get_relations(this, entity);
     if (!rr_simulation_entity_alive(this, flower_relations->owner))
         return;
+    if (is_dead_flower(this, entity))
+        return;
 
     struct rr_component_player_info *player_info =
         rr_simulation_get_player_info(this, flower_relations->owner);
@@ -57,7 +59,7 @@ static void drop_pick_up(EntityIdx entity, void *_captures)
             &delta,
             physical->radius + player_info->modifiers.drop_pickup_radius) == 1)
         return;
-    if (player_info->drops_this_tick_size >= 8)
+    if (player_info->drops_this_tick_size >= 1)
         return;
     rr_bitset_set(drop->picked_up_by,
                   player_info->squad * RR_SQUAD_MEMBER_COUNT +

@@ -187,6 +187,7 @@ struct rr_game
     uint8_t socket_pending : 1;
     uint8_t joined_squad : 1;
     uint8_t simulation_ready : 1;
+    uint8_t flower_dead : 1;
     uint8_t block_ui_input : 1;
     uint8_t block_fov_adjustment : 1;
     uint8_t is_mobile : 1;

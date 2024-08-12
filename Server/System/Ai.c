@@ -44,7 +44,8 @@ static void system_for_each(EntityIdx entity, void *simulation)
         rr_simulation_get_physical(this, entity);
     if (ai->target_entity != RR_NULL_ENTITY &&
         (!rr_simulation_entity_alive(simulation, ai->target_entity) ||
-            dev_cheat_enabled(this, ai->target_entity, no_aggro)))
+         is_dead_flower(simulation, ai->target_entity) ||
+         dev_cheat_enabled(this, ai->target_entity, no_aggro)))
     {
         ai->target_entity = RR_NULL_ENTITY;
         ai->ai_state = rr_ai_state_idle;

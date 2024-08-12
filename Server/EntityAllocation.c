@@ -69,6 +69,7 @@ EntityIdx rr_simulation_alloc_player(struct rr_simulation *this,
            sizeof player_info->squad_member->nickname);
     rr_component_flower_set_level(rr_simulation_get_flower(this, flower_id),
                                   player_info->level);
+    rr_simulation_get_flower(this, flower_id)->saved_angle = physical->angle;
     rr_component_health_set_max_health(
         health,
         100 * pow(1.0256, player_info->level > 120 ? 120 : player_info->level));

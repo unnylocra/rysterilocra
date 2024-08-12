@@ -50,8 +50,9 @@ void system_interpolation_for_each_function(EntityIdx entity, void *_captures)
             rr_lerp(physical->lerp_velocity.x, physical->velocity.x, 5 * delta);
         physical->lerp_velocity.y =
             rr_lerp(physical->lerp_velocity.y, physical->velocity.y, 5 * delta);
-        if (physical->lerp_angle == 0)
+        if (!physical->animation_started)
             physical->lerp_angle = physical->angle;
+        physical->animation_started = 1;
 
         physical->lerp_radius =
             rr_lerp(physical->lerp_radius, physical->radius, 10 * delta);
@@ -110,8 +111,7 @@ void system_interpolation_for_each_function(EntityIdx entity, void *_captures)
     {
         struct rr_component_player_info *player_info =
             rr_simulation_get_player_info(this, entity);
-        if (player_info->camera_fov != player_info->camera_fov_last_tick ||
-            player_info->flower_id == RR_NULL_ENTITY)
+        if (player_info->camera_fov != player_info->camera_fov_last_tick)
             player_info->fov_adjustment = 1;
         player_info->camera_fov_last_tick = player_info->camera_fov;
         float fov = rr_lerp(RR_BASE_FOV, player_info->camera_fov,
@@ -146,9 +146,9 @@ void system_interpolation_for_each_function(EntityIdx entity, void *_captures)
         if (health->lerp_prev_health == 0)
             health->lerp_prev_health = health->health;
         health->lerp_health =
-            rr_lerp(health->lerp_health, health->health, 25 * delta);
+            rr_lerp(health->lerp_health, health->health, 20 * delta);
         if (health->health < health->health_last_tick)
-            health->prev_health_delay_ticks = 5;
+            health->prev_health_delay_ticks = 10;
         else if (health->prev_health_delay_ticks > 0)
             health->prev_health_delay_ticks--;
         if (health->prev_health_delay_ticks == 0)

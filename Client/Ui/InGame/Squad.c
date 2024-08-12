@@ -25,33 +25,6 @@
 
 #include <Shared/Vector.h>
 
-static void render_dead_flower(struct rr_game *game)
-{
-    struct rr_renderer *renderer = game->renderer;
-    rr_renderer_set_stroke(renderer, 0xffcfbb50);
-    rr_renderer_set_fill(renderer, 0xffffe763);
-    rr_renderer_set_line_width(renderer, 3);
-    rr_renderer_begin_path(renderer);
-    rr_renderer_arc(renderer, 0, 0, 25);
-    rr_renderer_fill(renderer);
-    rr_renderer_stroke(renderer);
-    rr_renderer_set_stroke(renderer, 0xff222222);
-    rr_renderer_set_line_width(renderer, 1.5);
-    rr_renderer_set_line_cap(renderer, 1);
-    rr_renderer_begin_path(renderer);
-    rr_renderer_move_to(renderer, -10, -8);
-    rr_renderer_line_to(renderer, -4, -2);
-    rr_renderer_move_to(renderer, -4, -8);
-    rr_renderer_line_to(renderer, -10, -2);
-    rr_renderer_move_to(renderer, 10, -8);
-    rr_renderer_line_to(renderer, 4, -2);
-    rr_renderer_move_to(renderer, 4, -8);
-    rr_renderer_line_to(renderer, 10, -2);
-    rr_renderer_move_to(renderer, -6, 10);
-    rr_renderer_quadratic_curve_to(renderer, 0, 5, 6, 10);
-    rr_renderer_stroke(renderer);
-}
-
 struct player_hud_metadata
 {
     uint8_t pos;
@@ -77,9 +50,10 @@ static void player_hud_on_render(struct rr_ui_element *this,
     struct rr_component_player_info *player_info =
         rr_simulation_get_player_info(game->simulation,
                                       game->player_infos[data->pos]);
-    struct rr_renderer_context_state state;
-    rr_renderer_context_state_init(renderer, &state);
-    if (player_info->flower_id == RR_NULL_ENTITY)
+    struct rr_renderer_context_state state1;
+    struct rr_renderer_context_state state2;
+    rr_renderer_context_state_init(renderer, &state1);
+    if (player_info->arena != game->player_info->arena)
     {
         float length = this->abs_width / 2;
         rr_renderer_set_line_cap(renderer, 1);
@@ -89,101 +63,93 @@ static void player_hud_on_render(struct rr_ui_element *this,
         rr_renderer_move_to(renderer, -length, 0);
         rr_renderer_line_to(renderer, length, 0);
         rr_renderer_stroke(renderer);
+
         rr_renderer_translate(renderer, -length, 0);
         rr_renderer_scale(renderer, this->abs_height / 50);
-        if (data->pos == 0 && game->dev_cheats.invisible && game->is_dev)
-            rr_renderer_set_global_alpha(renderer, 0.5);
-        render_dead_flower(game);
+        rr_renderer_set_fill(renderer, 0xff000000);
+        rr_renderer_begin_path(renderer);
+        rr_renderer_arc(renderer, 0, 0, 25);
+        rr_renderer_fill(renderer);
     }
     else
     {
-        if (player_info->arena != game->player_info->arena)
+        struct rr_component_physical *physical = rr_simulation_get_physical(
+            game->simulation, player_info->flower_id);
+        struct rr_component_health *health = rr_simulation_get_health(
+            game->simulation, player_info->flower_id);
+        float length = this->abs_width / 2;
+        rr_renderer_set_line_cap(renderer, 1);
+        rr_renderer_set_stroke(renderer, 0xff222222);
+        rr_renderer_set_line_width(renderer, 25);
+        rr_renderer_begin_path(renderer);
+        rr_renderer_move_to(renderer, -length, 0);
+        rr_renderer_line_to(renderer, length, 0);
+        rr_renderer_stroke(renderer);
+
+        rr_renderer_set_global_alpha(
+            renderer,
+            rr_fclamp(20 * health->lerp_prev_health / health->max_health,
+                      0, 1));
+        rr_renderer_set_stroke(renderer, 0xffdd3434);
+        rr_renderer_set_line_width(renderer, 16);
+        rr_renderer_begin_path(renderer);
+        rr_renderer_move_to(renderer, -length / 2, 0);
+        rr_renderer_line_to(renderer,
+                            -length / 2 + 1.5 * length *
+                                              health->lerp_prev_health /
+                                              health->max_health,
+                            0);
+        rr_renderer_stroke(renderer);
+
+        rr_renderer_set_global_alpha(
+            renderer,
+            rr_fclamp(20 * health->lerp_health / health->max_health, 0, 1));
+        rr_renderer_set_stroke(renderer, 0xff75dd34);
+        rr_renderer_set_line_width(renderer, 20);
+        rr_renderer_begin_path(renderer);
+        rr_renderer_move_to(renderer, -length / 2, 0);
+        rr_renderer_line_to(renderer,
+                            -length / 2 + 1.5 * length *
+                                              health->lerp_health /
+                                              health->max_health,
+                            0);
+        rr_renderer_stroke(renderer);
+
+        rr_renderer_set_global_alpha(renderer, 1);
+        rr_renderer_translate(renderer, -length, 0);
+        rr_renderer_scale(renderer, this->abs_height / 50);
+        rr_renderer_context_state_init(renderer, &state2);
+        rr_renderer_scale(renderer, 25 / physical->radius);
+        if (data->pos == 0 && game->dev_cheats.invisible && game->is_dev)
+            rr_renderer_set_global_alpha(renderer, 0.5);
+        rr_component_flower_render(player_info->flower_id, game,
+                                   game->simulation);
+        rr_renderer_context_state_free(renderer, &state2);
+        if (data->pos != 0 && game->player_info != NULL)
         {
-            float length = this->abs_width / 2;
+            struct rr_component_physical *physical =
+                rr_simulation_get_physical(game->simulation,
+                                           player_info->flower_id);
+            struct rr_vector vector = {
+                physical->x - game->player_info->camera_x,
+                physical->y - game->player_info->camera_y};
+            rr_renderer_rotate(renderer, rr_vector_theta(&vector));
+            rr_renderer_translate(renderer, 25 + 3, 0);
             rr_renderer_set_line_cap(renderer, 1);
             rr_renderer_set_stroke(renderer, 0xff222222);
-            rr_renderer_set_line_width(renderer, 25);
+            rr_renderer_set_fill(renderer, 0xffffffff);
+            rr_renderer_set_line_join(renderer, 1);
+            rr_renderer_set_line_width(renderer, 3);
             rr_renderer_begin_path(renderer);
-            rr_renderer_move_to(renderer, -length, 0);
-            rr_renderer_line_to(renderer, length, 0);
-            rr_renderer_stroke(renderer);
-
-            rr_renderer_translate(renderer, -length, 0);
-            rr_renderer_scale(renderer, this->abs_height / 50);
-            rr_renderer_set_fill(renderer, 0xff000000);
-            rr_renderer_begin_path(renderer);
-            rr_renderer_arc(renderer, 0, 0, 25);
+            rr_renderer_move_to(renderer, 0, -8);
+            rr_renderer_line_to(renderer, 10, 0);
+            rr_renderer_line_to(renderer, 0, 8);
+            rr_renderer_line_to(renderer, 0, -8);
             rr_renderer_fill(renderer);
-        }
-        else
-        {
-            struct rr_component_physical *physical = rr_simulation_get_physical(
-                game->simulation, player_info->flower_id);
-            struct rr_component_health *health = rr_simulation_get_health(
-                game->simulation, player_info->flower_id);
-            float length = this->abs_width / 2;
-            rr_renderer_set_line_cap(renderer, 1);
-            rr_renderer_set_stroke(renderer, 0xff222222);
-            rr_renderer_set_line_width(renderer, 25);
-            rr_renderer_begin_path(renderer);
-            rr_renderer_move_to(renderer, -length, 0);
-            rr_renderer_line_to(renderer, length, 0);
             rr_renderer_stroke(renderer);
-
-            rr_renderer_set_stroke(renderer, 0xffdd3434);
-            rr_renderer_set_line_width(renderer, 16);
-            rr_renderer_begin_path(renderer);
-            rr_renderer_move_to(renderer, -length / 2, 0);
-            rr_renderer_line_to(renderer,
-                                -length / 2 + 1.5 * length *
-                                                  health->lerp_prev_health /
-                                                  health->max_health,
-                                0);
-            rr_renderer_stroke(renderer);
-            rr_renderer_set_stroke(renderer, 0xff75dd34);
-            rr_renderer_set_line_width(renderer, 20);
-            rr_renderer_begin_path(renderer);
-            rr_renderer_move_to(renderer, -length / 2, 0);
-            rr_renderer_line_to(renderer,
-                                -length / 2 + 1.5 * length *
-                                                  health->lerp_health /
-                                                  health->max_health,
-                                0);
-            rr_renderer_stroke(renderer);
-            rr_renderer_translate(renderer, -length, 0);
-            rr_renderer_scale(renderer, this->abs_height / 50);
-            rr_renderer_scale(renderer, 25 / physical->radius);
-            if (data->pos == 0 && game->dev_cheats.invisible && game->is_dev)
-                rr_renderer_set_global_alpha(renderer, 0.5);
-            rr_component_flower_render(player_info->flower_id, game,
-                                       game->simulation);
-            rr_renderer_scale(renderer, physical->radius / 25);
-            if (data->pos != 0 && game->player_info != NULL)
-            {
-                struct rr_component_physical *physical =
-                    rr_simulation_get_physical(game->simulation,
-                                               player_info->flower_id);
-                struct rr_vector vector = {
-                    physical->x - game->player_info->camera_x,
-                    physical->y - game->player_info->camera_y};
-                rr_renderer_rotate(renderer, rr_vector_theta(&vector));
-                rr_renderer_translate(renderer, 25 + 3, 0);
-                rr_renderer_set_line_cap(renderer, 1);
-                rr_renderer_set_stroke(renderer, 0xff222222);
-                rr_renderer_set_fill(renderer, 0xffffffff);
-                rr_renderer_set_line_join(renderer, 1);
-                rr_renderer_set_line_width(renderer, 3);
-                rr_renderer_begin_path(renderer);
-                rr_renderer_move_to(renderer, 0, -8);
-                rr_renderer_line_to(renderer, 10, 0);
-                rr_renderer_line_to(renderer, 0, 8);
-                rr_renderer_line_to(renderer, 0, -8);
-                rr_renderer_fill(renderer);
-                rr_renderer_stroke(renderer);
-            }
         }
     }
-    rr_renderer_context_state_free(renderer, &state);
+    rr_renderer_context_state_free(renderer, &state1);
     rr_renderer_set_text_baseline(renderer, 1);
     rr_renderer_set_text_align(renderer, 0);
     rr_renderer_set_fill(renderer, 0xffffffff);
