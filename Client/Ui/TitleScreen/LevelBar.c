@@ -92,8 +92,20 @@ void level_bar_on_render(struct rr_ui_element *this, struct rr_game *game)
     rr_renderer_set_text_align(renderer, 1);
     rr_renderer_set_text_baseline(renderer, 1);
     rr_renderer_set_line_width(renderer, this->abs_height * 0.5 * 0.12);
-    char out[16];
-    sprintf(out, "Level %d", data->level);
+    char out[32];
+    if (game->focused == this)
+    {
+        double xp_min = 0;
+        char xp_now[16];
+        char xp_max[16];
+        for (uint32_t lvl = 2; lvl <= data->level; ++lvl)
+            xp_min += xp_to_reach_level(lvl);
+        rr_sprintf(xp_now, xp_min + data->lerp_xp);
+        rr_sprintf(xp_max, xp_min + xp_to_reach_level(data->level + 1));
+        sprintf(out, "%s/%s XP", xp_now, xp_max);
+    }
+    else
+        sprintf(out, "Level %d", data->level);
     rr_renderer_begin_path(renderer);
     rr_renderer_stroke_text(renderer, out, 0, 0);
     rr_renderer_fill_text(renderer, out, 0, 0);

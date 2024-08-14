@@ -85,10 +85,12 @@ static uint8_t dev_text_choose(struct rr_ui_element *this, struct rr_game *game)
 {
     struct rr_ui_choose_element_metadata *data = this->data;
     struct rr_squad_member *member = data->data;
+    if (&game->squad.squad_members[game->squad.squad_pos] == member ||
+        &game->other_squads[game->squad.squad_index]
+            .squad_members[game->squad.squad_pos] == member)
+        return 0;
     if (member->is_dev)
         return 2;
-    if (&game->squad.squad_members[game->squad.squad_pos] == member)
-        return 0;
     return 1;
 }
 
@@ -111,6 +113,24 @@ rr_ui_squad_player_tooltip_init(struct rr_squad_member *member)
             rr_ui_v_container_init(
                 rr_ui_container_init(), 10, 10, dev_text_init(member),
                 rr_ui_text_init(member->nickname, 16, 0xffffffff),
+                rr_ui_h_container_init(
+                    rr_ui_container_init(), 0, 20,
+                    rr_ui_h_container_init(
+                        rr_ui_container_init(), 0, 0,
+                        rr_ui_text_init("Level: ", 12, 0xffffff44),
+                        rr_ui_text_init(member->level_text, 12, 0xffffffff),
+                        NULL),
+                    rr_ui_h_container_init(
+                        rr_ui_container_init(), 0, 0,
+                        rr_ui_text_init("Health: ", 12, 0xff44ff44),
+                        rr_ui_text_init(member->health_text, 12, 0xffffffff),
+                        NULL),
+                    rr_ui_h_container_init(
+                        rr_ui_container_init(), 0, 0,
+                        rr_ui_text_init("Damage: ", 12, 0xffff4444),
+                        rr_ui_text_init(member->damage_text, 12, 0xffffffff),
+                        NULL),
+                    NULL),
                 rr_ui_h_container_init(
                     rr_ui_container_init(), 0, 5,
                     squad_loadout_button_init(&member->loadout[0], 1),

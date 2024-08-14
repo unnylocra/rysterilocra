@@ -196,12 +196,20 @@ int rr_base_64_encode(char *encoded, const char *string, int len)
 
 char *rr_sprintf(char *buf, double i)
 {
-    if (fabs(i) < 1000)
+    if (fabs(i) < 1e3)
         sprintf(buf, "%.0f", i);
-    else if (fabs(i) < 1000000)
-        sprintf(buf, "%.1fk", i / 1000);
+    else if (fabs(i) < 1e6)
+        sprintf(buf, "%.1fk", i / 1e3);
+    else if (fabs(i) < 1e9)
+        sprintf(buf, "%.2fm", i / 1e6);
+    else if (fabs(i) < 1e12)
+        sprintf(buf, "%.3fb", i / 1e9);
+    else if (fabs(i) < 1e15)
+        sprintf(buf, "%.4ft", i / 1e12);
+    else if (i > 0)
+        sprintf(buf, "∞");
     else
-        sprintf(buf, "%.1fm", i / 1000000);
+        sprintf(buf, "-∞");
     return buf;
 }
 

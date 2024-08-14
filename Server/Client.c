@@ -152,7 +152,8 @@ void rr_server_client_write_account(struct rr_server_client *client)
                                    encoder.current - encoder.start);
 }
 
-void rr_server_client_craft_petal(struct rr_server_client *this, uint8_t id,
+void rr_server_client_craft_petal(struct rr_server_client *this,
+                                  struct rr_server *server, uint8_t id,
                                   uint8_t rarity, uint32_t count)
 {
     if (id >= rr_petal_id_max || rarity >= rr_rarity_id_max - 1)
@@ -180,6 +181,17 @@ void rr_server_client_craft_petal(struct rr_server_client *this, uint8_t id,
     this->inventory[id][rarity] -= (count - now);
     this->inventory[id][rarity + 1] += success;
     this->experience += xp_gain;
+    uint32_t level = level_from_xp(this->experience);
+    if (this->in_squad)
+        rr_squad_get_client_slot(server, this)->level = level;
+    if (this->player_info != NULL)
+    {
+        this->player_info->level = level;
+        if (this->player_info->flower_id != RR_NULL_ENTITY)
+            rr_component_flower_set_level(
+                rr_simulation_get_flower(&server->simulation,
+                                         this->player_info->flower_id), level);
+    }
     rr_server_client_write_to_api(this);
 
     struct proto_bug encoder;
@@ -217,7 +229,9 @@ int rr_server_client_read_from_api(struct rr_server_client *this,
     }
     if (this->dev)
     {
-        this->experience = 10000000000; // lvl 120
+        this->experience = 0;
+        for (uint32_t lvl = 2; lvl <= 120; ++lvl)
+            this->experience += xp_to_reach_level(lvl);
         for (uint8_t id = 1; id < rr_petal_id_max; ++id)
             for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
                 this->inventory[id][rarity] = 1000;

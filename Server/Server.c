@@ -202,6 +202,7 @@ void rr_server_client_broadcast_update(struct rr_server_client *this)
         proto_bug_write_uint8(&encoder, 1, "bitbit");
         proto_bug_write_uint8(&encoder, member->playing, "ready");
         proto_bug_write_uint8(&encoder, member->is_dev, "is_dev");
+        proto_bug_write_varuint(&encoder, member->level, "level");
         proto_bug_write_string(&encoder, member->nickname, 16, "nickname");
         for (uint8_t j = 0; j < 20; ++j)
         {
@@ -884,7 +885,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
             uint8_t id = proto_bug_read_uint8(&encoder, "craft id");
             uint8_t rarity = proto_bug_read_uint8(&encoder, "craft rarity");
             uint32_t count = proto_bug_read_varuint(&encoder, "craft count");
-            rr_server_client_craft_petal(client, id, rarity, count);
+            rr_server_client_craft_petal(client, this, id, rarity, count);
             break;
         }
         case rr_serverbound_chat:
@@ -1267,6 +1268,7 @@ static void server_tick(struct rr_server *this)
                     proto_bug_write_uint8(&encoder, 1, "bitbit");
                     proto_bug_write_uint8(&encoder, member->playing, "ready");
                     proto_bug_write_uint8(&encoder, member->is_dev, "is_dev");
+                    proto_bug_write_varuint(&encoder, member->level, "level");
                     proto_bug_write_string(&encoder, member->nickname, 16,
                                            "nickname");
                     for (uint8_t j = 0; j < 20; ++j)

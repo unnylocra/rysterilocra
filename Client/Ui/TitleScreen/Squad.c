@@ -192,7 +192,7 @@ static void squad_container_on_event(struct rr_ui_element *this,
 {
     struct rr_ui_container_metadata *data = this->data;
     struct rr_squad_member *member = data->data;
-    rr_ui_render_tooltip_above(this, member->tooltip, game);
+    rr_ui_render_tooltip_right(this, member->tooltip, game);
 }
 
 static uint8_t kick_player_should_slow(struct rr_ui_element *this,

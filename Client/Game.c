@@ -834,6 +834,19 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     proto_bug_read_uint8(&encoder, "ready");
                 this->squad.squad_members[i].is_dev =
                     proto_bug_read_uint8(&encoder, "is_dev");
+                uint32_t level = proto_bug_read_varuint(&encoder, "level");
+                if (this->squad.squad_members[i].level != level)
+                {
+                    float health = 100 * pow(1.0256, level > 120 ? 120 : level);
+                    float damage = 0.1 * health;
+                    this->squad.squad_members[i].level = level;
+                    sprintf(this->squad.squad_members[i].level_text,
+                            "%u", level);
+                    rr_sprintf(this->squad.squad_members[i].health_text,
+                               health);
+                    rr_sprintf(this->squad.squad_members[i].damage_text,
+                               damage);
+                }
                 proto_bug_read_string(&encoder,
                                       this->squad.squad_members[i].nickname, 16,
                                       "nickname");
@@ -914,6 +927,18 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                         proto_bug_read_uint8(&encoder, "ready");
                     squad->squad_members[i].is_dev =
                         proto_bug_read_uint8(&encoder, "is_dev");
+                    uint32_t level = proto_bug_read_varuint(&encoder, "level");
+                    if (squad->squad_members[i].level != level)
+                    {
+                        float health =
+                            100 * pow(1.0256, level > 120 ? 120 : level);
+                        float damage = 0.1 * health;
+                        squad->squad_members[i].level = level;
+                        sprintf(squad->squad_members[i].level_text,
+                                "%u", level);
+                        rr_sprintf(squad->squad_members[i].health_text, health);
+                        rr_sprintf(squad->squad_members[i].damage_text, damage);
+                    }
                     proto_bug_read_string(&encoder,
                                           squad->squad_members[i].nickname, 16,
                                           "nickname");
@@ -1401,6 +1426,9 @@ void rr_game_tick(struct rr_game *this, float delta)
             render_component(flower, alive_flower_filter);
             rr_renderer_context_state_free(this->renderer, &state1);
 #undef render_component
+#undef no_filter
+#undef dead_flower_filter
+#undef alive_flower_filter
         }
     }
     else
