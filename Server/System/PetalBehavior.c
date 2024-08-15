@@ -810,6 +810,15 @@ static void system_petal_misc_logic(EntityIdx id, void *_simulation)
             rr_vector_add(&delta, &petal->bind_pos);
             rr_vector_scale(&delta, 0.4);
             rr_vector_add(&physical->acceleration, &delta);
+            struct rr_component_relations *target_relations =
+                rr_simulation_get_relations(simulation, petal->bind_target);
+            struct rr_component_player_info *target_player_info =
+                rr_simulation_get_player_info(simulation,
+                                              target_relations->owner);
+            rr_component_player_info_set_spectate_target(
+                target_player_info, petal->bind_target);
+            target_player_info->spectate_ticks = 62;
+            target_player_info->spectating_single_target = 0;
         }
         if (--petal->effect_delay <= 0)
         {

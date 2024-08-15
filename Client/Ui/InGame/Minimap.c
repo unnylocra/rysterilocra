@@ -73,54 +73,41 @@ static void minimap_on_render(struct rr_ui_element *this, struct rr_game *game)
     if (!game->simulation_ready)
         return;
     struct rr_renderer *renderer = game->renderer;
-    struct rr_component_player_info *player_info = game->player_info;
-    float a = renderer->height / 1080;
-    float b = renderer->width / 1920;
-
-    float s1 = (renderer->scale = b < a ? a : b);
-    double scale = player_info->lerp_camera_fov * 0.25;
     struct rr_component_arena *arena =
-        rr_simulation_get_arena(game->simulation, player_info->arena);
+        rr_simulation_get_arena(game->simulation, game->player_info->arena);
     float grid_size = RR_MAZES[arena->biome].grid_size;
     uint32_t maze_dim = RR_MAZES[arena->biome].maze_dim;
     struct rr_maze_grid *grid = RR_MAZES[arena->biome].maze;
     DRAW_MINIMAP(&minimap, grid);
-    double midX = (player_info->lerp_camera_x / (grid_size * maze_dim) - 0.5) *
-                  this->abs_width;
-    double midY = (player_info->lerp_camera_y / (grid_size * maze_dim) - 0.5) *
-                  this->abs_height;
-    double W =
-        renderer->width / scale / (grid_size * maze_dim) * this->abs_width;
-    double H =
-        renderer->height / scale / (grid_size * maze_dim) * this->abs_height;
     rr_renderer_scale(renderer, renderer->scale);
-    rr_renderer_begin_path(renderer);
-    rr_renderer_rect(renderer, midX - W / 2, midY - H / 2, W, H);
-    // rr_renderer_clip(renderer);
     rr_renderer_scale(renderer, this->abs_width / minimap.width);
     rr_renderer_draw_image(renderer, &minimap);
     rr_renderer_scale(renderer, minimap.width / this->abs_width);
-    rr_renderer_set_fill(renderer, 0xff0080ff);
-    rr_renderer_set_global_alpha(renderer, 0.8);
-    rr_renderer_begin_path(renderer);
-    rr_renderer_arc(renderer, midX, midY, 2.5);
-    rr_renderer_fill(renderer);
+    rr_renderer_set_global_alpha(renderer, 0.75 * renderer->state.global_alpha);
     rr_renderer_set_fill(renderer, 0xffff00ff);
-    for (uint32_t i = 1; i < RR_SQUAD_MEMBER_COUNT; ++i)
+    for (uint32_t i = RR_SQUAD_MEMBER_COUNT; i > 0; --i)
     {
-        if (game->player_infos[i] == RR_NULL_ENTITY)
-            break;
-        player_info = rr_simulation_get_player_info(game->simulation,
-                                                    game->player_infos[i]);
+        if (game->player_infos[i - 1] == RR_NULL_ENTITY)
+            continue;
+        struct rr_component_player_info *player_info =
+            rr_simulation_get_player_info(game->simulation,
+                                          game->player_infos[i - 1]);
         if (player_info->arena != game->player_info->arena)
             continue;
+        if (player_info->flower_id == RR_NULL_ENTITY)
+            continue;
+        struct rr_component_physical *physical =
+            rr_simulation_get_physical(game->simulation,
+                                       player_info->flower_id);
+        if (i == 1)
+            rr_renderer_set_fill(renderer, 0xff0080ff);
         rr_renderer_begin_path(renderer);
         rr_renderer_arc(
             renderer,
             this->abs_width *
-                (player_info->camera_x / (grid_size * maze_dim) - 0.5),
+                (physical->lerp_x / (grid_size * maze_dim) - 0.5),
             this->abs_height *
-                (player_info->camera_y / (grid_size * maze_dim) - 0.5),
+                (physical->lerp_y / (grid_size * maze_dim) - 0.5),
             2.5);
         rr_renderer_fill(renderer);
     }

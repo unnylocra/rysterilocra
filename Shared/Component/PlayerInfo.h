@@ -75,6 +75,9 @@ struct rr_component_player_info
     RR_CLIENT_ONLY(float lerp_camera_fov;)
     RR_CLIENT_ONLY(float camera_fov_last_tick;)
     RR_CLIENT_ONLY(float fov_adjustment;)
+    EntityHash spectate_target;
+    RR_SERVER_ONLY(uint16_t spectate_ticks;)
+    RR_SERVER_ONLY(uint8_t spectating_single_target;)
     RR_SERVER_ONLY(uint16_t protocol_state;)
     EntityIdx parent_id;
     EntityHash flower_id; // will be RR_NULL_ENTITY if nonexistant
@@ -120,3 +123,4 @@ RR_DECLARE_PUBLIC_FIELD(player_info, uint32_t, slot_count);
 RR_DECLARE_PUBLIC_FIELD(player_info, EntityHash, flower_id);
 RR_DECLARE_PUBLIC_FIELD(player_info, EntityIdx, arena);
 RR_DECLARE_PUBLIC_FIELD(player_info, uint8_t, squad_pos);
+RR_DECLARE_PUBLIC_FIELD(player_info, EntityHash, spectate_target);

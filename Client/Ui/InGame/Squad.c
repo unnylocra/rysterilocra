@@ -53,7 +53,8 @@ static void player_hud_on_render(struct rr_ui_element *this,
     struct rr_renderer_context_state state1;
     struct rr_renderer_context_state state2;
     rr_renderer_context_state_init(renderer, &state1);
-    if (player_info->arena != game->player_info->arena)
+    if (player_info->arena != game->player_info->arena ||
+        player_info->flower_id == RR_NULL_ENTITY)
     {
         float length = this->abs_width / 2;
         rr_renderer_set_line_cap(renderer, 1);
@@ -86,10 +87,11 @@ static void player_hud_on_render(struct rr_ui_element *this,
         rr_renderer_line_to(renderer, length, 0);
         rr_renderer_stroke(renderer);
 
+        rr_renderer_context_state_init(renderer, &state2);
         rr_renderer_set_global_alpha(
             renderer,
             rr_fclamp(20 * health->lerp_prev_health / health->max_health,
-                      0, 1));
+                      0, 1) * state2.global_alpha);
         rr_renderer_set_stroke(renderer, 0xffdd3434);
         rr_renderer_set_line_width(renderer, 16);
         rr_renderer_begin_path(renderer);
@@ -103,7 +105,8 @@ static void player_hud_on_render(struct rr_ui_element *this,
 
         rr_renderer_set_global_alpha(
             renderer,
-            rr_fclamp(20 * health->lerp_health / health->max_health, 0, 1));
+            rr_fclamp(20 * health->lerp_health / health->max_health, 0, 1) *
+                state2.global_alpha);
         rr_renderer_set_stroke(renderer, 0xff75dd34);
         rr_renderer_set_line_width(renderer, 20);
         rr_renderer_begin_path(renderer);
@@ -114,27 +117,36 @@ static void player_hud_on_render(struct rr_ui_element *this,
                                               health->max_health,
                             0);
         rr_renderer_stroke(renderer);
+        rr_renderer_context_state_free(renderer, &state2);
 
-        rr_renderer_set_global_alpha(renderer, 1);
         rr_renderer_translate(renderer, -length, 0);
         rr_renderer_scale(renderer, this->abs_height / 50);
         rr_renderer_context_state_init(renderer, &state2);
         rr_renderer_scale(renderer, 25 / physical->radius);
         if (data->pos == 0 && game->dev_cheats.invisible && game->is_dev)
-            rr_renderer_set_global_alpha(renderer, 0.5);
+            rr_renderer_set_global_alpha(renderer, 0.5 * state2.global_alpha);
         rr_component_flower_render(player_info->flower_id, game,
                                    game->simulation);
         rr_renderer_context_state_free(renderer, &state2);
-        if (data->pos != 0 && game->player_info != NULL)
+        if (data->pos != 0 || game->flower_dead)
         {
-            struct rr_component_physical *physical =
-                rr_simulation_get_physical(game->simulation,
-                                           player_info->flower_id);
-            struct rr_vector vector = {
-                physical->x - game->player_info->camera_x,
-                physical->y - game->player_info->camera_y};
-            rr_renderer_rotate(renderer, rr_vector_theta(&vector));
-            rr_renderer_translate(renderer, 25 + 3, 0);
+            if (game->player_info->spectate_target != player_info->flower_id)
+            {
+                struct rr_component_physical *physical =
+                    rr_simulation_get_physical(game->simulation,
+                                            player_info->flower_id);
+                struct rr_vector vector = {
+                    physical->lerp_x - game->player_info->lerp_camera_x,
+                    physical->lerp_y - game->player_info->lerp_camera_y};
+                rr_renderer_rotate(renderer, rr_vector_theta(&vector));
+                rr_renderer_translate(renderer, 25 + 4, 0);
+            }
+            else
+            {
+                rr_renderer_scale(renderer, 50 / this->abs_height);
+                rr_renderer_translate(renderer, -55, 0);
+                rr_renderer_scale(renderer, this->abs_height / 50);
+            }
             rr_renderer_set_line_cap(renderer, 1);
             rr_renderer_set_stroke(renderer, 0xff222222);
             rr_renderer_set_fill(renderer, 0xffffffff);
