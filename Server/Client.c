@@ -62,10 +62,12 @@ void rr_server_client_create_flower(struct rr_server_client *this)
     struct rr_maze_declaration *decl = &RR_MAZES[RR_GLOBAL_BIOME];
     rr_component_physical_set_x(
         physical,
-        2 * decl->grid_size * (decl->spawn_zones[spawn_zone].x + rr_frand()));
+        2 * decl->grid_size * (decl->checkpoints[this->checkpoint].spawn_x +
+                               rr_frand()));
     rr_component_physical_set_y(
         physical,
-        2 * decl->grid_size * (decl->spawn_zones[spawn_zone].y + rr_frand()));
+        2 * decl->grid_size * (decl->checkpoints[this->checkpoint].spawn_y +
+                               rr_frand()));
     struct rr_binary_encoder encoder;
     rr_binary_encoder_init(&encoder, outgoing_message);
     rr_binary_encoder_write_uint8(&encoder, 3);

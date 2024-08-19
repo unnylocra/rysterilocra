@@ -425,6 +425,7 @@ void rr_simulation_tick(struct rr_simulation *this)
     RR_TIME_BLOCK("centipede", { rr_system_centipede_tick(this); });
     RR_TIME_BLOCK("health", { rr_system_health_tick(this); });
     RR_TIME_BLOCK("camera", { rr_system_camera_tick(this); });
+    RR_TIME_BLOCK("checkpoints", { rr_system_checkpoints_tick(this); });
     RR_TIME_BLOCK("spawn_tick", { tick_maze(this); });
     memcpy(this->deleted_last_tick, this->pending_deletions,
            sizeof this->pending_deletions);

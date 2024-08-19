@@ -74,6 +74,7 @@ struct rr_server_client
     uint8_t joined_squad_before[RR_BITSET_ROUND(RR_SQUAD_COUNT)];
     uint8_t squad_pos;
     uint8_t squad;
+    uint8_t checkpoint;
     uint8_t received_first_packet : 1;
     uint8_t verified : 1;
     uint8_t dev : 1;

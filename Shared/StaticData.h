@@ -239,12 +239,24 @@ struct rr_spawn_zone
     float y;
 };
 
+struct rr_checkpoint
+{
+    uint32_t x;
+    uint32_t y;
+    uint32_t w;
+    uint32_t h;
+    uint32_t spawn_x;
+    uint32_t spawn_y;
+    uint32_t min_level;
+};
+
 struct rr_maze_declaration
 {
     uint32_t maze_dim;
     float grid_size;
     struct rr_maze_grid *maze;
-    struct rr_spawn_zone spawn_zones[4];
+    uint8_t checkpoint_count;
+    struct rr_checkpoint checkpoints[8];
 };
 
 #define RR_DECLARE_MAZE(name, size)                                            \
