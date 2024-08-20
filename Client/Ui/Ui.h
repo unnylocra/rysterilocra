@@ -30,7 +30,8 @@ enum rr_ui_resizeable_type
     rr_ui_v_container = 2,
     rr_ui_choose_container = 3,
     rr_ui_grid_container = 4,
-    rr_ui_scroll_container = 5
+    rr_ui_scroll_container = 5,
+    rr_ui_flex_container = 6
 };
 
 struct rr_ui_labeled_button_metadata
@@ -68,6 +69,7 @@ struct rr_ui_container_metadata
     uint8_t height;
     float outer_spacing;
     float inner_spacing;
+    float pad;
     void *data;
 };
 

@@ -103,6 +103,7 @@ struct rr_game_cache
     uint8_t hide_ui;
     uint8_t hold_attack;
     uint8_t hold_defense;
+    uint8_t show_loot;
     char nickname[128];
 };
 

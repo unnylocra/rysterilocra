@@ -44,8 +44,10 @@ static void chat_bar_animate(struct rr_ui_element *this, struct rr_game *game)
     }
     else
         this->fill = 0x80000000;
-    if (rr_bitset_get(game->input_data->keys_pressed_this_tick, 13) &&
-        !rr_bitset_get(game->input_data->keys_pressed, 16))
+    game->chat.chat_active_last_tick = game->chat.chat_active;
+    if (rr_bitset_get_bit(game->input_data->keys_pressed_this_tick, 13) &&
+        (!rr_bitset_get_bit(game->input_data->keys_pressed, 17) ||
+         !game->flower_dead || game->chat.chat_active))
     {
         if (game->chat.chat_active)
         {
@@ -73,7 +75,6 @@ static void chat_bar_animate(struct rr_ui_element *this, struct rr_game *game)
         rr_dom_blur("_0x4523");
     if (game->menu_open != 0)
         game->chat.chat_active = 0;
-    game->chat.chat_active_last_tick = game->chat.chat_active;
 };
 
 static uint8_t chat_bar_choose(struct rr_ui_element *this, struct rr_game *game)

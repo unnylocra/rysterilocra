@@ -837,7 +837,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                 uint32_t level = proto_bug_read_varuint(&encoder, "level");
                 if (this->squad.squad_members[i].level != level)
                 {
-                    float health = 100 * pow(1.0256, level > 120 ? 120 : level);
+                    float health = 100 * pow(1.0256, level - 1);
                     float damage = 0.1 * health;
                     this->squad.squad_members[i].level = level;
                     sprintf(this->squad.squad_members[i].level_text,
@@ -874,6 +874,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     rr_simulation_init(this->simulation);
                     rr_simulation_init(this->deletion_simulation);
                     rr_particle_manager_clear(&this->particle_manager);
+                    this->chat.chat_active = 0;
                     this->simulation_ready = 1;
                 }
                 rr_simulation_read_binary(this, &encoder);
@@ -930,8 +931,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     uint32_t level = proto_bug_read_varuint(&encoder, "level");
                     if (squad->squad_members[i].level != level)
                     {
-                        float health =
-                            100 * pow(1.0256, level > 120 ? 120 : level);
+                        float health = 100 * pow(1.0256, level - 1);
                         float damage = 0.1 * health;
                         squad->squad_members[i].level = level;
                         sprintf(squad->squad_members[i].level_text,
@@ -1588,7 +1588,8 @@ void rr_game_tick(struct rr_game *this, float delta)
         if (this->flower_dead &&
             rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 13) &&
             (!this->simulation_ready ||
-             rr_bitset_get(this->input_data->keys_pressed, 16)))
+             (rr_bitset_get_bit(this->input_data->keys_pressed, 17) &&
+              !this->chat.chat_active_last_tick)))
         {
             if (!this->simulation_ready)
                 rr_write_dev_cheat_packets(this, 1);
@@ -1618,6 +1619,8 @@ void rr_game_tick(struct rr_game *this, float delta)
             this->cache.hold_defense ^= 1;
         if (rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 'P'))
             this->cache.low_performance_mode ^= 1;
+        if (rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 'O'))
+            this->cache.show_loot ^= 1;
     }
     if (this->cache.hide_ui && this->simulation_ready)
         this->menu_open = 0;

@@ -30,7 +30,7 @@ void render_background(struct rr_component_player_info *player_info,
     if (player_info->arena == 0)
         return;
     struct rr_renderer *renderer = this->renderer;
-    double extra = 5;
+    double extra = 100;
     double scale = player_info->lerp_camera_fov * renderer->scale;
     double leftX =
         player_info->lerp_camera_x - renderer->width / (2 * scale) - extra;

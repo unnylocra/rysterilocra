@@ -74,7 +74,7 @@ struct rr_ui_element *rr_ui_finished_game_screen_init()
         rr_ui_static_space_init(100),
         leave_game,
         rr_ui_static_space_init(1),
-        rr_ui_text_init("[Shift + Enter]", 14, 0xffffffff),
+        rr_ui_text_init("[Ctrl + Enter]", 14, 0xffffffff),
         NULL);
     this->should_show = game_over;
     return this;

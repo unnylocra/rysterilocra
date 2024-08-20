@@ -190,9 +190,17 @@ void rr_server_client_craft_petal(struct rr_server_client *this,
     {
         this->player_info->level = level;
         if (this->player_info->flower_id != RR_NULL_ENTITY)
+        {
             rr_component_flower_set_level(
                 rr_simulation_get_flower(&server->simulation,
                                          this->player_info->flower_id), level);
+            struct rr_component_health *health =
+                rr_simulation_get_health(&server->simulation,
+                                         this->player_info->flower_id);
+            rr_component_health_set_max_health(health,
+                                               100 * pow(1.0256, level - 1));
+            health->damage = health->max_health * 0.1;
+        }
     }
     rr_server_client_write_to_api(this);
 

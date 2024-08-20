@@ -295,6 +295,17 @@ static void rr_ui_scroll_container_set(struct rr_ui_element *c)
     c->abs_width = c->width = w + 10;
 }
 
+static void rr_ui_flex_container_set(struct rr_ui_element *c)
+{
+    struct rr_ui_container_metadata *data = c->data;
+    struct rr_ui_element *left = c->elements.start[0];
+    struct rr_ui_element *right = c->elements.start[1];
+    c->abs_width = c->width = left->abs_width + data->pad + right->abs_width;
+    c->abs_height = c->height = left->abs_height > right->abs_height
+                                    ? left->abs_height
+                                    : right->abs_height;
+}
+
 void rr_ui_container_refactor(struct rr_ui_element *c, struct rr_game *game)
 {
     if (c->elements.size != 0)
@@ -326,6 +337,8 @@ void rr_ui_container_refactor(struct rr_ui_element *c, struct rr_game *game)
                 rr_ui_grid_container_set(c);
             else if (c->resizeable == rr_ui_scroll_container)
                 rr_ui_scroll_container_set(c);
+            else if (c->resizeable == rr_ui_flex_container)
+                rr_ui_flex_container_set(c);
         }
     }
 }

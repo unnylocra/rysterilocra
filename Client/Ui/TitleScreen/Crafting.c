@@ -506,8 +506,11 @@ static void crafting_inventory_button_on_event(struct rr_ui_element *this,
                     data->count = rr_game_get_adjusted_inventory_count(
                         game, data->id, data->rarity);
                 }
-                if (rr_bitset_get(game->input_data->keys_pressed, 16))
+                if (rr_bitset_get_bit(game->input_data->keys_pressed, 16))
                     game->crafting_data.count += data->count;
+                else if (game->crafting_data.count < PETALS_PER_CRAFT)
+                    game->crafting_data.count +=
+                        PETALS_PER_CRAFT - game->crafting_data.count;
                 else if (data->count > PETALS_PER_CRAFT)
                     game->crafting_data.count += PETALS_PER_CRAFT;
                 else
@@ -851,7 +854,7 @@ void crafting_toggle_button_on_event(struct rr_ui_element *this,
 void crafting_toggle_button_animate(struct rr_ui_element *this,
                                     struct rr_game *game)
 {
-    if (rr_bitset_get(game->input_data->keys_pressed_this_tick, 'C') &&
+    if (rr_bitset_get_bit(game->input_data->keys_pressed_this_tick, 'C') &&
         !game->text_input_focused)
     {
         if (game->menu_open == rr_game_menu_crafting)

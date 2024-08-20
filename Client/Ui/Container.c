@@ -171,12 +171,10 @@ struct rr_ui_element *rr_ui_flex_container_init(struct rr_ui_element *left,
     rr_ui_container_add_element(this, right);
     left->h_justify = -1;
     right->h_justify = 1;
-    this->abs_width = this->width = left->abs_width + pad + right->abs_width;
-    this->abs_height = this->height = left->abs_height > right->abs_height
-                                          ? left->abs_height
-                                          : right->abs_height;
+    data->pad = pad;
     this->h_flex = 1;
     this->on_render = container_on_render;
     this->poll_events = rr_ui_container_poll_events;
+    this->resizeable = rr_ui_flex_container;
     return this;
 }
