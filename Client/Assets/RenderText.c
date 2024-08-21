@@ -59,13 +59,8 @@ void rr_renderer_draw_rarity_name(struct rr_renderer *renderer, uint8_t id,
     rr_renderer_scale(renderer, 10 / size);
 }
 
-void rr_renderer_text_cache_init()
+static void rr_renderer_text_cache_draw()
 {
-    if (!(text_cache.context_id))
-        rr_renderer_init(&text_cache);
-    rr_renderer_set_dimensions(
-        &text_cache, 256,
-        14 * (rr_petal_id_max + rr_mob_id_max + rr_rarity_id_max));
     rr_renderer_set_transform(&text_cache, 1, 0, 2, 0, 1, 2);
     rr_renderer_set_fill(&text_cache, 0xffffffff);
     rr_renderer_set_stroke(&text_cache, 0xff222222);
@@ -95,4 +90,19 @@ void rr_renderer_text_cache_init()
         rr_renderer_fill_text(&text_cache, RR_RARITY_NAMES[i], 0, 0);
         rr_renderer_translate(&text_cache, 0, 14);
     }
+}
+
+static void rr_renderer_text_cache_redraw(void *captures)
+{
+    rr_renderer_text_cache_draw();
+}
+
+void rr_renderer_text_cache_init()
+{
+    rr_renderer_init(&text_cache);
+    rr_renderer_set_dimensions(
+        &text_cache, 256,
+        14 * (rr_petal_id_max + rr_mob_id_max + rr_rarity_id_max));
+    text_cache.on_context_restore = rr_renderer_text_cache_redraw;
+    rr_renderer_text_cache_draw();
 }

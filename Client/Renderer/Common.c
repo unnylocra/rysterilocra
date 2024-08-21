@@ -21,6 +21,27 @@
 
 #include <Shared/Utilities.h>
 
+static void
+rr_renderer_spritesheet_draw(struct rr_renderer_spritesheet *spritesheet)
+{
+    struct rr_renderer *renderer = &spritesheet->renderer;
+    struct rr_renderer_context_state state;
+    for (uint32_t i = 0; i < spritesheet->size; ++i)
+    {
+        struct rr_sprite_bounds *bounds = &spritesheet->sprites[i];
+        rr_renderer_set_transform(renderer, 1, 0, bounds->x, 0, 1, bounds->y);
+        rr_renderer_context_state_init(renderer, &state);
+        bounds->render(renderer);
+        rr_renderer_context_state_free(renderer, &state);
+    }
+}
+
+static void rr_renderer_spritesheet_redraw(void *captures)
+{
+    struct rr_renderer_spritesheet *spritesheet = captures;
+    rr_renderer_spritesheet_draw(spritesheet);
+}
+
 void rr_renderer_spritesheet_init(struct rr_renderer_spritesheet *spritesheet,
                                   void (*setup)(struct rr_renderer *), ...)
 {
@@ -32,14 +53,15 @@ void rr_renderer_spritesheet_init(struct rr_renderer_spritesheet *spritesheet,
     va_start(args, setup);
     float curr_x = 0;
     float curr_y = 0;
-    uint32_t size = 0;
+    spritesheet->size = 0;
     while (1)
     {
         float width = va_arg(args, int);
         if (width == 0)
             break;
         float height = va_arg(args, int);
-        struct rr_sprite_bounds *bounds = &spritesheet->sprites[size++];
+        struct rr_sprite_bounds *bounds =
+            &spritesheet->sprites[spritesheet->size++];
         bounds->x = curr_x + width / 2;
         bounds->y = 0 + height / 2;
         bounds->w = width;
@@ -50,15 +72,9 @@ void rr_renderer_spritesheet_init(struct rr_renderer_spritesheet *spritesheet,
             curr_y = height;
     }
     rr_renderer_set_dimensions(renderer, curr_x, curr_y);
-    struct rr_renderer_context_state state;
-    for (uint32_t i = 0; i < size; ++i)
-    {
-        struct rr_sprite_bounds *bounds = &spritesheet->sprites[i];
-        rr_renderer_set_transform(renderer, 1, 0, bounds->x, 0, 1, bounds->y);
-        rr_renderer_context_state_init(renderer, &state);
-        bounds->render(renderer);
-        rr_renderer_context_state_free(renderer, &state);
-    }
+    renderer->on_context_restore = rr_renderer_spritesheet_redraw;
+    renderer->on_context_restore_captures = spritesheet;
+    rr_renderer_spritesheet_draw(spritesheet);
 }
 
 void render_sprite_from_cache(struct rr_renderer *renderer,

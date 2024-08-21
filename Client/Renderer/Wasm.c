@@ -64,7 +64,7 @@ void rr_renderer_init(struct rr_renderer *this)
     memset(this, 0, sizeof(*this));
     this->state.transform_matrix[0] = 1;
     this->state.transform_matrix[4] = 1;
-    this->context_id = EM_ASM_INT({ return Module.addCtx(); });
+    this->context_id = EM_ASM_INT({ return Module.addCtx($0); }, this);
 }
 
 void rr_renderer_set_dimensions(struct rr_renderer *this, float w, float h)

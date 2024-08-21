@@ -121,6 +121,11 @@ void rr_paste_event(struct rr_game *this, char *buf)
     this->input_data->clipboard = buf;
 }
 
+void rr_context_event(struct rr_renderer *renderer, uint8_t type)
+{
+    if (type == 1 && renderer->on_context_restore != NULL)
+        renderer->on_context_restore(renderer->on_context_restore_captures);
+}
 #else
 #endif
 
@@ -239,7 +244,7 @@ void rr_main_loop(struct rr_game *this)
                     HEAPU8[$a + buf.length] = 0;
                     _rr_paste_event($0, $a);
                 });
-            Module.addCtx = function()
+            Module.addCtx = function(renderer)
             {
                 if (Module.availableCtxs.length)
                 {
@@ -248,6 +253,9 @@ void rr_main_loop(struct rr_game *this)
                         return 0; // used for the main ctx, because that has
                                   // special behavior
                     const ocanvas = new OffscreenCanvas(1, 1);
+                    ocanvas.addEventListener("contextrestored", function() {
+                        _rr_context_event(renderer, 1);
+                    });
                     Module.ctxs[index] = ocanvas.getContext('2d');
                     return index;
                 }

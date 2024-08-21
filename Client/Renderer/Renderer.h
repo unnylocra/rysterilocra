@@ -57,7 +57,7 @@ extern "C"
 #ifndef EMSCRIPTEN
         // todo: skia
 #else
-    uint32_t context_id;
+        uint32_t context_id;
 #endif
         struct rr_renderer_context_state state;
         float width;
@@ -65,6 +65,8 @@ extern "C"
         float scale;
 
         uint8_t matrix_moddified;
+        void (*on_context_restore)(void *);
+        void *on_context_restore_captures;
     };
 
     struct rr_sprite_bounds
@@ -80,6 +82,7 @@ extern "C"
     {
         struct rr_renderer renderer;
         struct rr_sprite_bounds sprites[16];
+        uint32_t size;
     };
 
     void rr_renderer_init(struct rr_renderer *);

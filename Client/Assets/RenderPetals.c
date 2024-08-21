@@ -2197,11 +2197,9 @@ void rr_renderer_draw_petal_with_name(struct rr_renderer *renderer, uint8_t id,
     rr_renderer_draw_petal_name(renderer, id, 12, 0, 0);
 }
 
-void rr_renderer_petal_cache_init()
+static void rr_renderer_petal_cache_draw()
 {
-    rr_renderer_init(&petal_cache);
-    rr_renderer_set_dimensions(&petal_cache, IMAGE_SIZE * rr_petal_id_max,
-                               IMAGE_SIZE);
+    rr_renderer_set_transform(&petal_cache, 1, 0, 0, 0, 1, 0);
     rr_renderer_translate(&petal_cache, IMAGE_SIZE / 2, IMAGE_SIZE / 2);
     struct rr_renderer_context_state state;
     for (uint32_t i = 0; i < rr_petal_id_max; ++i)
@@ -2212,4 +2210,18 @@ void rr_renderer_petal_cache_init()
         rr_renderer_context_state_free(&petal_cache, &state);
         rr_renderer_translate(&petal_cache, IMAGE_SIZE, 0);
     }
+}
+
+static void rr_renderer_petal_cache_redraw(void *captures)
+{
+    rr_renderer_petal_cache_draw();
+}
+
+void rr_renderer_petal_cache_init()
+{
+    rr_renderer_init(&petal_cache);
+    rr_renderer_set_dimensions(&petal_cache, IMAGE_SIZE * rr_petal_id_max,
+                               IMAGE_SIZE);
+    petal_cache.on_context_restore = rr_renderer_petal_cache_redraw;
+    rr_renderer_petal_cache_draw();
 }

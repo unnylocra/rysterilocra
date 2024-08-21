@@ -89,11 +89,9 @@ void rr_renderer_draw_background(struct rr_renderer *renderer, uint8_t rarity,
     }
 }
 
-void rr_renderer_background_cache_init()
+static void rr_renderer_background_cache_draw()
 {
-    rr_renderer_init(&background_cache);
-    rr_renderer_set_dimensions(&background_cache, 68 * (rr_rarity_id_max + 3),
-                               68);
+    rr_renderer_set_transform(&background_cache, 1, 0, 0, 0, 1, 0);
     rr_renderer_translate(&background_cache, 34, 34);
     struct rr_renderer_context_state state;
     for (uint32_t i = 0; i <= rr_rarity_id_max + 2; ++i)
@@ -103,4 +101,18 @@ void rr_renderer_background_cache_init()
         rr_renderer_context_state_free(&background_cache, &state);
         rr_renderer_translate(&background_cache, 68, 0);
     }
+}
+
+static void rr_renderer_background_cache_redraw(void *captures)
+{
+    rr_renderer_background_cache_draw();
+}
+
+void rr_renderer_background_cache_init()
+{
+    rr_renderer_init(&background_cache);
+    rr_renderer_set_dimensions(&background_cache, 68 * (rr_rarity_id_max + 3),
+                               68);
+    background_cache.on_context_restore = rr_renderer_background_cache_redraw;
+    rr_renderer_background_cache_draw();
 }
