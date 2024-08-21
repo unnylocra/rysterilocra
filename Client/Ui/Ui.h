@@ -112,8 +112,6 @@ struct rr_ui_element
     uint8_t prevent_on_event : 1;
     uint8_t allow_overlap : 1;
     uint8_t no_reposition : 1;
-    uint8_t h_flex;
-    uint8_t v_flex;
 };
 
 // render funcs

@@ -304,6 +304,9 @@ static void rr_ui_flex_container_set(struct rr_ui_element *c)
     c->abs_height = c->height = left->abs_height > right->abs_height
                                     ? left->abs_height
                                     : right->abs_height;
+    data = c->container->data;
+    if (c->abs_width < c->container->abs_width - data->outer_spacing * 2)
+        c->abs_width = c->container->abs_width - data->outer_spacing * 2;
 }
 
 void rr_ui_container_refactor(struct rr_ui_element *c, struct rr_game *game)
