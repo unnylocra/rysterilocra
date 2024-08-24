@@ -148,10 +148,10 @@ void system_interpolation_for_each_function(EntityIdx entity, void *_captures)
         health->lerp_health =
             rr_lerp(health->lerp_health, health->health, 20 * delta);
         if (health->health < health->health_last_tick)
-            health->prev_health_delay_ticks = 10;
-        else if (health->prev_health_delay_ticks > 0)
-            health->prev_health_delay_ticks--;
-        if (health->prev_health_delay_ticks == 0)
+            health->prev_health_animation = 0.25;
+        else if (health->prev_health_animation > 0)
+            health->prev_health_animation -= delta;
+        if (health->prev_health_animation <= 0)
             health->lerp_prev_health =
                 rr_lerp(health->lerp_prev_health, health->health, 5 * delta);
         health->health_last_tick = health->health;

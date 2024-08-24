@@ -273,16 +273,15 @@ void rr_main_loop(struct rr_game *this)
 
             function loop(time)
             {
-                if (window.start == null)
-                    window.start = time + 1;
-                const delta = Math.min(0.5, (time - window.start) / 1000);
-                window.start = time;
+                const delta = Math.min(0.5, (time - Module.start) / 1000);
+                Module.start = time;
                 Module.canvas.width = innerWidth * devicePixelRatio;
                 Module.canvas.height = innerHeight * devicePixelRatio;
                 _rr_renderer_main_loop($0, delta, Module.canvas.width,
                                        Module.canvas.height, devicePixelRatio);
                 requestAnimationFrame(loop);
             };
+            Module.start = 0;
             requestAnimationFrame(loop);
         },
         this, &this->input_data->mouse_x, &this->input_data->mouse_state);

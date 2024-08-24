@@ -267,15 +267,15 @@ static void crafting_ring_on_render(struct rr_ui_element *this,
     struct crafting_ring_metadata *data = this->data;
     if (game->crafting_data.animation != 0)
     {
-        data->v_angle = 0.1;
-        data->clump += 0.2;
+        data->v_angle = 1;
+        data->clump += 6 * game->lerp_delta;
     }
     else
     {
-        data->v_angle *= 0.8;
-        data->clump = rr_angle_lerp(data->clump, 0, 0.2);
+        data->v_angle = rr_lerp(data->v_angle, 0, 6 * game->lerp_delta);
+        data->clump = rr_angle_lerp(data->clump, 0, 6 * game->lerp_delta);
     }
-    data->angle += data->v_angle;
+    data->angle += data->v_angle * 3 * game->lerp_delta;
     struct rr_renderer_context_state state;
     for (uint32_t i = 0; i < this->elements.size; ++i)
     {

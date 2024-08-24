@@ -1339,7 +1339,7 @@ void rr_game_tick(struct rr_game *this, float delta)
     }
     else if (this->ticks_until_text_cache < 25)
         --this->ticks_until_text_cache;
-    this->lerp_delta = 1 - powf(0.9f, delta * 10);
+    this->lerp_delta = delta;
     struct timeval start;
     struct timeval end;
 
