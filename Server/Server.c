@@ -432,6 +432,8 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
     case LWS_CALLBACK_RECEIVE:
     {
         struct rr_server_client *client = lws_get_opaque_user_data(ws);
+        if (client == NULL)
+            return -1;
         uint64_t i = (client - this->clients);
         rr_decrypt(packet, size, client->serverbound_encryption_key);
         client->serverbound_encryption_key =
