@@ -110,6 +110,7 @@ struct rr_ui_element
     uint8_t first_frame : 1;
     uint8_t stop_event_propagation : 1;
     uint8_t prevent_on_event : 1;
+    uint8_t pass_on_event : 1;
     uint8_t allow_overlap : 1;
     uint8_t no_reposition : 1;
 };

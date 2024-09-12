@@ -163,6 +163,9 @@ struct rr_game
     struct rr_ui_element *discord_tooltip;
     struct rr_ui_element *github_tooltip;
     struct rr_ui_element *abandon_game_tooltip;
+    struct rr_ui_element *leave_squad_tooltip;
+    struct rr_ui_element *kick_from_squad_tooltip;
+    struct rr_ui_element *vote_for_kick_tooltip;
     struct rr_ui_element *experience_tooltip;
     struct rr_ui_element *link_reminder_tooltip;
     struct rr_ui_element *window;
@@ -204,6 +207,7 @@ struct rr_game
     uint8_t cursor;
     uint8_t ticks_until_reconnect;
     uint8_t significant_rarity;
+    int8_t kick_vote_pos;
 
     char rivet_player_token[400];
     char connect_code[16];

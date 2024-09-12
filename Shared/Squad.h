@@ -20,19 +20,17 @@
 #include <Shared/Entity.h>
 #include <Shared/Utilities.h>
 
-#ifdef RR_SERVER
-struct rr_server_client;
-#else
-#ifdef RR_CLIENT
-struct rr_ui_element;
-#endif
-#endif
+RR_SERVER_ONLY(struct rr_server_client;)
+RR_CLIENT_ONLY(struct rr_ui_element;)
 
 struct rr_squad_member
 {
     RR_SERVER_ONLY(struct rr_server_client *client;)
     RR_CLIENT_ONLY(struct rr_ui_element *tooltip;)
+    RR_CLIENT_ONLY(struct rr_ui_element *kick_text_el;)
     uint32_t level;
+    uint8_t kick_vote_count;
+    int8_t kick_vote_pos;
     uint8_t in_use : 1;
     uint8_t playing : 1;
     uint8_t is_dev : 1;
@@ -41,4 +39,5 @@ struct rr_squad_member
     RR_CLIENT_ONLY(char level_text[16];)
     RR_CLIENT_ONLY(char health_text[16];)
     RR_CLIENT_ONLY(char damage_text[16];)
+    RR_CLIENT_ONLY(char kick_text[16];)
 };

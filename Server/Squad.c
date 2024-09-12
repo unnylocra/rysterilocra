@@ -48,6 +48,7 @@ void rr_squad_add_client(struct rr_squad *this, struct rr_server_client *client)
         this->members[i].in_use = 1;
         this->members[i].is_dev = client->dev;
         this->members[i].level = level_from_xp(client->experience);
+        this->members[i].kick_vote_pos = -1;
         return;
     }
 }
@@ -55,6 +56,15 @@ void rr_squad_add_client(struct rr_squad *this, struct rr_server_client *client)
 void rr_squad_remove_client(struct rr_squad *this,
                             struct rr_server_client *client)
 {
+    struct rr_squad_member *member = &this->members[client->squad_pos];
+    if (member->kick_vote_pos != -1)
+        this->members[member->kick_vote_pos].kick_vote_count -= 1;
+    for (uint8_t i = 0; i < RR_SQUAD_MEMBER_COUNT; ++i)
+    {
+        member = &this->members[i];
+        if (member->in_use && member->kick_vote_pos == client->squad_pos)
+            member->kick_vote_pos = -1;
+    }
     this->member_count -= 1;
     memset(&this->members[client->squad_pos], 0,
            sizeof(struct rr_squad_member));

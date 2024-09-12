@@ -249,11 +249,11 @@ void rr_rivet_on_log_in(char *token, char *avatar_url, char *name,
     rr_api_on_get_password("5d68a8ec6cbf3997a641803260390362d59681bc7524ef3a3fd67afddaba0ba96d1196d30834aa25aa1440cadffb4c87af6495e613c535b793cc1c71aa8c4d04", this);
 }
 
-static struct rr_ui_element *make_label_tooltip(char const *text)
+static struct rr_ui_element *make_label_tooltip(char const *text, float size)
 {
     return rr_ui_set_background(
         rr_ui_v_container_init(rr_ui_tooltip_container_init(), 10, 10,
-                               rr_ui_text_init(text, 16, 0xffffffff), NULL),
+                               rr_ui_text_init(text, size, 0xffffffff), NULL),
         0x80000000);
 }
 
@@ -360,6 +360,7 @@ static void squad_leave_on_event(struct rr_ui_element *this,
             proto_bug_write_uint8(&encoder, 3, "join type");
             rr_websocket_send(&game->socket, encoder.current - encoder.start);
         }
+        rr_ui_render_tooltip_below(this, game->leave_squad_tooltip, game);
         game->cursor = rr_game_cursor_pointer;
     }
 }
@@ -641,59 +642,74 @@ void rr_game_init(struct rr_game *this)
 
     this->link_account_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("Login with Rivet")
+        make_label_tooltip("Login with Rivet", 16)
     );
 
     this->inventory_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("Inventory")
+        make_label_tooltip("Inventory", 16)
     );
 
     this->gallery_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("Mob Gallery")
+        make_label_tooltip("Mob Gallery", 16)
     );
 
     this->craft_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("Crafting")
+        make_label_tooltip("Crafting", 16)
     );
 
     this->settings_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("Settings")
+        make_label_tooltip("Settings", 16)
     );
 
     this->abandon_game_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("Leave Game")
+        make_label_tooltip("Leave Game", 16)
     );
 
     this->account_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("Account")
+        make_label_tooltip("Account", 16)
     );
 
     this->squads_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("Squads")
+        make_label_tooltip("Squads", 16)
     );
 
     this->discord_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("Join Our Discord!")
+        make_label_tooltip("Join Our Discord!", 16)
     );
 
     this->github_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("We're Open Source!")
+        make_label_tooltip("We're Open Source!", 16)
     );
 
     this->link_reminder_tooltip = rr_ui_container_add_element(
         this->window,
-        make_label_tooltip("Login to save progess across devices")
+        make_label_tooltip("Login to save progess across devices", 16)
     );
-    
+
+    this->leave_squad_tooltip = rr_ui_container_add_element(
+        this->window,
+        make_label_tooltip("Leave Squad", 14)
+    );
+
+    this->kick_from_squad_tooltip = rr_ui_container_add_element(
+        this->window,
+        make_label_tooltip("Kick from squad", 12)
+    );
+
+    this->vote_for_kick_tooltip = rr_ui_container_add_element(
+        this->window,
+        make_label_tooltip("Vote for kick", 12)
+    );
+
     // this->anti_afk = rr_ui_container_add_element(
     //     this->window,
     //     rr_ui_anti_afk_container_init()
@@ -824,6 +840,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
             this->socket_error = 0;
             this->joined_squad = 1;
 
+            this->kick_vote_pos = proto_bug_read_uint8(&encoder, "kick vote");
             for (uint32_t i = 0; i < RR_SQUAD_MEMBER_COUNT; ++i)
             {
                 this->squad.squad_members[i].in_use =
@@ -834,6 +851,28 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     proto_bug_read_uint8(&encoder, "ready");
                 this->squad.squad_members[i].is_dev =
                     proto_bug_read_uint8(&encoder, "is_dev");
+                uint8_t kick_vote_count =
+                    proto_bug_read_uint8(&encoder, "kick votes");
+                if (this->squad.squad_members[i].kick_vote_count !=
+                    kick_vote_count)
+                {
+                    this->squad.squad_members[i].kick_vote_count =
+                        kick_vote_count;
+                    sprintf(this->squad.squad_members[i].kick_text, "%u/%u",
+                            kick_vote_count, RR_SQUAD_MEMBER_COUNT - 1);
+                    if (kick_vote_count == 0)
+                        rr_ui_set_background(
+                            this->squad.squad_members[i].kick_text_el,
+                            0x00000000);
+                    else if (this->kick_vote_pos == i)
+                        rr_ui_set_background(
+                            this->squad.squad_members[i].kick_text_el,
+                            0xffff4444);
+                    else
+                        rr_ui_set_background(
+                            this->squad.squad_members[i].kick_text_el,
+                            0xffffffff);
+                }
                 uint32_t level = proto_bug_read_varuint(&encoder, "level");
                 if (this->squad.squad_members[i].level != level)
                 {
@@ -915,6 +954,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
         case rr_clientbound_squad_dump:
         {
             this->is_dev = proto_bug_read_uint8(&encoder, "is_dev");
+            this->kick_vote_pos = proto_bug_read_uint8(&encoder, "kick vote");
             for (uint32_t s = 0; s < RR_SQUAD_COUNT; ++s)
             {
                 struct rr_game_squad *squad = &this->other_squads[s];
@@ -928,6 +968,30 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                         proto_bug_read_uint8(&encoder, "ready");
                     squad->squad_members[i].is_dev =
                         proto_bug_read_uint8(&encoder, "is_dev");
+                    uint8_t kick_vote_count =
+                        proto_bug_read_uint8(&encoder, "kick votes");
+                    if (squad->squad_members[i].kick_vote_count !=
+                        kick_vote_count)
+                    {
+                        squad->squad_members[i].kick_vote_count =
+                            kick_vote_count;
+                        sprintf(squad->squad_members[i].kick_text, "%u/%u",
+                                kick_vote_count, RR_SQUAD_MEMBER_COUNT - 1);
+                        if (kick_vote_count == 0)
+                            rr_ui_set_background(
+                                squad->squad_members[i].kick_text_el,
+                                0x00000000);
+                        else if (this->joined_squad &&
+                                 this->squad.squad_index == s &&
+                                 this->kick_vote_pos == i)
+                            rr_ui_set_background(
+                                squad->squad_members[i].kick_text_el,
+                                0xffff4444);
+                        else
+                            rr_ui_set_background(
+                                squad->squad_members[i].kick_text_el,
+                                0xffffffff);
+                    }
                     uint32_t level = proto_bug_read_varuint(&encoder, "level");
                     if (squad->squad_members[i].level != level)
                     {

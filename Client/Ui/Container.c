@@ -77,7 +77,8 @@ void rr_ui_container_poll_events(struct rr_ui_element *this,
         rr_ui_element_check_if_focused(this, game);
     else
         game->focused = this;
-    if (game->focused != this || this->stop_event_propagation)
+    if ((game->focused != this && !this->pass_on_event) ||
+        this->stop_event_propagation)
         return;
     for (uint32_t i = 0; i < this->elements.size; ++i)
         if (!this->elements.start[i]->prevent_on_event)

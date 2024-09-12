@@ -191,6 +191,11 @@ void rr_server_client_broadcast_update(struct rr_server_client *this)
     proto_bug_write_uint8(&encoder, rr_clientbound_update, "header");
 
     struct rr_squad *squad = rr_client_get_squad(server, this);
+    int8_t kick_vote_pos =
+        rr_squad_get_client_slot(server, this)->kick_vote_pos;
+    if (kick_vote_pos == -1 && this->ticks_to_next_kick_vote > 0)
+        kick_vote_pos = -2;
+    proto_bug_write_uint8(&encoder, kick_vote_pos, "kick vote");
     for (uint32_t i = 0; i < RR_SQUAD_MEMBER_COUNT; ++i)
     {
         if (squad->members[i].in_use == 0)
@@ -202,6 +207,7 @@ void rr_server_client_broadcast_update(struct rr_server_client *this)
         proto_bug_write_uint8(&encoder, 1, "bitbit");
         proto_bug_write_uint8(&encoder, member->playing, "ready");
         proto_bug_write_uint8(&encoder, member->is_dev, "is_dev");
+        proto_bug_write_uint8(&encoder, member->kick_vote_count, "kick votes");
         proto_bug_write_varuint(&encoder, member->level, "level");
         proto_bug_write_string(&encoder, member->nickname, 16, "nickname");
         for (uint8_t j = 0; j < 20; ++j)
@@ -845,26 +851,39 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 break;
             if (pos >= RR_SQUAD_MEMBER_COUNT)
                 break;
-            if (!client->in_squad && !client->dev)
-                break;
-            if (client->squad != index && !client->dev)
-                break;
-            if (client->squad_pos != 0 && !client->dev)
-                break;
-            if (client->squad_pos == pos && !client->dev)
-                break;
             struct rr_squad *squad = &this->squads[index];
-            if (!squad->private && !client->dev)
-                break;
-            if (!squad->members[pos].in_use)
-                break;
-            struct rr_server_client *to_kick = squad->members[pos].client;
-            if (to_kick == NULL)
+            struct rr_squad_member *kick_member = &squad->members[pos];
+            if (!kick_member->in_use)
                 break;
 #ifdef SANDBOX
-            if (to_kick->dev)
+            if (kick_member->is_dev)
                 break;
 #endif
+            if (!client->dev)
+            {
+                if (!client->in_squad)
+                    break;
+                if (client->squad != index)
+                    break;
+                if (client->squad_pos == pos)
+                    break;
+                if (squad->private)
+                {
+                    if (client->squad_pos != 0)
+                        break;
+                }
+                else
+                {
+                    if (client->ticks_to_next_kick_vote > 0)
+                        break;
+                    client->ticks_to_next_kick_vote = 60 * 25;
+                    rr_squad_get_client_slot(this, client)->kick_vote_pos = pos;
+                    if (++kick_member->kick_vote_count <
+                        RR_SQUAD_MEMBER_COUNT - 1)
+                        break;
+                }
+            }
+            struct rr_server_client *to_kick = kick_member->client;
             if (to_kick->player_info != NULL)
             {
                 rr_simulation_request_entity_deletion(
@@ -1216,10 +1235,22 @@ static void server_tick(struct rr_server *this)
             struct rr_server_client *client = &this->clients[i];
             if (client->pending_kick)
                 lws_callback_on_writable(client->socket_handle);
-            if (client->ticks_to_next_squad_action > 0)
-                --client->ticks_to_next_squad_action;
             if (!client->verified)
                 continue;
+            if (client->ticks_to_next_squad_action > 0)
+                --client->ticks_to_next_squad_action;
+            if (client->ticks_to_next_kick_vote > 0 &&
+                --client->ticks_to_next_kick_vote == 0 && client->in_squad)
+            {
+                struct rr_squad_member *member =
+                    rr_squad_get_client_slot(this, client);
+                if (member->kick_vote_pos != -1)
+                {
+                    rr_client_get_squad(this, client)
+                        ->members[member->kick_vote_pos].kick_vote_count -= 1;
+                    member->kick_vote_pos = -1;
+                }
+            }
             if (client->player_info != NULL)
             {
                 if (rr_simulation_entity_alive(
@@ -1256,6 +1287,15 @@ static void server_tick(struct rr_server *this)
             proto_bug_write_uint8(&encoder, rr_clientbound_squad_dump,
                                   "header");
             proto_bug_write_uint8(&encoder, client->dev, "is_dev");
+            int8_t kick_vote_pos = -3;
+            if (client->in_squad)
+            {
+                kick_vote_pos =
+                    rr_squad_get_client_slot(this, client)->kick_vote_pos;
+                if (kick_vote_pos == -1 && client->ticks_to_next_kick_vote > 0)
+                    kick_vote_pos = -2;
+            }
+            proto_bug_write_uint8(&encoder, kick_vote_pos, "kick vote");
             for (uint32_t s = 0; s < RR_SQUAD_COUNT; ++s)
             {
                 struct rr_squad *squad = &this->squads[s];
@@ -1270,6 +1310,8 @@ static void server_tick(struct rr_server *this)
                     proto_bug_write_uint8(&encoder, 1, "bitbit");
                     proto_bug_write_uint8(&encoder, member->playing, "ready");
                     proto_bug_write_uint8(&encoder, member->is_dev, "is_dev");
+                    proto_bug_write_uint8(&encoder, member->kick_vote_count,
+                                          "kick votes");
                     proto_bug_write_varuint(&encoder, member->level, "level");
                     proto_bug_write_string(&encoder, member->nickname, 16,
                                            "nickname");
