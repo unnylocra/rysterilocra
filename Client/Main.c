@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include <Client/Game.h>
@@ -125,6 +126,27 @@ void rr_context_event(struct rr_renderer *renderer, uint8_t type)
 {
     if (type == 1 && renderer->on_context_restore != NULL)
         renderer->on_context_restore(renderer->on_context_restore_captures);
+}
+
+static void release_key(uint64_t i, void *captures)
+{
+    struct rr_game *this = captures;
+    rr_bitset_set(this->input_data->keys_released_this_tick, i);
+}
+
+void rr_focus_event(struct rr_game *this, uint8_t type)
+{
+    if (type == 1)
+    {
+        this->input_data->mouse_buttons_up_this_tick |=
+            this->input_data->mouse_buttons;
+        this->input_data->mouse_buttons = 0;
+        rr_bitset_for_each_bit(
+            this->input_data->keys_pressed,
+            this->input_data->keys_pressed + RR_BITSET_ROUND(256),
+            this, release_key);
+        memset(this->input_data->keys_pressed, 0, RR_BITSET_ROUND(256));
+    }
 }
 #else
 #endif
@@ -244,6 +266,9 @@ void rr_main_loop(struct rr_game *this)
                     HEAPU8[$a + buf.length] = 0;
                     _rr_paste_event($0, $a);
                 });
+            window.addEventListener("blur", function(e) {
+                _rr_focus_event($0, 1);
+            });
             Module.addCtx = function(renderer)
             {
                 if (Module.availableCtxs.length)
