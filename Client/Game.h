@@ -104,6 +104,7 @@ struct rr_game_cache
     uint8_t hold_attack;
     uint8_t hold_defense;
     uint8_t show_loot;
+    uint8_t disable_leave_hotkey;
     char nickname[128];
 };
 

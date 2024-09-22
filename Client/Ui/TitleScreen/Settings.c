@@ -256,7 +256,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             -1, -1),*/
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(&game->cache.use_mouse),
                                 rr_ui_text_init("Mouse movement", 15,
                                                 0xffffffff),
@@ -265,7 +265,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             10),
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(&game->cache.hold_attack),
                                 rr_ui_text_init("Hold attack", 15,
                                                 0xffffffff),
@@ -274,7 +274,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             10),
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(&game->cache.hold_defense),
                                 rr_ui_text_init("Hold defense", 15,
                                                 0xffffffff),
@@ -283,7 +283,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             10),
                         rr_ui_set_justify(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(
                                     &game->cache.screen_shake),
                                 rr_ui_text_init("Screen shake", 15, 0xffffffff),
@@ -291,7 +291,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             -1, -1),
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(&game->cache.show_hitboxes),
                                 rr_ui_text_init("Show hitboxes", 15, 0xffffffff),
                                 NULL),
@@ -299,7 +299,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             10),
                         rr_ui_set_justify(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(
                                     &game->cache.show_coordinates),
                                 rr_ui_text_init("Show coordinates", 15,
@@ -308,7 +308,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             -1, -1),
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(&game->cache.show_loot),
                                 rr_ui_text_init("Show loot", 15, 0xffffffff),
                                 NULL),
@@ -316,7 +316,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             10),
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(
                                     &game->cache.hide_ui),
                                 rr_ui_text_init("Hide UI", 15,
@@ -326,7 +326,16 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             10),
                         rr_ui_set_justify(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
+                                rr_ui_toggle_box_init(
+                                    &game->cache.disable_leave_hotkey),
+                                rr_ui_text_init("Disable [Esc] hotkey", 15,
+                                                0xffffffff),
+                                NULL),
+                            -1, -1),
+                        rr_ui_set_justify(
+                            rr_ui_h_container_init(
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(
                                     &game->cache.disable_chat),
                                 rr_ui_text_init("Disable chat", 15,
@@ -335,7 +344,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             -1, -1),
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(
                                     &game->cache.low_performance_mode),
                                 rr_ui_text_init("Low performance mode", 15,
@@ -345,7 +354,7 @@ struct rr_ui_element *rr_ui_settings_container_init(struct rr_game *game)
                             10),
                         rr_ui_flex_container_init(
                             rr_ui_h_container_init(
-                                rr_ui_container_init(), 5, 10,
+                                rr_ui_container_init(), 0, 10,
                                 rr_ui_toggle_box_init(
                                     &game->cache.displaying_debug_information),
                                 rr_ui_text_init("Debug mode", 15,

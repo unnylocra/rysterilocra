@@ -64,17 +64,14 @@ struct rr_ui_element *rr_ui_finished_game_screen_init()
     leave_game->on_event = continue_to_squad_event;
     struct rr_ui_element *this = rr_ui_v_container_init(
         rr_ui_container_init(), 10, 10,
-        rr_ui_static_space_init(60),
         rr_ui_choose_element_init(
             rr_ui_text_init("You Died", 48, 0xffffffff),
             // easter egg
             rr_ui_text_init("Skill Issue", 48, 0xffffffff),
             text_choose
         ),
-        rr_ui_static_space_init(100),
+        rr_ui_static_space_init(150),
         leave_game,
-        rr_ui_static_space_init(1),
-        rr_ui_text_init("[Ctrl + Enter]", 14, 0xffffffff),
         NULL);
     this->should_show = game_over;
     return this;

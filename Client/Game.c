@@ -1649,11 +1649,10 @@ void rr_game_tick(struct rr_game *this, float delta)
                 rr_write_serverbound_packet_mobile(this);
             rr_write_dev_cheat_packets(this, 0);
         }
-        if (this->flower_dead &&
-            rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 13) &&
-            (!this->simulation_ready ||
-             (rr_bitset_get_bit(this->input_data->keys_pressed, 17) &&
-              !this->chat.chat_active_last_tick)))
+        if ((!this->simulation_ready &&
+             rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 13)) ||
+            (this->simulation_ready && !this->cache.disable_leave_hotkey &&
+             rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 27)))
         {
             if (!this->simulation_ready)
                 rr_write_dev_cheat_packets(this, 1);
