@@ -42,6 +42,8 @@ static void uranium_damage(EntityIdx target, void *_captures)
     if (!rr_simulation_has_mob(simulation, target) &&
         !rr_simulation_has_flower(simulation, target))
         return;
+    if (is_dead_flower(simulation, target))
+        return;
     struct rr_component_relations *relations =
         rr_simulation_get_relations(simulation, captures->petal_id);
     struct rr_component_relations *target_relations =

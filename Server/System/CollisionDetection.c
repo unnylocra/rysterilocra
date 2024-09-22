@@ -55,8 +55,6 @@ static void system_insert_entities(EntityIdx entity, void *_captures)
         struct rr_component_health *health =
             rr_simulation_get_health(this, entity);
         rr_component_health_set_flags(health, health->flags & (~2));
-        if (health->health == 0)
-            return;
     }
     rr_spatial_hash_insert(
         &rr_simulation_get_arena(this, physical->arena)->spatial_hash, entity);
@@ -100,6 +98,9 @@ static void grid_filter_candidates(struct rr_simulation *this,
     struct rr_component_physical *physical2 =
         rr_simulation_get_physical(this, entity2);
     if (!should_entities_collide(this, entity1, entity2))
+        return;
+    if (is_dead_flower(this, entity1) ||
+        is_dead_flower(this, entity2))
         return;
     if (dev_cheat_enabled(this, entity1, no_collision) ||
         dev_cheat_enabled(this, entity2, no_collision))

@@ -162,6 +162,8 @@ static void fireball_damage(EntityIdx target, void *_captures)
         !rr_simulation_has_flower(simulation, target) &&
         !rr_simulation_has_nest(simulation, target))
         return;
+    if (is_dead_flower(simulation, target))
+        return;
     struct rr_component_relations *relations =
         rr_simulation_get_relations(simulation, captures->petal_id);
     struct rr_component_relations *target_relations =

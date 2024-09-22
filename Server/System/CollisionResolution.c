@@ -61,8 +61,6 @@ static void web_logic(struct rr_simulation *this, EntityIdx entity1,
     if (!(rr_simulation_has_mob(this, entity2) ||
           rr_simulation_has_flower(this, entity2)))
         return;
-    if (is_dead_flower(this, entity2))
-        return;
     struct rr_component_web *web = rr_simulation_get_web(this, entity1);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(this, entity2);
@@ -107,15 +105,13 @@ static void colliding_with_function(uint64_t i, void *_captures)
     if (!should_entities_collide(this, entity1, entity2))
         return;
     if (rr_simulation_has_arena(this, entity1) &&
-        rr_simulation_has_flower(this, entity2) &&
-        !is_dead_flower(this, entity2))
+        rr_simulation_has_flower(this, entity2))
     {
         enter_arena(this, entity1, entity2);
         return;
     }
     else if (rr_simulation_has_arena(this, entity2) &&
-             rr_simulation_has_flower(this, entity1) &&
-             !is_dead_flower(this, entity1))
+             rr_simulation_has_flower(this, entity1))
     {
         enter_arena(this, entity2, entity1);
         return;
