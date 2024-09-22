@@ -44,7 +44,7 @@ uint8_t has_new_target(struct rr_component_ai *ai,
             rr_simulation_get_relations(simulation, ai->parent_id);
         EntityIdx target_id;
         if (relations->team == rr_simulation_team_id_mobs)
-            target_id = rr_simulation_find_nearest_enemy(
+            target_id = rr_simulation_choose_nearby_enemy(
                 simulation, ai->parent_id, 1800, NULL, no_filter);
         else
             target_id = rr_simulation_find_nearest_enemy(

@@ -121,7 +121,10 @@ static void lightning_petal_system(struct rr_simulation *simulation,
         {
             struct rr_component_ai *ai =
                 rr_simulation_get_ai(simulation, target);
-            if (ai->target_entity == RR_NULL_ENTITY &&
+            struct rr_component_mob *mob =
+                rr_simulation_get_mob(simulation, target);
+            if ((ai->target_entity == RR_NULL_ENTITY ||
+                 rr_frand() < powf(0.3, mob->rarity)) &&
                 !dev_cheat_enabled(simulation, relations->owner, no_aggro))
                 ai->target_entity = relations->owner;
         }
@@ -192,7 +195,9 @@ static void fireball_damage(EntityIdx target, void *_captures)
     if (!rr_simulation_has_ai(simulation, target))
         return;
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);
-    if (ai->target_entity == RR_NULL_ENTITY &&
+    struct rr_component_mob *mob = rr_simulation_get_mob(simulation, target);
+    if ((ai->target_entity == RR_NULL_ENTITY ||
+         rr_frand() < powf(0.3, mob->rarity)) &&
         !dev_cheat_enabled(simulation, relations->owner, no_aggro))
         ai->target_entity = relations->owner;
 }
@@ -227,7 +232,10 @@ static void damage_effect(struct rr_simulation *simulation, EntityIdx target,
     if (rr_simulation_has_ai(simulation, target))
     {
         struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);
-        if (ai->target_entity == RR_NULL_ENTITY)
+        struct rr_component_mob *mob =
+            rr_simulation_get_mob(simulation, target);
+        if (ai->target_entity == RR_NULL_ENTITY ||
+            rr_frand() < powf(0.3, mob->rarity))
         {
             if (rr_simulation_has_petal(simulation, attacker))
             {

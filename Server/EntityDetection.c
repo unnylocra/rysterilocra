@@ -20,6 +20,8 @@
 
 #include <Shared/Vector.h>
 
+#define MAX_ENTITY_CHOOSE_COUNT 256
+
 struct entity_finder_captures
 {
     struct rr_simulation *simulation;
@@ -31,6 +33,21 @@ struct entity_finder_captures
     float closest_dist;
     float x;
     float y;
+};
+
+struct entity_chooser_captures
+{
+    struct rr_simulation *simulation;
+    void *captures;
+    uint8_t (*filter)(struct rr_simulation *, EntityIdx, EntityIdx, void *);
+    EntityIdx seeker;
+    uint8_t seeker_team;
+    float range;
+    float x;
+    float y;
+    EntityIdx potential_vector[MAX_ENTITY_CHOOSE_COUNT];
+    float dist_vector[MAX_ENTITY_CHOOSE_COUNT];
+    uint32_t potential_count;
 };
 
 void shg_cb_enemy(EntityIdx potential, void *_captures)
@@ -97,6 +114,65 @@ void shg_cb_friend(EntityIdx potential, void *_captures)
         return;
     captures->closest_dist = dist;
     captures->closest = potential;
+}
+
+void shg_cb_rand_enemy(EntityIdx potential, void *_captures)
+{
+    struct entity_chooser_captures *captures = _captures;
+    struct rr_simulation *simulation = captures->simulation;
+    uint8_t allow =
+        !rr_simulation_has_arena(simulation, potential) &&
+        (rr_simulation_has_flower(simulation, potential) ||
+         rr_simulation_has_mob(simulation, potential) ||
+         (rr_simulation_has_petal(simulation, potential) &&
+          (rr_simulation_get_petal(simulation, potential)->id == rr_petal_id_seed ||
+           rr_simulation_get_petal(simulation, potential)->id == rr_petal_id_nest) &&
+          rr_simulation_get_petal(simulation, potential)->detached));
+    if (!allow)
+        return;
+    if (dev_cheat_enabled(simulation, potential, no_aggro))
+        return;
+    if (rr_simulation_get_relations(simulation, potential)->team ==
+        captures->seeker_team)
+        return;
+    if (rr_simulation_get_health(simulation, potential)->health == 0)
+        return;
+    struct rr_component_physical *t_physical =
+        rr_simulation_get_physical(simulation, potential);
+    struct rr_vector delta = {captures->x - t_physical->x,
+                              captures->y - t_physical->y};
+    float dist =
+        rr_vector_get_magnitude(&delta) * t_physical->aggro_range_multiplier -
+        t_physical->radius;
+    if (dist > captures->range)
+        return;
+    if (!captures->filter(simulation, captures->seeker, potential,
+                          captures->captures))
+        return;
+    if (captures->potential_count < MAX_ENTITY_CHOOSE_COUNT)
+    {
+        captures->potential_vector[captures->potential_count] = potential;
+        captures->dist_vector[captures->potential_count] = dist;
+        captures->potential_count += 1;
+    }
+    else
+    {
+        float farthest_dist = 0;
+        uint32_t farthest_pos;
+        for (uint32_t i = 0; i < captures->potential_count; ++i)
+        {
+            if (captures->dist_vector[i] > farthest_dist)
+            {
+                farthest_dist = captures->dist_vector[i];
+                farthest_pos = i;
+            }
+        }
+        if (dist < farthest_dist)
+        {
+            captures->potential_vector[farthest_pos] = potential;
+            captures->dist_vector[farthest_pos] = dist;
+        }
+    }
 }
 
 EntityIdx rr_simulation_find_nearest_enemy(
@@ -179,6 +255,53 @@ EntityIdx rr_simulation_find_nearest_friend_custom_pos(
                           shg_cb_friend);
 
     return shg_captures.closest;
+}
+
+EntityIdx rr_simulation_choose_nearby_enemy(
+    struct rr_simulation *simulation, EntityIdx seeker, float search_range,
+    void *captures,
+    uint8_t (*filter)(struct rr_simulation *, EntityIdx, EntityIdx, void *))
+{
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, seeker);
+
+    return rr_simulation_choose_nearby_enemy_custom_pos(
+        simulation, seeker, physical->x, physical->y, search_range, captures,
+        filter);
+}
+
+EntityIdx rr_simulation_choose_nearby_enemy_custom_pos(
+    struct rr_simulation *simulation, EntityIdx seeker, float x, float y,
+    float min_dist, void *captures,
+    uint8_t (*filter)(struct rr_simulation *, EntityIdx, EntityIdx, void *))
+{
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, seeker);
+    struct rr_component_relations *relations =
+        rr_simulation_get_relations(simulation, seeker);
+    struct entity_chooser_captures shg_captures;
+    shg_captures.simulation = simulation;
+    shg_captures.captures = captures;
+    shg_captures.filter = filter;
+    shg_captures.seeker = seeker;
+    shg_captures.range = min_dist;
+    shg_captures.x = x;
+    shg_captures.y = y;
+    shg_captures.seeker_team = relations->team;
+    shg_captures.potential_count = 0;
+    struct rr_spatial_hash *shg =
+        &rr_simulation_get_arena(simulation, physical->arena)->spatial_hash;
+    rr_spatial_hash_query(shg, x, y, min_dist, min_dist, &shg_captures,
+                          shg_cb_rand_enemy);
+
+    float sum = 0;
+    for (uint32_t i = 0; i < shg_captures.potential_count; ++i)
+        sum += 1 / shg_captures.dist_vector[i];
+    float seed = rr_frand() * sum;
+    for (uint32_t i = 0; i < shg_captures.potential_count; ++i)
+        if ((seed -= 1 / shg_captures.dist_vector[i]) < 0)
+            return shg_captures.potential_vector[i];
+    return RR_NULL_ENTITY;
 }
 
 uint8_t no_filter(struct rr_simulation *simulation, EntityIdx seeker,
