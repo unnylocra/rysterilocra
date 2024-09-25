@@ -36,6 +36,8 @@ static void drop_cb(EntityIdx entity, void *_captures)
     struct rr_component_drop *drop = rr_simulation_get_drop(this, entity);
     if (drop->ticks_until_despawn > 25 * 10 * (drop->rarity + 1) - 10)
         return;
+    if (drop->ticks_until_despawn == 0)
+        return;
 
     if (!rr_bitset_get(drop->can_be_picked_up_by, captures->player_info->squad))
         return;
