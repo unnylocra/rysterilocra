@@ -55,6 +55,21 @@ static void system_default_idle_heal(EntityIdx entity, void *captures)
                                          this, 1);
         else
             rr_simulation_request_entity_deletion(this, entity);
+
+        if (rr_simulation_has_mob(this, entity) &&
+            rr_simulation_get_mob(this, entity)->player_spawned)
+        {
+            struct rr_component_relations *relations =
+                rr_simulation_get_relations(this, entity);
+            EntityHash hash = rr_simulation_get_entity_hash(this, entity);
+            for (uint32_t i = 0; i < this->ai_count; ++i)
+            {
+                struct rr_component_ai *ai =
+                    rr_simulation_get_ai(this, this->ai_vector[i]);
+                if (ai->target_entity == hash)
+                    ai->target_entity = relations->owner;
+            }
+        }
     }
     else
         // heal 0.25% of max hp per second (0.0001 is 0.0025 / 25)
