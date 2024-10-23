@@ -33,6 +33,7 @@ struct rr_squad_member
     int8_t kick_vote_pos;
     uint8_t in_use : 1;
     uint8_t playing : 1;
+    RR_CLIENT_ONLY(uint8_t disconnected : 1;)
     uint8_t is_dev : 1;
     struct rr_id_rarity_pair loadout[20];
     char nickname[16];

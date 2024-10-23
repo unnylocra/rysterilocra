@@ -206,6 +206,8 @@ void rr_server_client_broadcast_update(struct rr_server_client *this)
         struct rr_squad_member *member = &squad->members[i];
         proto_bug_write_uint8(&encoder, 1, "bitbit");
         proto_bug_write_uint8(&encoder, member->playing, "ready");
+        proto_bug_write_uint8(&encoder, member->client->disconnected,
+                              "disconnected");
         proto_bug_write_uint8(&encoder, member->is_dev, "is_dev");
         proto_bug_write_uint8(&encoder, member->kick_vote_count, "kick votes");
         proto_bug_write_varuint(&encoder, member->level, "level");
@@ -1361,6 +1363,9 @@ static void server_tick(struct rr_server *this)
                     struct rr_squad_member *member = &squad->members[i];
                     proto_bug_write_uint8(&encoder, 1, "bitbit");
                     proto_bug_write_uint8(&encoder, member->playing, "ready");
+                    proto_bug_write_uint8(&encoder,
+                                          member->client->disconnected,
+                                          "disconnected");
                     proto_bug_write_uint8(&encoder, member->is_dev, "is_dev");
                     proto_bug_write_uint8(&encoder, member->kick_vote_count,
                                           "kick votes");

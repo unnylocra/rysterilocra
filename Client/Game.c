@@ -778,6 +778,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
         // memset the clients
         printf("<rr_websocket::close::%llu>\n", size);
         this->socket_ready = 0;
+        this->socket_pending = 0;
         this->socket_error = 1;
         if (this->simulation_ready)
         {
@@ -786,7 +787,6 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
         }
         this->simulation_ready = 0;
         this->socket.recieved_first_packet = 0;
-        this->ticks_until_reconnect = 30 + 30 * rr_frand();
         break;
     case rr_websocket_event_type_data:
     {
@@ -849,6 +849,8 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     continue;
                 this->squad.squad_members[i].playing =
                     proto_bug_read_uint8(&encoder, "ready");
+                this->squad.squad_members[i].disconnected =
+                    proto_bug_read_uint8(&encoder, "disconnected");
                 this->squad.squad_members[i].is_dev =
                     proto_bug_read_uint8(&encoder, "is_dev");
                 uint8_t kick_vote_count =
@@ -913,6 +915,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     rr_simulation_init(this->simulation);
                     rr_simulation_init(this->deletion_simulation);
                     rr_particle_manager_clear(&this->particle_manager);
+                    rr_write_dev_cheat_packets(this, 1);
                     this->chat.chat_active = 0;
                     this->simulation_ready = 1;
                 }
@@ -966,6 +969,8 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                         continue;
                     squad->squad_members[i].playing =
                         proto_bug_read_uint8(&encoder, "ready");
+                    squad->squad_members[i].disconnected =
+                        proto_bug_read_uint8(&encoder, "disconnected");
                     squad->squad_members[i].is_dev =
                         proto_bug_read_uint8(&encoder, "is_dev");
                     uint8_t kick_vote_count =
@@ -1663,8 +1668,19 @@ void rr_game_tick(struct rr_game *this, float delta)
                                 "header");
             rr_websocket_send(&this->socket, encoder.current - encoder.start);
         }
+        if (!this->simulation_ready && !this->cache.disable_leave_hotkey &&
+            rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 27))
+        {
+            this->socket_error = 0;
+            struct proto_bug encoder;
+            proto_bug_init(&encoder, RR_OUTGOING_PACKET);
+            proto_bug_write_uint8(&encoder, this->socket.quick_verification, "qv");
+            proto_bug_write_uint8(&encoder, rr_serverbound_squad_join, "header");
+            proto_bug_write_uint8(&encoder, 3, "join type");
+            rr_websocket_send(&this->socket, encoder.current - encoder.start);
+        }
     }
-    else if (--this->ticks_until_reconnect == 0)
+    else if (!this->socket_pending)
         rr_game_connect_socket(this);
     if (!this->text_input_focused)
     {

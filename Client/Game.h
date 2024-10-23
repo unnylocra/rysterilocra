@@ -206,7 +206,6 @@ struct rr_game
     uint8_t selected_biome;
     uint8_t slots_unlocked;
     uint8_t cursor;
-    uint8_t ticks_until_reconnect;
     uint8_t significant_rarity;
     int8_t kick_vote_pos;
 
