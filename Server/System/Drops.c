@@ -17,6 +17,7 @@
 
 #include <stdlib.h>
 
+#include <Server/Client.h>
 #include <Server/Simulation.h>
 
 struct drop_pick_up_captures
@@ -68,11 +69,15 @@ static void drop_pick_up(EntityIdx entity, void *_captures)
         rr_simulation_get_relations(this, entity);
     struct rr_component_player_info *player_info =
         rr_simulation_get_player_info(this, flower_relations->owner);
+    if (player_info->client->disconnected)
+        return;
+    if (player_info->drops_this_tick_size >= 1)
+        return;
+
     struct rr_component_physical *flower_physical =
         rr_simulation_get_physical(this, entity);
     struct rr_component_arena *arena =
         rr_simulation_get_arena(this, flower_physical->arena);
-
     struct drop_pick_up_captures captures;
     captures.simulation = this;
     captures.player_info = player_info;

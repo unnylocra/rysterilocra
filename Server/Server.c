@@ -373,10 +373,18 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
         if (client != NULL)
         {
             uint64_t i = (client - this->clients);
-            rr_bitset_unset(this->clients_in_use, i);
-            client->in_use = 0;
+            client->disconnected = 1;
             client->socket_handle = NULL;
-            rr_server_client_free(client);
+            client->player_accel_x = 0;
+            client->player_accel_y = 0;
+            if (client->player_info != NULL)
+                client->player_info->input = 0;
+            if (client->verified == 0 || client->pending_kick)
+            {
+                rr_bitset_unset(this->clients_in_use, i);
+                client->in_use = 0;
+                rr_server_client_free(client);
+            }
             if (client->received_first_packet == 0)
                 return 0;
 #ifdef RIVET_BUILD
@@ -462,6 +470,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 lws_close_reason(ws, LWS_CLOSE_STATUS_GOINGAWAY,
                                  (uint8_t *)"invalid v",
                                  sizeof "invalid v" - 1);
+                client->pending_kick = 1;
                 return -1;
             }
 
@@ -478,26 +487,56 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
 #endif
                 client->dev = 1;
 
-            if (!client->dev)
-                for (uint32_t j = 0; j < RR_MAX_CLIENT_COUNT; ++j)
+            for (uint32_t j = 0; j < RR_MAX_CLIENT_COUNT; ++j)
+            {
+                if (i == j)
+                    continue;
+                if (!rr_bitset_get(this->clients_in_use, j))
+                    continue;
+                if (this->clients[j].verified == 0)
+                    continue;
+                if (this->clients[j].pending_kick)
+                    continue;
+                if (client->dev != this->clients[j].dev)
+                    continue;
+                if (this->clients[j].disconnected == 0 && this->clients[j].dev)
+                    continue;
+                if (strcmp(client->rivet_account.uuid,
+                           this->clients[j].rivet_account.uuid) != 0)
+                    continue;
+                client->player_info = this->clients[j].player_info;
+                client->dev_cheats = this->clients[j].dev_cheats;
+                client->ticks_to_next_squad_action =
+                    this->clients[j].ticks_to_next_squad_action;
+                client->ticks_to_next_kick_vote =
+                    this->clients[j].ticks_to_next_kick_vote;
+                memcpy(client->joined_squad_before,
+                       this->clients[j].joined_squad_before,
+                       sizeof this->clients[j].joined_squad_before);
+                client->squad_pos = this->clients[j].squad_pos;
+                client->squad = this->clients[j].squad;
+                client->checkpoint = this->clients[j].checkpoint;
+                client->in_squad = this->clients[j].in_squad;
+                if (client->player_info != NULL)
                 {
-                    if (!rr_bitset_get(this->clients_in_use, j))
-                        continue;
-                    if (i == j)
-                        continue;
-                    if (this->clients[j].dev)
-                        continue;
-                    if (strcmp(client->rivet_account.uuid,
-                        this->clients[j].rivet_account.uuid) == 0)
-                    {
-                        this->clients[j].pending_kick = 1;
-                        // fputs("skid multibox\n", stderr);
-                        // lws_close_reason(ws, LWS_CLOSE_STATUS_GOINGAWAY,
-                        //                  (uint8_t *)"skid multibox",
-                        //                  sizeof "skid multibox");
-                        // return -1;
-                    }
+                    client->player_info->client = client;
+                    memset(client->player_info->entities_in_view, 0,
+                           RR_BITSET_ROUND(RR_MAX_ENTITY_COUNT));
                 }
+                if (client->in_squad)
+                    rr_squad_get_client_slot(this, client)->client = client;
+                this->clients[j].player_info = NULL;
+                this->clients[j].in_squad = 0;
+                if (this->clients[j].disconnected)
+                {
+                    rr_bitset_unset(this->clients_in_use, j);
+                    this->clients[j].in_use = 0;
+                    rr_server_client_free(&this->clients[j]);
+                }
+                else
+                    this->clients[j].pending_kick = 1;
+                break;
+            }
 
 #ifdef RIVET_BUILD
             struct connected_captures *captures = malloc(sizeof *captures);
@@ -531,6 +570,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
             lws_close_reason(ws, LWS_CLOSE_STATUS_GOINGAWAY,
                              (uint8_t *)"invalid qv",
                              sizeof "invalid qv" - 1);
+            client->pending_kick = 1;
             return -1;
         }
         uint8_t header = proto_bug_read_uint8(&encoder, "header");
@@ -892,6 +932,8 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
             }
             rr_client_leave_squad(this, to_kick);
             rr_bitset_set(to_kick->joined_squad_before, index);
+            if (to_kick->disconnected)
+                break;
             struct proto_bug failure;
             proto_bug_init(&failure, outgoing_message);
             proto_bug_write_uint8(&failure, rr_clientbound_squad_fail,
@@ -1120,7 +1162,7 @@ static int api_lws_callback(struct lws *ws, enum lws_callback_reasons reason,
                 break;
             }
             struct rr_server_client *client = &this->clients[pos];
-            if (!client->in_use)
+            if (!client->in_use || client->disconnected)
             {
                 printf("<rr_api::client_nonexistent::%d>\n", pos);
                 break;
@@ -1153,7 +1195,7 @@ static int api_lws_callback(struct lws *ws, enum lws_callback_reasons reason,
                 break;
             }
             struct rr_server_client *client = &this->clients[pos];
-            if (!client->in_use)
+            if (!client->in_use || client->disconnected)
             {
                 printf("<rr_api::client_nonexistent::%d>\n", pos);
                 break;
@@ -1233,10 +1275,6 @@ static void server_tick(struct rr_server *this)
         if (rr_bitset_get(this->clients_in_use, i))
         {
             struct rr_server_client *client = &this->clients[i];
-            if (client->pending_kick)
-                lws_callback_on_writable(client->socket_handle);
-            if (!client->verified)
-                continue;
             if (client->ticks_to_next_squad_action > 0)
                 --client->ticks_to_next_squad_action;
             if (client->ticks_to_next_kick_vote > 0 &&
@@ -1251,6 +1289,20 @@ static void server_tick(struct rr_server *this)
                     member->kick_vote_pos = -1;
                 }
             }
+            if (client->disconnected)
+            {
+                if (++client->disconnected_ticks > 60 * 25)
+                {
+                    rr_bitset_unset(this->clients_in_use, i);
+                    client->in_use = 0;
+                    rr_server_client_free(client);
+                }
+                continue;
+            }
+            if (client->pending_kick)
+                lws_callback_on_writable(client->socket_handle);
+            if (!client->verified)
+                continue;
             if (client->player_info != NULL)
             {
                 if (rr_simulation_entity_alive(

@@ -72,6 +72,7 @@ struct rr_server_client
     uint32_t craft_fails[rr_petal_id_max][rr_rarity_id_max];
     uint32_t ticks_to_next_squad_action;
     uint32_t ticks_to_next_kick_vote;
+    uint32_t disconnected_ticks;
     uint8_t joined_squad_before[RR_BITSET_ROUND(RR_SQUAD_COUNT)];
     uint8_t squad_pos;
     uint8_t squad;
@@ -83,6 +84,7 @@ struct rr_server_client
     uint8_t pending_kick : 1;
     uint8_t in_use : 1;
     uint8_t pending_quick_join : 1;
+    uint8_t disconnected : 1;
 };
 
 void rr_server_client_init(struct rr_server_client *);

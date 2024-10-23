@@ -372,7 +372,7 @@ wss.on("connection", (ws, req) => {
                 const uuid = decoder.ReadStringNT();
                 const pos = decoder.ReadUint8();
                 log("attempt init", [uuid]);
-                if (!is_valid_uuid(uuid) || connected_clients[uuid] || uuid === "b5f62776-ef1c-472d-8ccd-b329edee545b")
+                if (!is_valid_uuid(uuid) /*|| connected_clients[uuid]*/ || uuid === "b5f62776-ef1c-472d-8ccd-b329edee545b")
                 {
                     log("player force disconnect", [uuid]);
                     const encoder = new protocol.BinaryWriter();
@@ -411,7 +411,7 @@ wss.on("connection", (ws, req) => {
                     write_db_entry(client.user.username, client.user);
                     game_server.clients[pos] = 0;
                 }
-                delete connected_clients[uuid];
+                // delete connected_clients[uuid];
                 break;
             }
             case 2:
@@ -500,5 +500,5 @@ for (const error of ["beforeExit", "exit", "SIGTERM", "SIGINT", "uncaughtExcepti
 setInterval(saveDatabaseToFile, 10000);
 
 setInterval(() =>  {
-    log("player count", [Object.keys(connected_clients).length]);
+    // log("player count", [Object.keys(connected_clients).length]);
 }, 15000);
