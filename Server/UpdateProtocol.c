@@ -106,13 +106,10 @@ rr_simulation_find_entities_in_view_for_each_function(EntityIdx entity,
             captures->view_y + captures->view_height)
         return;
     if (rr_simulation_has_drop(simulation, entity) &&
-        (!rr_bitset_get(rr_simulation_get_drop(captures->simulation, entity)
-                            ->can_be_picked_up_by,
-                        captures->player_info->squad) ||
-         rr_bitset_get(
-             rr_simulation_get_drop(captures->simulation, entity)->picked_up_by,
-             captures->player_info->squad * RR_SQUAD_MEMBER_COUNT +
-                 captures->player_info->squad_pos)))
+        (rr_simulation_get_drop(captures->simulation, entity)
+             ->can_be_picked_up_by != captures->player_info->squad ||
+         rr_simulation_get_drop(captures->simulation, entity)->picked_up_by &
+             (1 << captures->player_info->squad_pos)))
         return;
     rr_bitset_set(captures->entities_in_view, entity);
 }
@@ -168,13 +165,9 @@ static void rr_simulation_write_entity_deletions_function(uint64_t _id,
             {
                 struct rr_component_drop *drop =
                     rr_simulation_get_drop(captures->simulation, id);
-                if (!rr_bitset_get(drop->can_be_picked_up_by,
-                                   player_info->squad))
+                if (drop->can_be_picked_up_by != player_info->squad)
                     serverside_delete = 1;
-                else if (rr_bitset_get(drop->picked_up_by,
-                                       player_info->squad *
-                                               RR_SQUAD_MEMBER_COUNT +
-                                           player_info->squad_pos))
+                else if (drop->picked_up_by & (1 << player_info->squad_pos))
                     // 1 = in-place deletion, 2 = suck to player
                     serverside_delete = 2;
             }
