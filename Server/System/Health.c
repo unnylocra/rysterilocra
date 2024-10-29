@@ -177,7 +177,7 @@ static void fireball_damage(EntityIdx target, void *_captures)
     if (target == captures->exclude)
         return;
     if (!rr_simulation_has_mob(simulation, target) &&
-        !rr_simulation_has_flower(simulation, target) &&
+        !rr_simulation_has_petal(simulation, target) &&
         !rr_simulation_has_nest(simulation, target))
         return;
     if (is_dead_flower(simulation, target))

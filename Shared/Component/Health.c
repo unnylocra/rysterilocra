@@ -109,25 +109,25 @@ void rr_component_health_do_damage(struct rr_simulation *simulation,
     float damage = this->health - v;
     this->health = v;
     this->protocol_state |= state_flags_health;
-    if (!rr_simulation_has_mob(simulation, this->parent_id))
-        return;
-    struct rr_component_mob *mob =
-        rr_simulation_get_mob(simulation, this->parent_id);
-    if (mob->player_spawned)
-        return;
-    if (rr_simulation_get_relations(simulation, from)->team ==
-        rr_simulation_team_id_mobs)
-        return;
     EntityHash p_info_id =
         rr_simulation_get_relations(simulation, from)->root_owner;
     if (!rr_simulation_entity_alive(simulation, p_info_id))
         return;
     if (!rr_simulation_has_player_info(simulation, p_info_id))
         return;
+    if (!rr_simulation_has_mob(simulation, this->parent_id) &&
+        !rr_simulation_has_flower(simulation, this->parent_id))
+        return;
+    if (rr_simulation_has_mob(simulation, this->parent_id) &&
+        rr_simulation_get_mob(simulation, this->parent_id)->player_spawned)
+        return;
+    if (is_same_team(
+            rr_simulation_get_relations(simulation, this->parent_id)->team,
+            rr_simulation_get_relations(simulation, from)->team))
+        return;
     struct rr_component_player_info *player_info =
         rr_simulation_get_player_info(simulation, p_info_id);
-    uint8_t squad = player_info->squad;
-    mob->squad_damage_counter[squad] += damage;
+    this->squad_damage_counter[player_info->squad] += damage;
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, this->parent_id);
     struct rr_simulation_animation *animation =
@@ -137,7 +137,7 @@ void rr_component_health_do_damage(struct rr_simulation *simulation,
     animation->x = physical->x;
     animation->y = physical->y;
     animation->damage = damage;
-    animation->squad = squad;
+    animation->squad = player_info->squad;
 }
 
 void rr_component_health_set_health(struct rr_component_health *this, float v)

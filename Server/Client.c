@@ -59,6 +59,10 @@ void rr_server_client_create_flower(struct rr_server_client *this)
         this->player_info->level / 25 > 3 ? 3 : this->player_info->level / 25;
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, p);
+    struct rr_component_arena *arena =
+        rr_simulation_get_arena(simulation, physical->arena);
+    if (arena->pvp)
+        this->checkpoint = 4;
     struct rr_maze_declaration *decl = &RR_MAZES[RR_GLOBAL_BIOME];
     rr_component_physical_set_x(
         physical,
@@ -170,7 +174,8 @@ void rr_server_client_craft_petal(struct rr_server_client *this,
     double xp_gain = 0;
     while (now >= 5)
     {
-        if (rr_frand() < base * (++this->craft_fails[id][rarity]))
+        if (id == rr_petal_id_basic ||
+            rr_frand() < base * (++this->craft_fails[id][rarity]))
         {
             ++success;
             this->craft_fails[id][rarity] = 0;

@@ -299,9 +299,11 @@ static void despawn_mob(EntityIdx entity, void *_simulation)
     }
 }
 
-static float get_max_points(struct rr_maze_grid *grid)
+static float get_max_points(struct rr_simulation *this,
+                            struct rr_maze_grid *grid)
 {
-    return 2 * (0.2 + (grid->player_count) * 1.2) *
+    float coeff = rr_simulation_get_arena(this, 1)->pvp ? 0.2 : 2;
+    return coeff * (0.2 + (grid->player_count) * 1.2) *
            powf(1.1, grid->overload_factor);
 }
 static int tick_grid(struct rr_simulation *this, struct rr_maze_grid *grid,
@@ -326,7 +328,7 @@ static int tick_grid(struct rr_simulation *this, struct rr_maze_grid *grid,
     float difficulty_modifier = 150 + 3 * grid->difficulty;
     float overload_modifier =
         powf(1.2, grid->local_difficulty + grid->overload_factor);
-    float max_points = get_max_points(grid);
+    float max_points = get_max_points(this, grid);
     if (grid->grid_points >= max_points)
         return 0;
     float base_modifier = (max_points) / (max_points - grid->grid_points);
@@ -369,8 +371,9 @@ static void tick_maze(struct rr_simulation *this)
                 rr_component_arena_get_grid(arena, grid_x, grid_y + 1);
             struct rr_maze_grid *se =
                 rr_component_arena_get_grid(arena, grid_x + 1, grid_y + 1);
-            float max_overall = get_max_points(nw) + get_max_points(ne) +
-                                get_max_points(sw) + get_max_points(se);
+            float max_overall =
+                get_max_points(this, nw) + get_max_points(this, ne) +
+                get_max_points(this, sw) + get_max_points(this, se);
             if (nw->grid_points + ne->grid_points + sw->grid_points +
                     se->grid_points >
                 max_overall)

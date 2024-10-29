@@ -221,8 +221,6 @@ EntityIdx rr_simulation_alloc_mob(struct rr_simulation *this,
     {
         physical->mass *= 25;
         team_id = rr_simulation_team_id_players;
-        for (uint32_t i = 0; i < RR_SQUAD_COUNT; ++i)
-            mob->squad_damage_counter[i] = 1e10;
     }
     rr_component_relations_set_team(relations, team_id);
     rr_component_relations_update_root_owner(this, relations);

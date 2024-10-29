@@ -391,8 +391,6 @@ void rr_game_init(struct rr_game *this)
     this->window->resizeable = 0;
     this->window->on_event = window_on_event;
 
-    this->inventory[rr_petal_id_basic][rr_rarity_id_common] = 5;
-
     strcpy(this->rivet_account.name, "loading");
     strcpy(this->rivet_account.avatar_url, "");
     strcpy(this->rivet_account.token, "");

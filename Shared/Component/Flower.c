@@ -47,8 +47,9 @@ void rr_component_flower_init(struct rr_component_flower *this,
 #ifdef RR_SERVER
 #include <math.h>
 
-#include <Server/Simulation.h>
 #include <Server/Client.h>
+#include <Server/EntityAllocation.h>
+#include <Server/Simulation.h>
 #endif
 
 void rr_component_flower_free(struct rr_component_flower *this,
@@ -83,6 +84,8 @@ void rr_component_flower_set_dead(struct rr_component_flower *this,
         rr_simulation_get_physical(simulation, this->parent_id);
     struct rr_component_health *health =
         rr_simulation_get_health(simulation, this->parent_id);
+    struct rr_component_arena *arena =
+        rr_simulation_get_arena(simulation, physical->arena);
     if (dead)
     {
         player_info->input = 0;
@@ -94,6 +97,32 @@ void rr_component_flower_set_dead(struct rr_component_flower *this,
             rr_component_flower_set_face_flags(this, this->face_flags | 1);
         rr_component_physical_set_angle(physical, 2 * M_PI * rr_frand());
         rr_component_health_set_health(health, 0);
+        if (arena->pvp)
+        {
+            for (uint8_t squad = 0; squad < RR_SQUAD_COUNT; ++squad)
+            {
+                if (health->squad_damage_counter[squad] <=
+                    health->max_health * powf(rr_frand(), 2))
+                    continue;
+                EntityIdx drop_id = rr_simulation_alloc_entity(simulation);
+                struct rr_component_drop *drop =
+                    rr_simulation_add_drop(simulation, drop_id);
+                rr_component_drop_set_id(drop, rr_petal_id_basic);
+                rr_component_drop_set_rarity(drop, rr_rarity_id_common);
+                drop->ticks_until_despawn = 25 * 10 * (drop->rarity + 1);
+                drop->can_be_picked_up_by = squad;
+                struct rr_component_physical *drop_physical =
+                    rr_simulation_add_physical(simulation, drop_id);
+                rr_component_physical_set_x(drop_physical, physical->x);
+                rr_component_physical_set_y(drop_physical, physical->y);
+                rr_component_physical_set_radius(drop_physical, 20);
+                drop_physical->arena = physical->arena;
+                struct rr_component_relations *drop_relations =
+                    rr_simulation_add_relations(simulation, drop_id);
+                rr_component_relations_set_team(drop_relations,
+                                                rr_simulation_team_id_players);
+            }
+        }
     }
     else
     {

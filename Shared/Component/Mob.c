@@ -64,6 +64,8 @@ void rr_component_mob_free(struct rr_component_mob *this,
     // put it here please
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, this->parent_id);
+    struct rr_component_health *health =
+        rr_simulation_get_health(simulation, this->parent_id);
     struct rr_component_arena *arena =
         rr_simulation_get_arena(simulation, physical->arena);
     --arena->mob_count;
@@ -78,9 +80,9 @@ void rr_component_mob_free(struct rr_component_mob *this,
                              ->first_squad_to_enter)
                 continue;
         }
-        else if (this->squad_damage_counter[squad] <
-                     RR_MOB_DATA[this->id].health *
-                         RR_MOB_RARITY_SCALING[this->rarity].health * 0.2)
+        else if (this->id != rr_mob_id_meteor &&
+                 health->squad_damage_counter[squad] <=
+                     health->max_health * powf(rr_frand(), 2))
             continue;
         uint8_t spawn_ids[4] = {};
         uint8_t spawn_rarities[4] = {};
