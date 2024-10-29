@@ -66,8 +66,8 @@ void shg_cb_enemy(EntityIdx potential, void *_captures)
         return;
     if (dev_cheat_enabled(simulation, potential, no_aggro))
         return;
-    if (rr_simulation_get_relations(simulation, potential)->team ==
-        captures->seeker_team)
+    if (is_same_team(rr_simulation_get_relations(simulation, potential)->team,
+                     captures->seeker_team))
         return;
     if (rr_simulation_get_health(simulation, potential)->health == 0)
         return;
@@ -95,8 +95,8 @@ void shg_cb_friend(EntityIdx potential, void *_captures)
             !rr_simulation_has_flower(simulation, potential) ||
         rr_simulation_has_arena(simulation, potential))
         return;
-    if (rr_simulation_get_relations(simulation, potential)->team !=
-        captures->seeker_team)
+    if (!is_same_team(rr_simulation_get_relations(simulation, potential)->team,
+                      captures->seeker_team))
         return;
     if (rr_simulation_get_health(simulation, potential)->health == 0)
         return;
@@ -132,8 +132,8 @@ void shg_cb_rand_enemy(EntityIdx potential, void *_captures)
         return;
     if (dev_cheat_enabled(simulation, potential, no_aggro))
         return;
-    if (rr_simulation_get_relations(simulation, potential)->team ==
-        captures->seeker_team)
+    if (is_same_team(rr_simulation_get_relations(simulation, potential)->team,
+                     captures->seeker_team))
         return;
     if (rr_simulation_get_health(simulation, potential)->health == 0)
         return;

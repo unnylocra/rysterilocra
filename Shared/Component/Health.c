@@ -115,8 +115,8 @@ void rr_component_health_do_damage(struct rr_simulation *simulation,
         rr_simulation_get_mob(simulation, this->parent_id);
     if (mob->player_spawned)
         return;
-    if (rr_simulation_get_relations(simulation, from)->team !=
-        rr_simulation_team_id_players)
+    if (rr_simulation_get_relations(simulation, from)->team ==
+        rr_simulation_team_id_mobs)
         return;
     EntityHash p_info_id =
         rr_simulation_get_relations(simulation, from)->root_owner;

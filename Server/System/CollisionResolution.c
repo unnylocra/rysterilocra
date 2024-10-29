@@ -38,7 +38,7 @@ static uint8_t should_entities_collide(struct rr_simulation *this, EntityIdx a,
     exclude(arena, mob);
     uint8_t team1 = rr_simulation_get_relations(this, a)->team;
     uint8_t team2 = rr_simulation_get_relations(this, b)->team;
-    if (team1 != team2)
+    if (!is_same_team(team1, team2))
         return 1; // only drop doesn't care about team
 
 #undef exclude
@@ -55,8 +55,8 @@ struct colliding_with_captures
 static void web_logic(struct rr_simulation *this, EntityIdx entity1,
                       EntityIdx entity2)
 {
-    if (rr_simulation_get_relations(this, entity2)->team ==
-        rr_simulation_get_relations(this, entity1)->team)
+    if (is_same_team(rr_simulation_get_relations(this, entity2)->team,
+                     rr_simulation_get_relations(this, entity1)->team))
         return;
     if (!(rr_simulation_has_mob(this, entity2) ||
           rr_simulation_has_flower(this, entity2)))

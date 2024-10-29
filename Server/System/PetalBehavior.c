@@ -48,7 +48,7 @@ static void uranium_damage(EntityIdx target, void *_captures)
         rr_simulation_get_relations(simulation, captures->petal_id);
     struct rr_component_relations *target_relations =
         rr_simulation_get_relations(simulation, target);
-    if (relations->team == target_relations->team &&
+    if (is_same_team(relations->team, target_relations->team) &&
         relations->owner != rr_simulation_get_entity_hash(simulation, target))
         return;
     struct rr_component_physical *physical =

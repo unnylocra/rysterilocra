@@ -74,16 +74,16 @@ static uint8_t should_entities_collide(struct rr_simulation *this, EntityIdx a,
     exclude(drop, drop);
     exclude(drop, mob);
     exclude(nest, drop);
-    exclude(nest, petal);
     uint8_t team1 = rr_simulation_get_relations(this, a)->team;
     uint8_t team2 = rr_simulation_get_relations(this, b)->team;
-    if (team1 != team2)
+    if (!is_same_team(team1, team2))
         return 1; // only drop doesn't care about team
     exclude(petal, petal);
     exclude(petal, flower);
     exclude(petal, mob);
     exclude(flower, mob);
     exclude(nest, flower);
+    exclude(nest, petal);
     exclude(nest, mob);
 #undef exclude
 
@@ -102,14 +102,21 @@ static void grid_filter_candidates(struct rr_simulation *this,
     if (is_dead_flower(this, entity1) ||
         is_dead_flower(this, entity2))
         return;
+    if (rr_simulation_has_nest(this, entity1) &&
+        rr_simulation_has_petal(this, entity2) &&
+        rr_simulation_get_petal(this, entity2)->detached)
+        return;
+    if (rr_simulation_has_nest(this, entity2) &&
+        rr_simulation_has_petal(this, entity1) &&
+        rr_simulation_get_petal(this, entity1)->detached)
+        return;
     if (dev_cheat_enabled(this, entity1, no_collision) ||
         dev_cheat_enabled(this, entity2, no_collision))
         return;
     struct rr_vector delta = {physical1->x - physical2->x,
                               physical1->y - physical2->y};
     float collision_radius = physical1->radius + physical2->radius;
-    if ((delta.x * delta.x + delta.y * delta.y) <
-        collision_radius * collision_radius)
+    if (rr_vector_magnitude_cmp(&delta, collision_radius) == -1)
     {
 #ifndef RIVET_BUILD
         if (physical1->colliding_with_size >= RR_MAX_COLLISION_COUNT)

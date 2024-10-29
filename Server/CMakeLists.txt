@@ -101,6 +101,10 @@ if(SANDBOX)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSANDBOX")
 endif()
 
+if(PVP)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPVP")
+endif()
+
 add_executable(rrolf-server ${SRCS})
 
 if (WINDOWS)

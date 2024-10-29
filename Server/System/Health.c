@@ -186,7 +186,7 @@ static void fireball_damage(EntityIdx target, void *_captures)
         rr_simulation_get_relations(simulation, captures->petal_id);
     struct rr_component_relations *target_relations =
         rr_simulation_get_relations(simulation, target);
-    if (relations->team == target_relations->team)
+    if (is_same_team(relations->team, target_relations->team))
         return;
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, captures->petal_id);
@@ -318,7 +318,7 @@ static void colliding_with_function(uint64_t i, void *_captures)
         rr_simulation_get_relations(this, entity1);
     struct rr_component_relations *relations2 =
         rr_simulation_get_relations(this, entity2);
-    if (relations1->team == relations2->team)
+    if (is_same_team(relations1->team, relations2->team))
         return;
     struct rr_component_health *health1 = captures->health;
     struct rr_component_health *health2 =

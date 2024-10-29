@@ -71,8 +71,16 @@ struct rr_simulation_animation
 enum rr_simulation_team_id
 {
     rr_simulation_team_id_mobs,
-    rr_simulation_team_id_players
+    rr_simulation_team_id_players,
+    rr_simulation_team_id_pvp
 };
+
+#define is_same_team(team1, team2)                                             \
+    (team1 == team2 ||                                                         \
+     (team1 == rr_simulation_team_id_players &&                                \
+      team2 >= rr_simulation_team_id_pvp) ||                                   \
+     (team2 == rr_simulation_team_id_players &&                                \
+      team1 >= rr_simulation_team_id_pvp))
 
 struct rr_simulation
 {

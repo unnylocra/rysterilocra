@@ -41,6 +41,7 @@ struct rr_component_arena
     RR_SERVER_ONLY(EntityIdx mob_count;)
     RR_SERVER_ONLY(struct rr_maze_declaration *maze;)
     RR_SERVER_ONLY(struct rr_spatial_hash spatial_hash;)
+    RR_SERVER_ONLY(uint8_t pvp;)
 };
 
 void rr_component_arena_init(struct rr_component_arena *,
