@@ -172,6 +172,35 @@ void rr_renderer_draw_nest_stick(struct rr_renderer *renderer)
     rr_renderer_context_state_free(renderer, &state);
 }
 
+void rr_renderer_draw_third_eye(struct rr_renderer *renderer,
+                                float eye_x, float eye_y)
+{
+    struct rr_renderer_context_state state;
+    rr_renderer_context_state_init(renderer, &state);
+    rr_renderer_set_fill(renderer, 0xff222222);
+    rr_renderer_begin_path(renderer);
+    rr_renderer_move_to(renderer, 1, 15);
+    rr_renderer_quadratic_curve_to(renderer, 16, 0, 1, -15);
+    rr_renderer_quadratic_curve_to(renderer, 0, -16, -1, -15);
+    rr_renderer_quadratic_curve_to(renderer, -16, 0, -1, 15);
+    rr_renderer_quadratic_curve_to(renderer, 0, 16, 1, 15);
+    rr_renderer_fill(renderer);
+    rr_renderer_scale(renderer, 0.8);
+    rr_renderer_begin_path(renderer);
+    rr_renderer_move_to(renderer, 1, 15);
+    rr_renderer_quadratic_curve_to(renderer, 16, 0, 1, -15);
+    rr_renderer_quadratic_curve_to(renderer, 0, -16, -1, -15);
+    rr_renderer_quadratic_curve_to(renderer, -16, 0, -1, 15);
+    rr_renderer_quadratic_curve_to(renderer, 0, 16, 1, 15);
+    rr_renderer_clip(renderer);
+    rr_renderer_scale(renderer, 1.25);
+    rr_renderer_set_fill(renderer, 0xffffffff);
+    rr_renderer_begin_path(renderer);
+    rr_renderer_arc(renderer, eye_x, eye_y, 7);
+    rr_renderer_fill(renderer);
+    rr_renderer_context_state_free(renderer, &state);
+}
+
 void rr_renderer_tiles_init()
 {
     rr_renderer_spritesheet_init(

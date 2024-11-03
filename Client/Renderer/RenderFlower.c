@@ -123,9 +123,10 @@ void rr_component_flower_render(EntityIdx entity, struct rr_game *game,
         else
         {
             rr_renderer_translate(renderer, 0, -15);
-            rr_renderer_scale(renderer, 0.625);
-            rr_renderer_draw_petal(renderer, rr_petal_id_third_eye, 1);
-            rr_renderer_scale(renderer, 1.6);
+            rr_renderer_scale(renderer, 0.375);
+            rr_renderer_draw_third_eye(
+                renderer, flower->lerp_eye_x, flower->lerp_eye_y);
+            rr_renderer_scale(renderer, 1 / 0.375);
             rr_renderer_translate(renderer, 0, 15);
         }
     }

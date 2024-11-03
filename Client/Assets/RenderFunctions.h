@@ -40,6 +40,7 @@ void rr_renderer_draw_prop(struct rr_renderer *, uint8_t);
 void rr_renderer_draw_web(struct rr_renderer *);
 void rr_renderer_draw_nest_stick(struct rr_renderer *);
 void rr_renderer_draw_nest(struct rr_renderer *);
+void rr_renderer_draw_third_eye(struct rr_renderer *, float, float);
 
 void rr_renderer_petal_cache_init();
 void rr_renderer_background_cache_init();

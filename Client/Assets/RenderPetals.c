@@ -1502,19 +1502,7 @@ void rr_renderer_draw_petal(struct rr_renderer *renderer, uint8_t id,
             break;
         case rr_petal_id_third_eye:
             rr_renderer_scale(renderer, 0.6f);
-            rr_renderer_set_fill(renderer, 0xff222222);
-            rr_renderer_begin_path(renderer);
-            rr_renderer_move_to(renderer, 1, 15);
-            rr_renderer_quadratic_curve_to(renderer, 16, 0, 1, -15);
-            rr_renderer_quadratic_curve_to(renderer, 0, -16, -1, -15);
-            rr_renderer_quadratic_curve_to(renderer, -16, 0, -1, 15);
-            rr_renderer_quadratic_curve_to(renderer, 0, 16, 1, 15);
-            rr_renderer_fill(renderer);
-            rr_renderer_set_fill(renderer, 0xffffffff);
-            rr_renderer_begin_path(renderer);
-            rr_renderer_arc(renderer, 0, 0, 7);
-            rr_renderer_fill(renderer);
-            rr_renderer_scale(renderer, 1 / 0.6f);
+            rr_renderer_draw_third_eye(renderer, 0, 0);
             break;
         case rr_petal_id_nest:
             for (uint8_t i = 0; i < 6; ++i)
