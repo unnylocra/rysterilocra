@@ -329,6 +329,14 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                              sizeof "api ws not ready" - 1);
             return -1;
         }
+        char xff[100];
+        if (lws_hdr_copy(ws, xff, 100, WSI_TOKEN_X_FORWARDED_FOR) <= 0)
+        {
+            lws_close_reason(ws, LWS_CLOSE_STATUS_GOINGAWAY,
+                             (uint8_t *)"could not get xff header",
+                             sizeof "could not get xff header" - 1);
+            return -1;
+        }
         for (uint64_t i = 0; i < RR_MAX_CLIENT_COUNT; i++)
             if (!rr_bitset_get_bit(this->clients_in_use, i))
             {
@@ -337,6 +345,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 this->clients[i].server = this;
                 this->clients[i].socket_handle = ws;
                 this->clients[i].in_use = 1;
+                strcpy(this->clients[i].ip_address, xff);
                 lws_set_opaque_user_data(ws, this->clients + i);
                 // send encryption key
                 struct proto_bug encryption_key_encoder;
@@ -489,6 +498,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
 #endif
                 client->dev = 1;
 
+            uint8_t reconnected = 0;
             for (uint32_t j = 0; j < RR_MAX_CLIENT_COUNT; ++j)
             {
                 if (i == j)
@@ -501,10 +511,19 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                     continue;
                 if (client->dev != this->clients[j].dev)
                     continue;
-                if (this->clients[j].disconnected == 0 && this->clients[j].dev)
-                    continue;
                 if (strcmp(client->rivet_account.uuid,
                            this->clients[j].rivet_account.uuid) != 0)
+                {
+                    if (client->dev)
+                        continue;
+                    if (strcmp(client->ip_address,
+                               this->clients[j].ip_address) == 0)
+                        this->clients[j].pending_kick = 1;
+                    continue;
+                }
+                if (reconnected)
+                    continue;
+                if (client->dev && this->clients[j].disconnected == 0)
                     continue;
                 client->player_info = this->clients[j].player_info;
                 client->dev_cheats = this->clients[j].dev_cheats;
@@ -537,7 +556,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 }
                 else
                     this->clients[j].pending_kick = 1;
-                break;
+                reconnected = 1;
             }
 
 #ifdef RIVET_BUILD
