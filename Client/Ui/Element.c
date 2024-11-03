@@ -120,6 +120,19 @@ void rr_ui_render_element(struct rr_ui_element *this, struct rr_game *game)
     rr_renderer_context_state_free(game->renderer, &state);
 }
 
+void rr_ui_render_element_secondary(struct rr_ui_element *this,
+                                    struct rr_game *game)
+{
+    if (this->completely_hidden)
+        return;
+    struct rr_renderer_context_state state;
+    rr_renderer_context_state_init(game->renderer, &state);
+    rr_renderer_translate(game->renderer, this->abs_x - this->container->abs_x,
+                          this->abs_y - this->container->abs_y);
+    this->on_secondary_render(this, game);
+    rr_renderer_context_state_free(game->renderer, &state);
+}
+
 void rr_ui_render_tooltip_above(struct rr_ui_element *this,
                                 struct rr_ui_element *tooltip,
                                 struct rr_game *game)
@@ -211,6 +224,7 @@ struct rr_ui_element *rr_ui_element_init()
     memset(this, 0, sizeof *this);
     this->first_frame = 1;
     this->on_render = default_function;
+    this->on_secondary_render = default_function;
     this->on_hide = default_function;
     this->on_event = default_on_event; // null on_event
     this->should_show = rr_ui_always_show;

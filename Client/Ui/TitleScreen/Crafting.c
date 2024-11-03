@@ -477,9 +477,6 @@ static void crafting_inventory_button_animate(struct rr_ui_element *this,
 
     data->secondary_animation =
         rr_lerp(data->secondary_animation, count == 0, 12 * game->lerp_delta);
-    rr_renderer_scale(game->renderer, game->renderer->scale * this->width / 60);
-    rr_renderer_draw_background(game->renderer, rr_rarity_id_max, 1);
-    rr_renderer_scale(game->renderer, (1 - data->secondary_animation));
 }
 
 static void crafting_inventory_button_on_event(struct rr_ui_element *this,
@@ -541,8 +538,11 @@ static void crafting_inventory_button_on_render(struct rr_ui_element *this,
                                                 struct rr_game *game)
 {
     struct crafting_inventory_button_metadata *data = this->data;
+    rr_renderer_scale(game->renderer, game->renderer->scale * this->width / 60);
+    rr_renderer_draw_background(game->renderer, rr_rarity_id_max, 1);
     if (data->secondary_animation > 0.999)
         return;
+    rr_renderer_scale(game->renderer, (1 - data->secondary_animation));
     struct rr_renderer *renderer = game->renderer;
     struct rr_renderer_context_state state;
     rr_renderer_context_state_init(renderer, &state);
@@ -556,8 +556,20 @@ static void crafting_inventory_button_on_render(struct rr_ui_element *this,
         rr_renderer_draw_background(renderer, data->rarity, 1);
     rr_renderer_draw_petal_with_name(renderer, data->id, data->rarity);
     rr_renderer_context_state_free(renderer, &state);
+}
+
+static void
+crafting_inventory_button_count_on_render(struct rr_ui_element *this,
+                                          struct rr_game *game)
+{
+    struct crafting_inventory_button_metadata *data = this->data;
+    if (data->secondary_animation > 0.999)
+        return;
     if (data->count <= 1)
         return;
+    rr_renderer_scale(game->renderer, game->renderer->scale * this->width / 60);
+    rr_renderer_scale(game->renderer, (1 - data->secondary_animation));
+    struct rr_renderer *renderer = game->renderer;
     rr_renderer_translate(renderer, 25, -25);
     rr_renderer_rotate(renderer, 0.5);
     rr_renderer_set_fill(renderer, 0xffffffff);
@@ -585,6 +597,7 @@ struct rr_ui_element *crafting_inventory_button_init(uint8_t id, uint8_t rarity)
     this->abs_width = this->width = 50;
     this->abs_height = this->height = 50;
     this->on_render = crafting_inventory_button_on_render;
+    this->on_secondary_render = crafting_inventory_button_count_on_render;
     this->should_show = rr_ui_always_show;
     this->on_event = crafting_inventory_button_on_event;
     this->animate = crafting_inventory_button_animate;

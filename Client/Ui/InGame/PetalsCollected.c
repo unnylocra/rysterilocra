@@ -64,9 +64,17 @@ static void collected_button_on_render(struct rr_ui_element *this,
     rr_renderer_draw_background(renderer, data->rarity, 1);
     rr_renderer_draw_petal_with_name(renderer, data->id, data->rarity);
     rr_renderer_context_state_free(renderer, &state);
+}
+
+static void collected_button_count_on_render(struct rr_ui_element *this,
+                                             struct rr_game *game)
+{
+    struct collected_button_metadata *data = this->data;
+    struct rr_renderer *renderer = game->renderer;
     if (game->player_info->collected_this_run[data->id * rr_rarity_id_max +
                                               data->rarity] == 1)
         return;
+    rr_renderer_scale(renderer, renderer->scale * this->width / 60);
     rr_renderer_translate(renderer, 25, -25);
     rr_renderer_rotate(renderer, 0.5);
     rr_renderer_set_fill(renderer, 0xffffffff);
@@ -93,6 +101,7 @@ static struct rr_ui_element *collected_button_init(uint8_t id, uint8_t rarity)
     this->abs_width = this->width = 50;
     this->abs_height = this->height = 50;
     this->on_render = collected_button_on_render;
+    this->on_secondary_render = collected_button_count_on_render;
     this->should_show = collected_button_should_show;
     this->on_event = collected_button_on_event;
     this->animate = rr_ui_scale_animate;

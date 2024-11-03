@@ -88,6 +88,7 @@ struct rr_ui_element
     uint8_t (*should_show)(struct rr_ui_element *, struct rr_game *);
     void (*animate)(struct rr_ui_element *, struct rr_game *);
     void (*on_render)(struct rr_ui_element *, struct rr_game *);
+    void (*on_secondary_render)(struct rr_ui_element *, struct rr_game *);
     void (*on_hide)(struct rr_ui_element *, struct rr_game *);
     void (*on_event)(struct rr_ui_element *, struct rr_game *);
     void (*poll_events)(struct rr_ui_element *, struct rr_game *);
@@ -117,6 +118,7 @@ struct rr_ui_element
 
 // render funcs
 void rr_ui_render_element(struct rr_ui_element *, struct rr_game *);
+void rr_ui_render_element_secondary(struct rr_ui_element *, struct rr_game *);
 void rr_ui_render_tooltip_above(struct rr_ui_element *, struct rr_ui_element *,
                                 struct rr_game *);
 void rr_ui_render_tooltip_below(struct rr_ui_element *, struct rr_ui_element *,

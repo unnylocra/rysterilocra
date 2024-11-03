@@ -60,6 +60,8 @@ static void container_on_render(struct rr_ui_element *this,
     }
     for (uint32_t i = 0; i < this->elements.size; ++i)
         rr_ui_render_element(this->elements.start[i], game);
+    for (uint32_t i = 0; i < this->elements.size; ++i)
+        rr_ui_render_element_secondary(this->elements.start[i], game);
 }
 
 static void container_on_hide(struct rr_ui_element *this, struct rr_game *game)

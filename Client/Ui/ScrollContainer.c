@@ -115,7 +115,7 @@ static void scroll_container_on_render(struct rr_ui_element *this,
     rr_renderer_begin_path(renderer);
     rr_renderer_rect(renderer, renderer->scale * (-this->abs_width / 2),
                      renderer->scale * (-this->abs_height / 2),
-                     renderer->scale * (this->elements.start[0]->width),
+                     renderer->scale * (this->abs_width),
                      renderer->scale * (this->abs_height));
     rr_renderer_clip(renderer);
     rr_renderer_translate(renderer, 0, -data->lerp_y * renderer->scale);
