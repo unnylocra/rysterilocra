@@ -45,6 +45,8 @@ struct rr_component_health
     RR_CLIENT_ONLY(uint8_t prev_flags;)
     RR_SERVER_ONLY(uint8_t damage_paused;)
     RR_SERVER_ONLY(float squad_damage_counter[RR_SQUAD_COUNT];)
+    RR_SERVER_ONLY(float gradually_healed;)
+    RR_SERVER_ONLY(uint8_t gradually_healed_ticks;)
 };
 
 void rr_component_health_init(struct rr_component_health *,
@@ -63,4 +65,4 @@ RR_DECLARE_PUBLIC_FIELD(health, float, max_health)
 RR_DECLARE_PUBLIC_FIELD(health, uint8_t, flags)
 RR_SERVER_ONLY(void rr_component_health_do_damage(struct rr_simulation *,
                                                   struct rr_component_health *,
-                                                  EntityIdx, float);)
+                                                  EntityIdx, float, uint8_t);)

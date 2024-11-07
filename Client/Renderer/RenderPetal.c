@@ -49,7 +49,7 @@ void rr_component_petal_render(EntityIdx entity, struct rr_game *game,
     {
         struct rr_particle_manager *particle_manager =
             physical->on_title_screen ? &game->title_screen_particle_manager
-                                      : &game->particle_manager;
+                                      : &game->default_particle_manager;
         float exotic_coeff = petal->rarity == rr_rarity_id_exotic ? 0.5 : 1;
         float size_coeff =
             physical->on_title_screen ? physical->radius / 20 : 1;

@@ -70,8 +70,9 @@ static void uranium_damage(EntityIdx target, void *_captures)
     if (rr_simulation_has_flower(simulation, target))
         damage *= 0.5;
     target_health->flags |= 4;
-    rr_component_health_do_damage(simulation, target_health,
-                                  relations->owner, damage);
+    rr_component_health_do_damage(
+        simulation, target_health, relations->owner, damage,
+        rr_animation_color_type_uranium);
     if (!rr_simulation_has_ai(simulation, target))
         return;
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);
@@ -105,7 +106,7 @@ static void uranium_petal_system(struct rr_simulation *simulation,
     animation->x = physical->x;
     animation->y = physical->y;
     animation->size = radius;
-    animation->color_type = 0;
+    animation->color_type = rr_animation_color_type_uranium;
 }
 
 static void system_petal_detach(struct rr_simulation *simulation,
@@ -249,9 +250,21 @@ static void system_flower_petal_movement_logic(
                 if (rr_vector_magnitude_cmp(&delta, flower_physical->radius +
                                                         physical->radius) == -1)
                 {
+                    float max_heal =
+                        flower_health->max_health - flower_health->health;
                     rr_component_health_set_health(
                         flower_health, flower_health->health + heal);
                     rr_simulation_request_entity_deletion(simulation, id);
+                    struct rr_simulation_animation *animation =
+                        &simulation->animations[simulation->animation_length++];
+                    animation->type = rr_animation_type_damagenumber;
+                    animation->owner = player_info->flower_id;
+                    animation->x = flower_physical->x;
+                    animation->y = flower_physical->y;
+                    if (max_heal < heal)
+                        heal = max_heal;
+                    animation->damage = ceilf(heal);
+                    animation->color_type = rr_animation_color_type_heal;
                     return;
                 }
                 else
@@ -283,9 +296,22 @@ static void system_flower_petal_movement_logic(
                                                 target_physical->radius +
                                                     physical->radius) == -1)
                     {
+                        float max_heal =
+                            flower_health->max_health - flower_health->health;
                         rr_component_health_set_health(
                             flower_health, flower_health->health + heal);
                         rr_simulation_request_entity_deletion(simulation, id);
+                        struct rr_simulation_animation *animation =
+                            &simulation->animations
+                                 [simulation->animation_length++];
+                        animation->type = rr_animation_type_damagenumber;
+                        animation->owner = player_info->flower_id;
+                        animation->x = target_physical->x;
+                        animation->y = target_physical->y;
+                        if (max_heal < heal)
+                            heal = max_heal;
+                        animation->damage = ceilf(heal);
+                        animation->color_type = rr_animation_color_type_heal;
                         return;
                     }
                     else
@@ -382,9 +408,20 @@ static void system_flower_petal_movement_logic(
                 struct rr_component_health *mob_health =
                     rr_simulation_get_health(simulation, mob_to_heal);
                 float heal = 15 * RR_PETAL_RARITY_SCALE[petal->rarity].heal;
+                float max_heal = mob_health->max_health - mob_health->health;
                 rr_component_health_set_health(mob_health,
                                                mob_health->health + heal);
                 rr_simulation_request_entity_deletion(simulation, id);
+                struct rr_simulation_animation *animation =
+                    &simulation->animations[simulation->animation_length++];
+                animation->type = rr_animation_type_damagenumber;
+                animation->owner = player_info->flower_id;
+                animation->x = target_physical->x;
+                animation->y = target_physical->y;
+                if (max_heal < heal)
+                    heal = max_heal;
+                animation->damage = ceilf(heal);
+                animation->color_type = rr_animation_color_type_heal;
                 return;
             }
             else
@@ -487,9 +524,14 @@ static void petal_modifiers(struct rr_simulation *simulation,
             &player_info->slots[outer];
         struct rr_petal_data const *data = &RR_PETAL_DATA[slot->id];
         if (data->id == rr_petal_id_leaf)
-            rr_component_health_set_health(
-                health, health->health +
-                            0.05 * RR_PETAL_RARITY_SCALE[slot->rarity].heal);
+        {
+            float heal = 0.05 * RR_PETAL_RARITY_SCALE[slot->rarity].heal;
+            float max_heal = health->max_health - health->health;
+            rr_component_health_set_health(health, health->health + heal);
+            if (max_heal < heal)
+                heal = max_heal;
+            health->gradually_healed += heal;
+        }
         else if (data->id == rr_petal_id_berry)
             to_rotate += (0.012 + 0.008 * slot->rarity);
         else if (data->id == rr_petal_id_feather)

@@ -76,7 +76,7 @@ void rr_component_health_write(struct rr_component_health *this,
 
 void rr_component_health_do_damage(struct rr_simulation *simulation,
                                    struct rr_component_health *this,
-                                   EntityIdx from, float v)
+                                   EntityIdx from, float v, uint8_t color_type)
 {
     if (dev_cheat_enabled(simulation, this->parent_id, invulnerable))
         return;
@@ -138,6 +138,7 @@ void rr_component_health_do_damage(struct rr_simulation *simulation,
     animation->y = physical->y;
     animation->damage = ceilf(damage);
     animation->squad = player_info->squad;
+    animation->color_type = color_type;
 }
 
 void rr_component_health_set_health(struct rr_component_health *this, float v)

@@ -97,6 +97,8 @@ void rr_component_flower_set_dead(struct rr_component_flower *this,
             rr_component_flower_set_face_flags(this, this->face_flags | 1);
         rr_component_physical_set_angle(physical, 2 * M_PI * rr_frand());
         rr_component_health_set_health(health, 0);
+        health->gradually_healed = 0;
+        health->gradually_healed_ticks = 0;
         if (arena->pvp)
         {
             for (uint8_t squad = 0; squad < RR_SQUAD_COUNT; ++squad)

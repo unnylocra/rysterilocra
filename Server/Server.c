@@ -143,13 +143,19 @@ static void write_animation_function(struct rr_simulation *simulation,
     if (animation->type != rr_animation_type_chat &&
         client->player_info == NULL)
         return;
-    if (animation->type != rr_animation_type_chat &&
-        dev_cheat_enabled(simulation, animation->owner, invisible) &&
-        rr_simulation_get_relations(simulation, animation->owner)->root_owner !=
-            rr_simulation_get_entity_hash(simulation,
-                                          client->player_info->parent_id))
-        return;
+    EntityIdx p_info_id =
+        rr_simulation_get_relations(simulation, animation->owner)->root_owner;
+    if (p_info_id != client->player_info->parent_id)
+    {
+        if (animation->type == rr_animation_type_damagenumber &&
+            animation->color_type == rr_animation_color_type_heal)
+            return;
+        if (animation->type != rr_animation_type_chat &&
+            dev_cheat_enabled(simulation, animation->owner, invisible))
+            return;
+    }
     if (animation->type == rr_animation_type_damagenumber &&
+        animation->color_type != rr_animation_color_type_heal &&
         animation->squad != client->squad)
         return;
     proto_bug_write_uint8(encoder, 1, "continue");
@@ -168,6 +174,7 @@ static void write_animation_function(struct rr_simulation *simulation,
         proto_bug_write_float32(encoder, animation->x, "ani x");
         proto_bug_write_float32(encoder, animation->y, "ani y");
         proto_bug_write_varuint(encoder, animation->damage, "damage");
+        proto_bug_write_uint8(encoder, animation->color_type, "color type");
         break;
     case rr_animation_type_chat:
         proto_bug_write_string(encoder, animation->name, 64, "name");

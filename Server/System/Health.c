@@ -36,6 +36,8 @@ static void system_default_idle_heal(EntityIdx entity, void *captures)
     struct rr_component_health *health = rr_simulation_get_health(this, entity);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(this, entity);
+    if (is_dead_flower(this, entity))
+        return;
 
     if (health->poison_ticks > 0)
     {
@@ -44,10 +46,22 @@ static void system_default_idle_heal(EntityIdx entity, void *captures)
     }
     else
         health->poison = 0;
+    if (health->gradually_healed > 0 && ++health->gradually_healed_ticks == 10)
+    {
+        struct rr_simulation_animation *animation =
+            &this->animations[this->animation_length++];
+        animation->type = rr_animation_type_damagenumber;
+        animation->owner = entity;
+        animation->x = physical->x;
+        animation->y = physical->y;
+        animation->damage = ceilf(health->gradually_healed);
+        animation->color_type = rr_animation_color_type_heal;
+        health->gradually_healed = 0;
+        health->gradually_healed_ticks = 0;
+    }
     if (health->damage_paused > 0)
         health->damage_paused -= 1;
-    if (is_dead_flower(this, entity))
-        return;
+
     if (health->health == 0)
     {
         if (rr_simulation_has_flower(this, entity))
@@ -148,8 +162,9 @@ static void lightning_petal_system(struct rr_simulation *simulation,
         struct rr_component_health *health =
             rr_simulation_get_health(simulation, target);
         health->flags |= 4;
-        rr_component_health_do_damage(simulation, health, petal->parent_id,
-                                      damage);
+        rr_component_health_do_damage(
+            simulation, health, petal->parent_id, damage,
+            rr_animation_color_type_lightning);
         health->damage_paused = 5;
         physical->stun_ticks = 4;
         chain[captures.length] = target;
@@ -205,8 +220,9 @@ static void fireball_damage(EntityIdx target, void *_captures)
         rr_simulation_get_health(simulation, target);
     float damage = 0.2 * health->damage;
     target_health->flags |= 4;
-    rr_component_health_do_damage(simulation, target_health,
-                                  relations->owner, damage);
+    rr_component_health_do_damage(
+        simulation, target_health, relations->owner, damage,
+        rr_animation_color_type_fireball);
     if (!rr_simulation_has_ai(simulation, target))
         return;
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);
@@ -236,7 +252,7 @@ static void fireball_petal_system(struct rr_simulation *simulation,
     animation->x = physical->x;
     animation->y = physical->y;
     animation->size = radius;
-    animation->color_type = 1;
+    animation->color_type = rr_animation_color_type_fireball;
     if (!dev_cheat_enabled(simulation, petal->parent_id, invulnerable))
         rr_simulation_request_entity_deletion(simulation, petal->parent_id);
 }
@@ -301,7 +317,8 @@ static void damage_effect(struct rr_simulation *simulation, EntityIdx target,
             if (health->health > 0 && health->health * 2 < health->max_health)
                 rr_component_health_do_damage(
                     simulation, health, attacker,
-                    50 * RR_PETAL_DATA[petal->id].scale[petal->rarity].damage);
+                    50 * RR_PETAL_DATA[petal->id].scale[petal->rarity].damage,
+                    rr_animation_color_type_damage);
         }
     }
 }
@@ -336,13 +353,15 @@ static void colliding_with_function(uint64_t i, void *_captures)
     if (health1->damage_paused == 0 || bypass)
     {
         damage_effect(this, entity1, entity2);
-        rr_component_health_do_damage(this, health1, entity2, health2->damage);
+        rr_component_health_do_damage(this, health1, entity2, health2->damage,
+                                      rr_animation_color_type_damage);
         health1->damage_paused = byp2 ? 3 : 8;
     }
     if (health2->damage_paused == 0 || bypass)
     {
         damage_effect(this, entity2, entity1);
-        rr_component_health_do_damage(this, health2, entity1, health1->damage);
+        rr_component_health_do_damage(this, health2, entity1, health1->damage,
+                                      rr_animation_color_type_damage);
         health2->damage_paused = byp2 ? 3 : 8;
     }
 }

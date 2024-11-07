@@ -42,12 +42,9 @@ struct rr_simulation_animation
     RR_SERVER_ONLY(EntityIdx owner);
     RR_CLIENT_ONLY(float opacity;)
     RR_CLIENT_ONLY(float disappearance;)
-    union
-    {
-        uint8_t length;
-        RR_SERVER_ONLY(uint8_t squad;)
-        RR_SERVER_ONLY(uint8_t color_type;)
-    };
+    uint8_t length;
+    RR_SERVER_ONLY(uint8_t squad;)
+    RR_SERVER_ONLY(uint8_t color_type;)
     union
     {
         struct rr_vector points[16];

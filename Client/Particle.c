@@ -68,7 +68,7 @@ void rr_renderer_render_particle(struct rr_renderer *renderer,
         rr_renderer_stroke(renderer);
         break;
     case rr_animation_type_damagenumber:
-        rr_renderer_set_fill(renderer, 0xffff4444);
+        rr_renderer_set_fill(renderer, this->color);
         rr_renderer_set_stroke(renderer, 0xff222222);
         rr_renderer_set_text_size(renderer, 36);
         rr_renderer_set_line_width(renderer, 36 * 0.12);

@@ -912,7 +912,9 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                 {
                     rr_simulation_init(this->simulation);
                     rr_simulation_init(this->deletion_simulation);
-                    rr_particle_manager_clear(&this->particle_manager);
+                    rr_particle_manager_clear(&this->default_particle_manager);
+                    rr_particle_manager_clear(
+                        &this->foreground_particle_manager);
                     rr_write_dev_cheat_packets(this, 1);
                     this->chat.chat_active = 0;
                     this->simulation_ready = 1;
@@ -1033,7 +1035,9 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                 struct rr_simulation_animation *particle;
                 uint8_t type = proto_bug_read_uint8(&encoder, "ani type");
                 if (type != rr_animation_type_chat)
-                    particle = rr_particle_alloc(&this->particle_manager, type);
+                    particle =
+                        rr_particle_alloc(&this->foreground_particle_manager,
+                                          type);
                 switch (type)
                 {
                 case rr_animation_type_lightningbolt:
@@ -1059,6 +1063,24 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     particle->friction = 0.9;
                     particle->damage =
                         proto_bug_read_varuint(&encoder, "damage");
+                    switch (proto_bug_read_uint8(&encoder, "color type"))
+                    {
+                    case rr_animation_color_type_damage:
+                        particle->color = 0xffff4444;
+                        break;
+                    case rr_animation_color_type_heal:
+                        particle->color = 0xffffff44;
+                        break;
+                    case rr_animation_color_type_uranium:
+                        particle->color = 0xff63bf2e;
+                        break;
+                    case rr_animation_color_type_fireball:
+                        particle->color = 0xffce5d0b;
+                        break;
+                    case rr_animation_color_type_lightning:
+                        particle->color = 0xffccccfc;
+                        break;
+                    }
                     particle->opacity = 1;
                     particle->disappearance = 6;
                     break;
@@ -1082,10 +1104,10 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     particle->size = proto_bug_read_float32(&encoder, "size");
                     switch (proto_bug_read_uint8(&encoder, "color type"))
                     {
-                    case 0:
+                    case rr_animation_color_type_uranium:
                         particle->color = 0x2063bf2e;
                         break;
-                    case 1:
+                    case rr_animation_color_type_fireball:
                         particle->color = 0x80ce5d0b;
                         break;
                     }
@@ -1488,9 +1510,12 @@ void rr_game_tick(struct rr_game *this, float delta)
             render_component(flower, dead_flower_filter);
             render_component(drop, no_filter);
             render_component(mob, no_filter);
-            rr_system_particle_render_tick(this, &this->particle_manager, delta);
+            rr_system_particle_render_tick(
+                this, &this->default_particle_manager, delta);
             render_component(petal, no_filter);
             render_component(flower, alive_flower_filter);
+            rr_system_particle_render_tick(
+                this, &this->foreground_particle_manager, delta);
             rr_renderer_context_state_free(this->renderer, &state1);
 #undef render_component
 #undef no_filter

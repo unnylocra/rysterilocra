@@ -28,6 +28,15 @@ enum rr_animation_type
     rr_animation_type_area_damage = 4,
 };
 
+enum rr_animation_color_type
+{
+    rr_animation_color_type_damage,
+    rr_animation_color_type_heal,
+    rr_animation_color_type_uranium,
+    rr_animation_color_type_fireball,
+    rr_animation_color_type_lightning,
+};
+
 enum rr_serverbound_packet_header
 {
     rr_serverbound_input,
