@@ -230,7 +230,13 @@ static void count_flower_vicinity(EntityIdx entity, void *_simulation)
     struct rr_component_arena *arena = rr_simulation_get_arena(this, 1);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(this, entity);
+    struct rr_component_relations *relations =
+        rr_simulation_get_relations(this, entity);
+    struct rr_component_player_info *player_info =
+        rr_simulation_get_player_info(this, relations->owner);
     if (is_dead_flower(this, entity))
+        return;
+    if (player_info->client->disconnected)
         return;
     if (dev_cheat_enabled(this, entity, no_grid_influence))
         return;

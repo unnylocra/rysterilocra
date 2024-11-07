@@ -15,6 +15,7 @@
 
 #include <Shared/Component/Health.h>
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -99,16 +100,15 @@ void rr_component_health_do_damage(struct rr_simulation *simulation,
     if (!no_reduction)
     {
         v *= 1 - this->damage_reduction_ratio;
-        if (v <= this->damage_reduction)
-            return;
+        v -= this->damage_reduction;
     }
-    rr_component_health_set_flags(this, this->flags | 2);
-    v = this->health - (v - (no_reduction ? 0 : this->damage_reduction));
+    if (v < 0)
+        v = 0;
+    v = this->health - v;
     if (v < 0)
         v = 0;
     float damage = this->health - v;
-    this->health = v;
-    this->protocol_state |= state_flags_health;
+    rr_component_health_set_health(this, v);
     EntityHash p_info_id =
         rr_simulation_get_relations(simulation, from)->root_owner;
     if (!rr_simulation_entity_alive(simulation, p_info_id))
@@ -136,7 +136,7 @@ void rr_component_health_do_damage(struct rr_simulation *simulation,
     animation->owner = from;
     animation->x = physical->x;
     animation->y = physical->y;
-    animation->damage = damage;
+    animation->damage = ceilf(damage);
     animation->squad = player_info->squad;
 }
 
