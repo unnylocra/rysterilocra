@@ -145,13 +145,13 @@ static void write_animation_function(struct rr_simulation *simulation,
         return;
     EntityIdx p_info_id =
         rr_simulation_get_relations(simulation, animation->owner)->root_owner;
-    if (p_info_id != client->player_info->parent_id)
+    if (animation->type != rr_animation_type_chat &&
+        p_info_id != client->player_info->parent_id)
     {
         if (animation->type == rr_animation_type_damagenumber &&
             animation->color_type == rr_animation_color_type_heal)
             return;
-        if (animation->type != rr_animation_type_chat &&
-            dev_cheat_enabled(simulation, animation->owner, invisible))
+        if (dev_cheat_enabled(simulation, animation->owner, invisible))
             return;
     }
     if (animation->type == rr_animation_type_damagenumber &&
