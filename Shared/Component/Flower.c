@@ -104,7 +104,7 @@ void rr_component_flower_set_dead(struct rr_component_flower *this,
             for (uint8_t squad = 0; squad < RR_SQUAD_COUNT; ++squad)
             {
                 if (health->squad_damage_counter[squad] <=
-                    health->max_health * powf(rr_frand(), 2))
+                    health->max_health * 0.2)
                     continue;
                 EntityIdx drop_id = rr_simulation_alloc_entity(simulation);
                 struct rr_component_drop *drop =

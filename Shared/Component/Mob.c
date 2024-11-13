@@ -82,7 +82,7 @@ void rr_component_mob_free(struct rr_component_mob *this,
         }
         else if (this->id != rr_mob_id_meteor &&
                  health->squad_damage_counter[squad] <=
-                     health->max_health * powf(rr_frand(), 2))
+                     health->max_health * 0.2)
             continue;
         uint8_t spawn_ids[4] = {};
         uint8_t spawn_rarities[4] = {};
