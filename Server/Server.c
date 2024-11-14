@@ -819,18 +819,19 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
         {
             if (!client->in_squad)
                 break;
-            char *nickname = rr_squad_get_client_slot(this, client)->nickname;
+            struct rr_squad_member *member =
+                rr_squad_get_client_slot(this, client);
+            char nickname[16];
             proto_bug_read_string(&encoder, nickname, 16, "nickname");
-            strcpy(nickname, rr_trim_string(nickname));
-            if (nickname[0] == 0 || !rr_validate_user_string(nickname))
-                strcpy(nickname, "Anonymous");
+            strcpy(member->nickname, rr_trim_string(nickname));
+            if (member->nickname[0] == 0 ||
+                !rr_validate_user_string(member->nickname))
+                strcpy(member->nickname, "Anonymous");
             uint8_t loadout_count =
                 proto_bug_read_uint8(&encoder, "loadout count");
 
             if (loadout_count > 10)
                 break;
-            struct rr_squad_member *member =
-                rr_squad_get_client_slot(this, client);
             if (member == NULL)
                 break;
             uint32_t temp_inv[rr_petal_id_max][rr_rarity_id_max];
@@ -985,24 +986,27 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 break;
             if (!client->player_info)
                 break;
-            char name[64];
-            char message[64];
-            strncpy(name, rr_squad_get_client_slot(this, client)->nickname, 64);
-            proto_bug_read_string(&encoder, message, 64, "chat");
-            strcpy(message, rr_trim_string(message));
-            if (message[0] == 0)
-                break;
-            if (!rr_validate_user_string(message))
-            {
-                printf("[blocked chat] %s: %s\n", name, message);
-                break;
-            }
-            printf("[chat] %s: %s\n", name, message);
             struct rr_simulation_animation *animation =
                 &this->simulation
                      .animations[this->simulation.animation_length++];
-            strcpy(animation->name, name);
-            strcpy(animation->message, message);
+            strncpy(animation->name,
+                    rr_squad_get_client_slot(this, client)->nickname, 64);
+            char message[64];
+            proto_bug_read_string(&encoder, message, 64, "chat");
+            strcpy(animation->message, rr_trim_string(message));
+            if (animation->message[0] == 0)
+            {
+                --this->simulation.animation_length;
+                break;
+            }
+            if (!rr_validate_user_string(animation->message))
+            {
+                printf("[blocked chat] %s: %s\n",
+                       animation->name, animation->message);
+                --this->simulation.animation_length;
+                break;
+            }
+            printf("[chat] %s: %s\n", animation->name, animation->message);
             animation->type = rr_animation_type_chat;
             animation->squad = client->squad;
             break;
