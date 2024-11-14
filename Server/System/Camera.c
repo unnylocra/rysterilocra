@@ -52,7 +52,7 @@ void rr_system_camera_tick(struct rr_simulation *this)
         }
         if (--player_info->spectate_ticks == 0)
         {
-            EntityHash target_vector[RR_SQUAD_MEMBER_COUNT - 1];
+            EntityHash target_vector[RR_SQUAD_MEMBER_COUNT];
             uint8_t target_count = 0;
             for (uint32_t i = 0; i < this->player_info_count; ++i)
             {
