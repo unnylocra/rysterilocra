@@ -505,7 +505,35 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
 #endif
                 client->dev = 1;
 
-            uint8_t reconnected = 0;
+            for (uint32_t j = 0; j < RR_MAX_CLIENT_COUNT; ++j)
+            {
+                if (i == j)
+                    continue;
+                if (!rr_bitset_get(this->clients_in_use, j))
+                    continue;
+                if (this->clients[j].verified == 0)
+                    continue;
+                if (this->clients[j].pending_kick)
+                    continue;
+                if (client->dev || this->clients[j].dev)
+                    continue;
+                if (strcmp(client->rivet_account.uuid,
+                           this->clients[j].rivet_account.uuid) == 0)
+                    continue;
+                if (strcmp(client->ip_address,
+                           this->clients[j].ip_address) != 0)
+                    continue;
+                if (this->clients[j].disconnected)
+                {
+                    rr_bitset_unset(this->clients_in_use, j);
+                    this->clients[j].in_use = 0;
+                    rr_server_client_free(&this->clients[j]);
+                }
+                else
+                    this->clients[j].pending_kick = 1;
+                break;
+            }
+
             for (uint32_t j = 0; j < RR_MAX_CLIENT_COUNT; ++j)
             {
                 if (i == j)
@@ -518,19 +546,10 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                     continue;
                 if (client->dev != this->clients[j].dev)
                     continue;
+                if (client->dev && this->clients[j].disconnected == 0)
+                    continue;
                 if (strcmp(client->rivet_account.uuid,
                            this->clients[j].rivet_account.uuid) != 0)
-                {
-                    if (client->dev)
-                        continue;
-                    if (strcmp(client->ip_address,
-                               this->clients[j].ip_address) == 0)
-                        this->clients[j].pending_kick = 1;
-                    continue;
-                }
-                if (reconnected)
-                    continue;
-                if (client->dev && this->clients[j].disconnected == 0)
                     continue;
                 client->player_info = this->clients[j].player_info;
                 client->dev_cheats = this->clients[j].dev_cheats;
@@ -563,7 +582,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 }
                 else
                     this->clients[j].pending_kick = 1;
-                reconnected = 1;
+                break;
             }
 
 #ifdef RIVET_BUILD

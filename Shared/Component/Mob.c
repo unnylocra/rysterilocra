@@ -59,7 +59,18 @@ void rr_component_mob_free(struct rr_component_mob *this,
     struct rr_component_relations *relations =
         rr_simulation_get_relations(simulation, this->parent_id);
     if (this->player_spawned)
+    {
+        EntityHash hash =
+            rr_simulation_get_entity_hash(simulation, this->parent_id);
+        for (uint32_t i = 0; i < simulation->ai_count; ++i)
+        {
+            struct rr_component_ai *ai =
+                rr_simulation_get_ai(simulation, simulation->ai_vector[i]);
+            if (ai->target_entity == hash)
+                ai->target_entity = relations->owner;
+        }
         return;
+    }
     this->zone->grid_points -= RR_MOB_DIFFICULTY_COEFFICIENTS[this->id];
     // put it here please
     struct rr_component_physical *physical =

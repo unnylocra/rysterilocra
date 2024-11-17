@@ -15,6 +15,7 @@
 
 #include <Client/Ui/Ui.h>
 
+#include <math.h>
 #include <stdlib.h>
 
 #include <Client/Game.h>
@@ -100,8 +101,9 @@ void level_bar_on_render(struct rr_ui_element *this, struct rr_game *game)
         char xp_max[16];
         for (uint32_t lvl = 2; lvl <= data->level; ++lvl)
             xp_min += xp_to_reach_level(lvl);
-        rr_sprintf(xp_now, xp_min + data->lerp_xp);
-        rr_sprintf(xp_max, xp_min + xp_to_reach_level(data->level + 1));
+        rr_sprintf(xp_now,
+                   xp_min + (data->lerp_xp >= xp * 0.995 ? xp : data->lerp_xp));
+        rr_sprintf(xp_max, ceil(xp_min + xp_to_reach_level(data->level + 1)));
         sprintf(out, "%s/%s XP", xp_now, xp_max);
     }
     else

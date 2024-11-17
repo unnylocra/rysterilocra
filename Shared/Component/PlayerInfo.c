@@ -127,18 +127,6 @@ void rr_component_player_info_petal_swap(struct rr_component_player_info *this,
         {
             rr_simulation_request_entity_deletion(simulation, id);
             slot->petals[i].entity_hash = RR_NULL_ENTITY;
-
-            if (rr_simulation_has_mob(simulation, id))
-            {
-                for (uint32_t i = 0; i < simulation->ai_count; ++i)
-                {
-                    struct rr_component_ai *ai =
-                        rr_simulation_get_ai(simulation,
-                                             simulation->ai_vector[i]);
-                    if (ai->target_entity == id)
-                        ai->target_entity = this->flower_id;
-                }
-            }
         }
     }
     uint8_t temp = slot->id;

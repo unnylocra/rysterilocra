@@ -1595,7 +1595,7 @@ void rr_game_tick(struct rr_game *this, float delta)
             for (uint32_t i = 1; i < rr_petal_id_max; ++i)
             {
                 for (uint32_t r = 0; r < rr_rarity_id_max; ++r)
-                    if ((seed -= this->inventory[i][r]) <= 0)
+                    if ((seed -= this->inventory[i][r]) < 0)
                     {
                         id_chosen = i;
                         rarity_chosen = r;
