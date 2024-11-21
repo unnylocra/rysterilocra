@@ -96,6 +96,7 @@ struct rr_simulation
 #undef XX
     RR_SERVER_ONLY(struct rr_simulation_animation animations[16384];)
     RR_SERVER_ONLY(uint32_t animation_length;)
+    RR_SERVER_ONLY(struct rr_server *server;)
     RR_CLIENT_ONLY(uint8_t updated_this_tick;)
     uint8_t game_over;
 };

@@ -26,6 +26,7 @@
 #include <stdio.h>
 
 #include <Server/EntityAllocation.h>
+#include <Server/Server.h>
 #include <Server/Simulation.h>
 
 #include <Shared/StaticData.h>
@@ -95,6 +96,31 @@ void rr_component_mob_free(struct rr_component_mob *this,
                  health->squad_damage_counter[squad] <=
                      health->max_health * 0.2)
             continue;
+
+        for (uint8_t pos = 0; pos < RR_SQUAD_MEMBER_COUNT; ++pos)
+        {
+            struct rr_squad_member *member =
+                &simulation->server->squads[squad].members[pos];
+            if (member->in_use == 0)
+                continue;
+            if (member->client->disconnected)
+                continue;
+            if (member->client->player_info == NULL)
+                continue;
+            if (member->client->player_info->flower_id == RR_NULL_ENTITY)
+                continue;
+            struct rr_component_physical *flower_physical =
+                rr_simulation_get_physical(
+                    simulation, member->client->player_info->flower_id);
+            struct rr_vector delta = {physical->x - flower_physical->x,
+                                      physical->y - flower_physical->y};
+            if (rr_vector_magnitude_cmp(&delta, 2000) == 1)
+                continue;
+            ++member->client->mob_gallery[this->id][this->rarity];
+            rr_server_client_write_to_api(member->client);
+            rr_server_client_write_account(member->client);
+        }
+
         uint8_t spawn_ids[4] = {};
         uint8_t spawn_rarities[4] = {};
         uint8_t count = 0;

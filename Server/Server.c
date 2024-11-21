@@ -274,6 +274,7 @@ void rr_server_init(struct rr_server *this)
 #endif
     rr_static_data_init();
     rr_simulation_init(&this->simulation);
+    this->simulation.server = this;
     for (uint32_t i = 0; i < RR_SQUAD_COUNT; ++i)
         rr_squad_init(&this->squads[i], this, i);
 }

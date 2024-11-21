@@ -48,6 +48,16 @@ class GameClient
             encoder.WriteVarUint(user.failed_crafts[petal]);
         }
         encoder.WriteUint8(0);
+        for (const mob of Object.keys(user.mob_gallery))
+        {
+            if (!(user.mob_gallery[mob] > 0))
+                continue;
+            const [id, rarity] = mob.split(":");
+            encoder.WriteUint8(+id + 1);
+            encoder.WriteUint8(rarity);
+            encoder.WriteVarUint(user.mob_gallery[mob]);
+        }
+        encoder.WriteUint8(0);
         this.needs_gameserver_update = false;
     }
 }

@@ -72,6 +72,8 @@ static void rr_game_validate_loadout(struct rr_game *this)
 static void rr_game_read_account(struct rr_game *this, struct proto_bug *decoder)
 {
     memset(this->inventory, 0, sizeof this->inventory);
+    memset(this->failed_crafts, 0, sizeof this->failed_crafts);
+    memset(this->cache.mob_kills, 0, sizeof this->cache.mob_kills);
     char uuid[sizeof this->rivet_account.uuid];
     proto_bug_read_string(decoder, uuid, sizeof this->rivet_account.uuid,
                           "uuid");
@@ -88,6 +90,12 @@ static void rr_game_read_account(struct rr_game *this, struct proto_bug *decoder
         uint8_t rarity = proto_bug_read_uint8(decoder, "rarity");
         uint32_t count = proto_bug_read_varuint(decoder, "count");
         this->failed_crafts[id][rarity] = count;
+    }
+    while ((id = proto_bug_read_uint8(decoder, "id")))
+    {
+        uint8_t rarity = proto_bug_read_uint8(decoder, "rarity");
+        uint32_t count = proto_bug_read_varuint(decoder, "count");
+        this->cache.mob_kills[id - 1][rarity] = count;
     }
 }
 

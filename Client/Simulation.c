@@ -66,18 +66,7 @@ void rr_simulation_read_binary(struct rr_game *game, struct proto_bug *encoder)
             RR_FOR_EACH_COMPONENT
 #undef XX
             if (rr_simulation_has_physical(del_s, id_2))
-            {
                 rr_simulation_get_physical(del_s, id_2)->deletion_type = type;
-                if (rr_simulation_has_mob(this, id) &&
-                    (rr_simulation_get_relations(this, id)->team ==
-                         rr_simulation_team_id_mobs ||
-                     rr_simulation_get_mob(this, id)->id == rr_mob_id_meteor))
-                {
-                    struct rr_component_mob *mob =
-                        rr_simulation_get_mob(this, id);
-                    ++game->cache.mob_kills[mob->id][mob->rarity];
-                }
-            }
         }
         __rr_simulation_pending_deletion_free_components(id, this);
         __rr_simulation_pending_deletion_unset_entity(id, this);

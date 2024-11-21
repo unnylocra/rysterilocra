@@ -154,6 +154,17 @@ void rr_server_client_write_account(struct rr_server_client *client)
                                     "count");
         }
     proto_bug_write_uint8(&encoder, 0, "id");
+    for (uint8_t id = 0; id < rr_mob_id_max; ++id)
+        for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
+        {
+            if (client->mob_gallery[id][rarity] == 0)
+                continue;
+            proto_bug_write_uint8(&encoder, id + 1, "id");
+            proto_bug_write_uint8(&encoder, rarity, "rarity");
+            proto_bug_write_varuint(&encoder, client->mob_gallery[id][rarity],
+                                    "count");
+        }
+    proto_bug_write_uint8(&encoder, 0, "id");
     rr_server_client_write_message(client, encoder.start,
                                    encoder.current - encoder.start);
 }
@@ -226,22 +237,13 @@ void rr_server_client_craft_petal(struct rr_server_client *this,
 int rr_server_client_read_from_api(struct rr_server_client *this,
                                    struct rr_binary_encoder *encoder)
 {
-    memset(this->craft_fails, 0, sizeof this->craft_fails);
     memset(this->inventory, 0, sizeof this->inventory);
+    memset(this->craft_fails, 0, sizeof this->craft_fails);
+    memset(this->mob_gallery, 0, sizeof this->mob_gallery);
     char uuid[sizeof this->rivet_account.uuid];
     rr_binary_encoder_read_nt_string(encoder, uuid);
     if (strcmp(uuid, this->rivet_account.uuid))
         return 0;
-    this->experience = rr_binary_encoder_read_float64(encoder);
-    uint8_t id = rr_binary_encoder_read_uint8(encoder);
-    while (id)
-    {
-        uint8_t rarity = rr_binary_encoder_read_uint8(encoder);
-        uint32_t count = rr_binary_encoder_read_varuint(encoder);
-        if (rarity < rr_rarity_id_max)
-            this->inventory[id][rarity] = count;
-        id = rr_binary_encoder_read_uint8(encoder);
-    }
     if (this->dev)
     {
         this->experience = 0;
@@ -250,14 +252,37 @@ int rr_server_client_read_from_api(struct rr_server_client *this,
         for (uint8_t id = 1; id < rr_petal_id_max; ++id)
             for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
                 this->inventory[id][rarity] = 1000;
+        for (uint8_t id = 0; id < rr_mob_id_max; ++id)
+            for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
+                this->mob_gallery[id][rarity] = 1;
+        return 1;
+    }
+    this->experience = rr_binary_encoder_read_float64(encoder);
+    uint8_t id = rr_binary_encoder_read_uint8(encoder);
+    while (id)
+    {
+        uint8_t rarity = rr_binary_encoder_read_uint8(encoder);
+        uint32_t count = rr_binary_encoder_read_varuint(encoder);
+        if (id < rr_petal_id_max && rarity < rr_rarity_id_max)
+            this->inventory[id][rarity] = count;
+        id = rr_binary_encoder_read_uint8(encoder);
     }
     id = rr_binary_encoder_read_uint8(encoder);
     while (id)
     {
         uint8_t rarity = rr_binary_encoder_read_uint8(encoder);
         uint32_t count = rr_binary_encoder_read_varuint(encoder);
-        if (rarity < rr_rarity_id_max)
+        if (id < rr_petal_id_max && rarity < rr_rarity_id_max)
             this->craft_fails[id][rarity] = count;
+        id = rr_binary_encoder_read_uint8(encoder);
+    }
+    id = rr_binary_encoder_read_uint8(encoder);
+    while (id)
+    {
+        uint8_t rarity = rr_binary_encoder_read_uint8(encoder);
+        uint32_t count = rr_binary_encoder_read_varuint(encoder);
+        if (id - 1 < rr_mob_id_max && rarity < rr_rarity_id_max)
+            this->mob_gallery[id - 1][rarity] = count;
         id = rr_binary_encoder_read_uint8(encoder);
     }
     return 1;
@@ -292,6 +317,17 @@ void rr_server_client_write_to_api(struct rr_server_client *this)
             rr_binary_encoder_write_uint8(&encoder, rarity);
             rr_binary_encoder_write_varuint(&encoder,
                                             this->craft_fails[id][rarity]);
+        }
+    rr_binary_encoder_write_uint8(&encoder, 0);
+    for (uint8_t id = 0; id < rr_mob_id_max; ++id)
+        for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
+        {
+            if (this->mob_gallery[id][rarity] == 0)
+                continue;
+            rr_binary_encoder_write_uint8(&encoder, id + 1);
+            rr_binary_encoder_write_uint8(&encoder, rarity);
+            rr_binary_encoder_write_varuint(&encoder,
+                                            this->mob_gallery[id][rarity]);
         }
     rr_binary_encoder_write_uint8(&encoder, 0);
     lws_write(this->server->api_client, encoder.start,

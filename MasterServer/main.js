@@ -425,6 +425,7 @@ wss.on("connection", (ws, req) => {
                 user.xp = decoder.ReadFloat64();
                 user.petals = {};
                 user.failed_crafts = {};
+                user.mob_gallery = {};
                 let id = decoder.ReadUint8();
                 while (id)
                 {
@@ -439,6 +440,14 @@ wss.on("connection", (ws, req) => {
                     const rarity = decoder.ReadUint8();
                     const count = decoder.ReadVarUint();
                     user.failed_crafts[id+':'+rarity] = count;
+                    id = decoder.ReadUint8();
+                }
+                id = decoder.ReadUint8();
+                while (id)
+                {
+                    const rarity = decoder.ReadUint8();
+                    const count = decoder.ReadVarUint();
+                    user.mob_gallery[(id - 1)+':'+rarity] = count;
                     id = decoder.ReadUint8();
                 }
                 await write_db_entry(uuid, user);
