@@ -94,6 +94,30 @@ static void mob_button_on_render(struct rr_ui_element *this,
     rr_renderer_context_state_free(renderer, &state);
 }
 
+static void mob_button_count_on_render(struct rr_ui_element *this,
+                                       struct rr_game *game)
+{
+    struct rr_renderer *renderer = game->renderer;
+    struct mob_button_metadata *data = this->data;
+    uint32_t count = game->cache.mob_kills[data->id][data->rarity];
+    if (count <= 1)
+        return;
+    rr_renderer_scale(renderer, renderer->scale * this->width / 60);
+    rr_renderer_translate(renderer, 25, -25);
+    rr_renderer_rotate(renderer, 0.5);
+    rr_renderer_set_fill(renderer, 0xffffffff);
+    rr_renderer_set_stroke(renderer, 0xff222222);
+    rr_renderer_set_text_align(renderer, 1);
+    rr_renderer_set_text_baseline(renderer, 1);
+    rr_renderer_set_text_size(renderer, 18);
+    rr_renderer_set_line_width(renderer, 18 * 0.12);
+
+    char out[12] = "x";
+    rr_sprintf(&out[1], count);
+    rr_renderer_stroke_text(renderer, (char const *)&out, 0, 0);
+    rr_renderer_fill_text(renderer, (char const *)&out, 0, 0);
+}
+
 static struct rr_ui_element *mob_button_init(uint8_t id, uint8_t rarity)
 {
     struct rr_ui_element *this = rr_ui_element_init();
@@ -102,6 +126,7 @@ static struct rr_ui_element *mob_button_init(uint8_t id, uint8_t rarity)
     data->rarity = rarity;
     this->abs_width = this->abs_height = this->width = this->height = 50;
     this->on_render = mob_button_on_render;
+    this->on_secondary_render = mob_button_count_on_render;
     this->on_event = mob_button_on_event;
     this->animate = mob_button_animate;
     this->data = data;
