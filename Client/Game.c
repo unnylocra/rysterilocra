@@ -586,13 +586,11 @@ void rr_game_init(struct rr_game *this)
                         ),
                     -1, 1),
                 ui_not_hidden_and_player_dead),
-                rr_ui_link_toggle(
-                    rr_ui_pad(
-                        rr_ui_set_justify(
-                            rr_ui_chat_bar_init(this),
-                        -1, 1)
-                    , 20)
-                , simulation_ready),
+                rr_ui_pad(
+                    rr_ui_set_justify(
+                        rr_ui_chat_bar_init(this),
+                    -1, 1)
+                , 20),
                 NULL
             ),
         -1, 1)
@@ -924,7 +922,6 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     rr_particle_manager_clear(
                         &this->foreground_particle_manager);
                     rr_write_dev_cheat_packets(this, 1);
-                    this->chat.chat_active = 0;
                     this->simulation_ready = 1;
                 }
                 rr_simulation_read_binary(this, &encoder);

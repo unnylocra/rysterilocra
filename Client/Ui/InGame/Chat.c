@@ -31,6 +31,7 @@ static void chat_bar_on_event(struct rr_ui_element *this, struct rr_game *game)
     if (game->input_data->mouse_buttons_up_this_tick & 1)
     {
         game->chat.chat_active = 1;
+        game->menu_open = 0;
     }
 }
 
@@ -44,7 +45,6 @@ static void chat_bar_animate(struct rr_ui_element *this, struct rr_game *game)
     }
     else
         this->fill = 0x80000000;
-    game->chat.chat_active_last_tick = game->chat.chat_active;
     if (rr_bitset_get_bit(game->input_data->keys_pressed_this_tick, 13))
     {
         if (game->chat.chat_active)
@@ -61,18 +61,16 @@ static void chat_bar_animate(struct rr_ui_element *this, struct rr_game *game)
             memset(game->chat.sending, 0, sizeof game->chat.sending);
             rr_dom_set_text("_0x4523", "");
         }
+        else
+            game->menu_open = 0;
         game->chat.chat_active ^= 1;
     }
-    if (game->chat.chat_active)
-    {
-        if (!game->chat.chat_active_last_tick)
-            game->menu_open = 0;
-        rr_dom_focus("_0x4523");
-    }
-    else
-        rr_dom_blur("_0x4523");
     if (game->menu_open != 0)
         game->chat.chat_active = 0;
+    if (game->chat.chat_active)
+        rr_dom_focus("_0x4523");
+    else
+        rr_dom_blur("_0x4523");
 };
 
 static uint8_t chat_bar_choose(struct rr_ui_element *this, struct rr_game *game)
@@ -80,14 +78,18 @@ static uint8_t chat_bar_choose(struct rr_ui_element *this, struct rr_game *game)
     return game->chat.chat_active || game->chat.sending[0];
 }
 
-static void chat_animate(struct rr_ui_element *this, struct rr_game *game)
+static uint8_t chat_should_show(struct rr_ui_element *this,
+                                struct rr_game *game)
 {
-    rr_ui_default_animate(this, game);
-    if (game->cache.disable_chat || game->cache.hide_ui)
-    {
-        this->completely_hidden = 1;
-        rr_dom_element_hide("_0x4523");
-    }
+    uint8_t r = game->simulation_ready &&
+                !game->cache.disable_chat &&
+                !game->cache.hide_ui &&
+                game->menu_open != rr_game_menu_inventory &&
+                game->menu_open != rr_game_menu_gallery &&
+                game->menu_open != rr_game_menu_crafting;
+    if (!r)
+        game->chat.chat_active = 0;
+    return r;
 }
 
 static struct rr_ui_element *rr_ui_chat_text_init(struct rr_game_chat_message
@@ -142,6 +144,6 @@ struct rr_ui_element *rr_ui_chat_bar_init(struct rr_game *game)
         rr_ui_set_justify(this, -1, -1),
         NULL
     );
-    chat->animate = chat_animate;
+    chat->should_show = chat_should_show;
     return chat;
 }

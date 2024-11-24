@@ -79,7 +79,6 @@ struct rr_game_chat_message
 struct rr_game_chat
 {
     uint8_t chat_active; // 0 = inactive, 1 = local, 2 = squad
-    uint8_t chat_active_last_tick;
     uint8_t chat_type;
     uint32_t at;
     struct rr_game_chat_message messages[10];
