@@ -78,12 +78,14 @@ void rr_component_health_do_damage(struct rr_simulation *simulation,
                                    struct rr_component_health *this,
                                    EntityIdx from, float v, uint8_t color_type)
 {
+    uint8_t no_reduction = this->flags & 4;
+    this->flags &= ~4;
     if (dev_cheat_enabled(simulation, this->parent_id, invulnerable))
         return;
     if (this->health == 0)
         return;
-    uint8_t no_reduction = this->flags & 4;
-    this->flags &= ~4;
+    if (v == 0)
+        return;
     /*if (rr_simulation_has_mob(simulation, from))
     {
         struct rr_component_mob *from_mob = rr_simulation_get_mob(simulation, from);

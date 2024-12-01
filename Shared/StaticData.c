@@ -71,6 +71,7 @@ struct rr_petal_data RR_PETAL_DATA[rr_petal_id_max] = {
     {rr_petal_id_third_eye, rr_rarity_id_legendary, offensive,  0.0f,   0.0f,   0.0f,   0,  0, {0,0,0,0,0,0,0,0}},
     {rr_petal_id_nest,      rr_rarity_id_legendary, defensive,  5.0f,  25.0f,   0.0f, 375,  1, {1,1,1,1,1,1,1,1}},
     {rr_petal_id_fireball,  rr_rarity_id_unusual,   offensive,200.0f,   1.0f,   0.0f, 500,  0, {1,1,1,1,1,1,1,1}},
+    {rr_petal_id_meat,      rr_rarity_id_common,    defensive,  0.0f, 300.0f,   0.0f, 175, 13, {1,1,1,1,1,1,1,1}},
     {rr_petal_id_mandible,  rr_rarity_id_common,    offensive,  5.0f,  10.0f,   0.0f,  75,  0, {1,1,1,1,1,1,1,1}},
     {rr_petal_id_wax,       rr_rarity_id_unusual,   offensive, 10.0f,  10.0f,  10.0f,  38,  0, {2,2,2,2,2,2,2,2}},
     {rr_petal_id_sand,      rr_rarity_id_common,    offensive, 15.0f,  10.0f,  10.0f,  37,  0, {4,4,4,4,4,4,4,4}},
@@ -78,11 +79,11 @@ struct rr_petal_data RR_PETAL_DATA[rr_petal_id_max] = {
 };    
 
 char const *RR_PETAL_NAMES[rr_petal_id_max] = {
-    "Secret", "Petal",     "Pellet",    "Fossil", "Stinger",  "Berry",    "Shell",
-    "Peas",   "Leaf",      "Egg",       "Magnet", "Uranium",  "Feather",  "Azalea",
-    "Bone",   "Web",       "Seed",      "Gravel", "Club",     "Crest",    "Droplet",
-    "Beak",   "Lightning", "Third Eye", "Nest",   "Fireball", "Mandible", "Wax",
-    "Sand",   "Mint",
+    "Secret", "Petal",     "Pellet",    "Fossil", "Stinger",  "Berry",   "Shell",
+    "Peas",   "Leaf",      "Egg",       "Magnet", "Uranium",  "Feather", "Azalea",
+    "Bone",   "Web",       "Seed",      "Gravel", "Club",     "Crest",   "Droplet",
+    "Beak",   "Lightning", "Third Eye", "Nest",   "Fireball", "Meat",    "Mandible",
+    "Wax",    "Sand",      "Mint",
 };
     
 char const *RR_PETAL_DESCRIPTIONS[rr_petal_id_max] = {
@@ -112,6 +113,7 @@ char const *RR_PETAL_DESCRIPTIONS[rr_petal_id_max] = {
     "Your petals hate it and want to move further away",
     "Home sweet home",
     "Nice ball bro",
+    "Meat meta",
     "Does more damage if target hp is below 50%",
     "Made by the bees",
     "Very fine",
@@ -121,7 +123,7 @@ char const *RR_PETAL_DESCRIPTIONS[rr_petal_id_max] = {
 struct rr_mob_data RR_MOB_DATA[rr_mob_id_max] = {
 //   id                                     min_rarity  max_rarity              hp dmg    rad  loot
     {rr_mob_id_triceratops,        rr_rarity_id_common, rr_rarity_id_ultimate,  45, 15, 30.0f, {{rr_petal_id_leaf,    0.15},{rr_petal_id_fossil,    0.05}}},
-    {rr_mob_id_trex,               rr_rarity_id_common, rr_rarity_id_ultimate,  40, 25, 32.0f, {{rr_petal_id_stinger, 0.03},{rr_petal_id_egg,       0.05}}},
+    {rr_mob_id_trex,               rr_rarity_id_common, rr_rarity_id_ultimate,  40, 25, 32.0f, {{rr_petal_id_stinger, 0.03},{rr_petal_id_egg,       0.05},{rr_petal_id_meat,      0.01}}},
     {rr_mob_id_fern,               rr_rarity_id_common, rr_rarity_id_ultimate,  10,  5, 24.0f, {{rr_petal_id_leaf,     0.1},{rr_petal_id_azalea,    0.25}}},
     {rr_mob_id_tree,               rr_rarity_id_common, rr_rarity_id_ultimate, 100,  5, 64.0f, {{rr_petal_id_leaf,     2.5},{rr_petal_id_peas,       2.5},{rr_petal_id_seed,      0.05}}},
     {rr_mob_id_pteranodon,         rr_rarity_id_common, rr_rarity_id_ultimate,  40, 15, 20.0f, {{rr_petal_id_shell,   0.05},{rr_petal_id_beak,      0.15},{rr_petal_id_nest,      0.01}}},

@@ -245,7 +245,8 @@ static void system_velocity(EntityIdx id, void *simulation)
     if (rr_simulation_has_web(simulation, id) ||
         (rr_simulation_has_petal(simulation, id) &&
          rr_simulation_get_petal(simulation, id)->id != rr_petal_id_egg &&
-         rr_simulation_get_petal(simulation, id)->id != rr_petal_id_nest) ||
+         rr_simulation_get_petal(simulation, id)->id != rr_petal_id_nest &&
+         rr_simulation_get_petal(simulation, id)->id != rr_petal_id_meat) ||
         dev_cheat_enabled(simulation, id, no_wall_collision))
     {
         rr_component_physical_set_x(physical, now_x);

@@ -253,7 +253,10 @@ static void damage_effect(struct rr_simulation *simulation, EntityIdx target,
         if (ai->target_entity == RR_NULL_ENTITY ||
             rr_frand() < powf(0.3, mob->rarity))
         {
-            if (rr_simulation_has_petal(simulation, attacker))
+            if (rr_simulation_has_petal(simulation, attacker) &&
+                (rr_simulation_get_petal(simulation,
+                                         attacker)->id != rr_petal_id_meat ||
+                 rr_simulation_get_petal(simulation, attacker)->detached == 0))
             {
                 struct rr_component_relations *relations =
                     rr_simulation_get_relations(simulation, attacker);

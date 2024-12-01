@@ -29,7 +29,7 @@
 #include <Shared/Utilities.h>
 #include <Shared/Vector.h>
 
-struct uranium_captures
+struct area_captures
 {
     struct rr_simulation *simulation;
     EntityIdx petal_id;
@@ -37,7 +37,7 @@ struct uranium_captures
 
 static void uranium_damage(EntityIdx target, void *_captures)
 {
-    struct uranium_captures *captures = _captures;
+    struct area_captures *captures = _captures;
     struct rr_simulation *simulation = captures->simulation;
     if (!rr_simulation_has_mob(simulation, target) &&
         !rr_simulation_has_flower(simulation, target))
@@ -86,8 +86,6 @@ static void uranium_damage(EntityIdx target, void *_captures)
 static void uranium_petal_system(struct rr_simulation *simulation,
                                  struct rr_component_petal *petal)
 {
-    struct rr_component_health *health =
-        rr_simulation_get_health(simulation, petal->parent_id);
     if (petal->effect_delay > 0)
         return;
     petal->effect_delay = RR_PETAL_DATA[petal->id].secondary_cooldown;
@@ -96,7 +94,7 @@ static void uranium_petal_system(struct rr_simulation *simulation,
     struct rr_component_arena *arena =
         rr_simulation_get_arena(simulation, physical->arena);
     float radius = 200 * (petal->rarity + 1);
-    struct uranium_captures captures = {simulation, petal->parent_id};
+    struct area_captures captures = {simulation, petal->parent_id};
     rr_spatial_hash_query(&arena->spatial_hash, physical->x, physical->y,
                           radius, radius, &captures, uranium_damage);
     struct rr_simulation_animation *animation =
@@ -107,6 +105,59 @@ static void uranium_petal_system(struct rr_simulation *simulation,
     animation->y = physical->y;
     animation->size = radius;
     animation->color_type = rr_animation_color_type_uranium;
+}
+
+static void meat_aggro(EntityIdx target, void *_captures)
+{
+    struct area_captures *captures = _captures;
+    struct rr_simulation *simulation = captures->simulation;
+    if (!rr_simulation_has_mob(simulation, target))
+        return;
+    struct rr_component_mob *mob = rr_simulation_get_mob(simulation, target);
+    struct rr_component_petal *petal =
+        rr_simulation_get_petal(simulation, captures->petal_id);
+    if (mob->rarity > petal->rarity)
+        return;
+    struct rr_component_relations *relations =
+        rr_simulation_get_relations(simulation, captures->petal_id);
+    struct rr_component_relations *target_relations =
+        rr_simulation_get_relations(simulation, target);
+    if (is_same_team(relations->team, target_relations->team))
+        return;
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, captures->petal_id);
+    struct rr_component_physical *target_physical =
+        rr_simulation_get_physical(simulation, target);
+    struct rr_vector delta = {physical->x - target_physical->x,
+                              physical->y - target_physical->y};
+    float radius = 150 * (petal->rarity + 1);
+    if (rr_vector_magnitude_cmp(&delta, radius + target_physical->radius) == 1)
+        return;
+    struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);
+    if (ai->target_entity != RR_NULL_ENTITY &&
+        rr_simulation_has_petal(simulation, ai->target_entity) &&
+        rr_simulation_get_petal(simulation,
+                                ai->target_entity)->id == rr_petal_id_meat)
+        return;
+    if (rr_frand() >= 0.01)
+        return;
+    if (dev_cheat_enabled(simulation, captures->petal_id, no_aggro))
+        return;
+    ai->target_entity =
+        rr_simulation_get_entity_hash(simulation, captures->petal_id);
+}
+
+static void meat_petal_system(struct rr_simulation *simulation,
+                              struct rr_component_petal *petal)
+{
+    struct rr_component_physical *physical =
+        rr_simulation_get_physical(simulation, petal->parent_id);
+    struct rr_component_arena *arena =
+        rr_simulation_get_arena(simulation, physical->arena);
+    float radius = 150 * (petal->rarity + 1);
+    struct area_captures captures = {simulation, petal->parent_id};
+    rr_spatial_hash_query(&arena->spatial_hash, physical->x, physical->y,
+                          radius, radius, &captures, meat_aggro);
 }
 
 static void system_petal_detach(struct rr_simulation *simulation,
@@ -336,6 +387,19 @@ static void system_flower_petal_movement_logic(
                 rr_vector_from_polar(&physical->velocity, 50.0f, curr_angle);
             }
             petal->effect_delay = 20;
+            break;
+        }
+        case rr_petal_id_meat:
+        {
+            if ((player_info->input & 3) == 0)
+                break;
+            rr_component_petal_set_detached(petal, 1);
+            if (player_info->input & 1)
+            {
+                rr_vector_from_polar(&physical->acceleration, 7.5f, curr_angle);
+                rr_vector_from_polar(&physical->velocity, 50.0f, curr_angle);
+            }
+            petal->effect_delay = 500;
             break;
         }
         case rr_petal_id_nest:
@@ -866,6 +930,8 @@ static void system_petal_misc_logic(EntityIdx id, void *_simulation)
             target_player_info->spectate_ticks = 62;
             target_player_info->spectating_single_target = 0;
         }
+        else if (petal->id == rr_petal_id_meat)
+            meat_petal_system(simulation, petal);
         if (--petal->effect_delay <= 0)
         {
             rr_simulation_request_entity_deletion(simulation, id);

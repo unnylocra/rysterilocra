@@ -123,13 +123,14 @@ enum rr_petal_id
     rr_petal_id_third_eye, // 23
     rr_petal_id_nest,      // 24
     rr_petal_id_fireball,  // 25
+    rr_petal_id_meat,      // 26
 
-    rr_petal_id_mandible,  // 26
-    rr_petal_id_wax,       // 27
-    rr_petal_id_sand,      // 28
-    rr_petal_id_mint,      // 29
+    rr_petal_id_mandible,  // 27
+    rr_petal_id_wax,       // 28
+    rr_petal_id_sand,      // 29
+    rr_petal_id_mint,      // 30
 
-    rr_petal_id_max,       // 30
+    rr_petal_id_max,       // 31
 };
 
 enum rr_mob_id

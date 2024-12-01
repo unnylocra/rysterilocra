@@ -68,8 +68,8 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                 0),
             NULL),
         0x80000000);
-    if (RR_PETAL_DATA[id].health != 0)
-    {
+    if (id != rr_petal_id_crest && id != rr_petal_id_third_eye &&
+        id != rr_petal_id_lightning && id != rr_petal_id_fireball)
         rr_ui_container_add_element(
             this,
             rr_ui_set_justify(rr_ui_h_container_init(
@@ -77,6 +77,8 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                                   rr_ui_text_init("Health: ", 12, 0xff44ff44),
                                   rr_ui_text_init(hp, 12, 0xffffffff), NULL),
                               -1, 0));
+    if (id != rr_petal_id_crest && id != rr_petal_id_third_eye &&
+        id != rr_petal_id_meat)
         rr_ui_container_add_element(
             this,
             rr_ui_set_justify(rr_ui_h_container_init(
@@ -84,7 +86,6 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                                   rr_ui_text_init("Damage: ", 12, 0xffff4444),
                                   rr_ui_text_init(dmg, 12, 0xffffffff), NULL),
                               -1, 0));
-    }
     if (id == rr_petal_id_magnet)
     {
         char *extra = malloc((sizeof *extra) * 8);
@@ -327,6 +328,27 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                                   rr_ui_text_init("Area damage: ", 12, 0xffff4444),
                                   rr_ui_text_init(extra, 12, 0xffffffff), NULL),
                               -1, 0));
+    }
+    else if (id == rr_petal_id_meat)
+    {
+        char *extra = malloc((sizeof *extra) * 8);
+        rr_sprintf(extra, 150 * (rarity + 1));
+        rr_ui_container_add_element(
+            this,
+            rr_ui_set_justify(rr_ui_h_container_init(
+                                  rr_ui_container_init(), 0, 0,
+                                  rr_ui_text_init("Range: ", 12, 0xffbf29c2),
+                                  rr_ui_text_init(extra, 12, 0xffffffff), NULL),
+                              -1, 0));
+        rr_ui_container_add_element(
+            this, rr_ui_set_justify(
+                      rr_ui_h_container_init(
+                          rr_ui_container_init(), 0, 0,
+                          rr_ui_text_init("Max mob rarity: ", 12, 0xffe07422),
+                          rr_ui_text_init(
+                              RR_RARITY_NAMES[rarity], 12,
+                              RR_RARITY_COLORS[rarity]), NULL),
+                      -1, 0));
     }
     else if (id == rr_petal_id_mandible)
     {
