@@ -300,8 +300,10 @@ void rr_main_loop(struct rr_game *this)
             {
                 const delta = Math.min(0.5, (time - Module.start) / 1000);
                 Module.start = time;
-                Module.canvas.width = innerWidth * devicePixelRatio;
-                Module.canvas.height = innerHeight * devicePixelRatio;
+                Module.canvas.width =
+                    document.documentElement.clientWidth * devicePixelRatio;
+                Module.canvas.height =
+                    document.documentElement.clientHeight * devicePixelRatio;
                 _rr_renderer_main_loop($0, delta, Module.canvas.width,
                                        Module.canvas.height, devicePixelRatio);
                 requestAnimationFrame(loop);
