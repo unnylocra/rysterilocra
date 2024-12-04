@@ -504,7 +504,7 @@ void rr_game_init(struct rr_game *this)
                                         ),
                                         rr_ui_multi_choose_element_init(
                                             socket_ready,
-                                            rr_ui_text_init("Joining Squad...", 24, 0xffffffff),
+                                            rr_ui_text_init("Connecting...", 24, 0xffffffff),
                                             rr_ui_squad_container_init(&this->squad),
                                             rr_ui_text_init("Disconnected", 24, 0xffff2222),
                                             rr_ui_text_init("Failed to join squad", 24, 0xffff2222),

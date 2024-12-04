@@ -74,7 +74,6 @@ void rr_squad_remove_client(struct rr_squad *this,
     client->in_squad = 0;
 }
 
-// fixme: stuck in squad sometimes
 void rr_client_can_rejoin_squads(struct rr_server *this,
                                  struct rr_server_client *member,
                                  uint8_t chosen)
@@ -83,9 +82,8 @@ void rr_client_can_rejoin_squads(struct rr_server *this,
     {
         if (this->squads[i].private)
             continue;
-        for (uint8_t j = 0; j < RR_SQUAD_MEMBER_COUNT; ++j)
-            if (this->squads[i].members[j].in_use)
-                return;
+        if (this->squads[i].member_count > 0)
+            return;
     }
 
     for (uint8_t i = 0; i < RR_SQUAD_COUNT; ++i)

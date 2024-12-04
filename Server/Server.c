@@ -719,7 +719,13 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 }
                 break;
             }
-            rr_client_leave_squad(this, client);
+            if (client->in_squad)
+            {
+                uint8_t old_squad = client->squad;
+                rr_client_leave_squad(this, client);
+                if (!this->squads[old_squad].private)
+                    rr_bitset_set(client->joined_squad_before, old_squad);
+            }
             uint8_t squad = RR_ERROR_CODE_INVALID_SQUAD;
             if (type == 2)
                 squad = rr_client_create_squad(this, client);
