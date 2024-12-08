@@ -184,8 +184,8 @@ EntityIdx rr_simulation_find_nearest_enemy(
         rr_simulation_get_physical(simulation, seeker);
 
     return rr_simulation_find_nearest_enemy_custom_pos(
-        simulation, seeker, physical->x, physical->y, search_range, captures,
-        filter);
+        simulation, seeker, physical->x, physical->y,
+        search_range + physical->radius, captures, filter);
 }
 
 EntityIdx rr_simulation_find_nearest_enemy_custom_pos(
@@ -225,8 +225,8 @@ EntityIdx rr_simulation_find_nearest_friend(
         rr_simulation_get_physical(simulation, seeker);
 
     return rr_simulation_find_nearest_friend_custom_pos(
-        simulation, seeker, physical->x, physical->y, search_range, captures,
-        filter);
+        simulation, seeker, physical->x, physical->y,
+        search_range + physical->radius, captures, filter);
 }
 
 EntityIdx rr_simulation_find_nearest_friend_custom_pos(
@@ -266,8 +266,8 @@ EntityIdx rr_simulation_choose_nearby_enemy(
         rr_simulation_get_physical(simulation, seeker);
 
     return rr_simulation_choose_nearby_enemy_custom_pos(
-        simulation, seeker, physical->x, physical->y, search_range, captures,
-        filter);
+        simulation, seeker, physical->x, physical->y,
+        search_range + physical->radius, captures, filter);
 }
 
 EntityIdx rr_simulation_choose_nearby_enemy_custom_pos(

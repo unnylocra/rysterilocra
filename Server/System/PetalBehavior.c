@@ -109,6 +109,8 @@ static void uranium_petal_system(struct rr_simulation *simulation,
 
 static void meat_aggro(EntityIdx target, void *_captures)
 {
+    if (rr_frand() >= 0.03)
+        return;
     struct area_captures *captures = _captures;
     struct rr_simulation *simulation = captures->simulation;
     if (!rr_simulation_has_mob(simulation, target))
@@ -138,8 +140,6 @@ static void meat_aggro(EntityIdx target, void *_captures)
         rr_simulation_has_petal(simulation, ai->target_entity) &&
         rr_simulation_get_petal(simulation,
                                 ai->target_entity)->id == rr_petal_id_meat)
-        return;
-    if (rr_frand() >= 0.01)
         return;
     if (dev_cheat_enabled(simulation, captures->petal_id, no_aggro))
         return;
@@ -225,6 +225,8 @@ static void system_flower_petal_movement_logic(
     struct rr_component_petal *petal = rr_simulation_get_petal(simulation, id);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, id);
+    struct rr_component_relations *relations =
+        rr_simulation_get_relations(simulation, id);
     struct rr_component_physical *flower_physical =
         rr_simulation_get_physical(simulation, player_info->flower_id);
     struct rr_vector position_vector = {physical->x, physical->y};
@@ -298,7 +300,7 @@ static void system_flower_petal_movement_logic(
                 struct rr_vector delta = {
                     (flower_vector.x - position_vector.x),
                     (flower_vector.y - position_vector.y)};
-                if (rr_vector_magnitude_cmp(&delta, flower_physical->radius +
+                if (rr_vector_magnitude_cmp(&delta, flower_physical->radius -
                                                         physical->radius) == -1)
                 {
                     float max_heal =
@@ -320,7 +322,7 @@ static void system_flower_petal_movement_logic(
                 }
                 else
                 {
-                    rr_vector_scale(&delta, 0.4);
+                    rr_vector_scale(&delta, 0.25);
                     rr_vector_add(&physical->acceleration, &delta);
                     return;
                 }
@@ -331,6 +333,10 @@ static void system_flower_petal_movement_logic(
                 {
                     EntityIdx potential = simulation->flower_vector[i];
                     if (is_dead_flower(simulation, potential))
+                        continue;
+                    struct rr_component_relations *target_relations =
+                        rr_simulation_get_relations(simulation, potential);
+                    if (!is_same_team(relations->team, target_relations->team))
                         continue;
                     struct rr_component_physical *target_physical =
                         rr_simulation_get_physical(simulation, potential);
@@ -344,7 +350,7 @@ static void system_flower_petal_movement_logic(
                     if (flower_health->health == flower_health->max_health)
                         continue;
                     if (rr_vector_magnitude_cmp(&delta,
-                                                target_physical->radius +
+                                                target_physical->radius -
                                                     physical->radius) == -1)
                     {
                         float max_heal =
@@ -367,7 +373,7 @@ static void system_flower_petal_movement_logic(
                     }
                     else
                     {
-                        rr_vector_scale(&delta, 0.4);
+                        rr_vector_scale(&delta, 0.25);
                         rr_vector_add(&physical->acceleration, &delta);
                         return;
                     }
@@ -419,6 +425,10 @@ static void system_flower_petal_movement_logic(
                 EntityIdx target = simulation->flower_vector[i];
                 if (!is_dead_flower(simulation, target))
                     continue;
+                struct rr_component_relations *target_relations =
+                    rr_simulation_get_relations(simulation, target);
+                if (!is_same_team(relations->team, target_relations->team))
+                    continue;
                 struct rr_component_physical *target_physical =
                     rr_simulation_get_physical(simulation, target);
                 struct rr_vector delta = {target_physical->x - physical->x,
@@ -466,7 +476,7 @@ static void system_flower_petal_movement_logic(
                 rr_simulation_get_physical(simulation, mob_to_heal);
             struct rr_vector delta = {target_physical->x - physical->x,
                                       target_physical->y - physical->y};
-            if (rr_vector_magnitude_cmp(&delta, target_physical->radius +
+            if (rr_vector_magnitude_cmp(&delta, target_physical->radius -
                                                     physical->radius) == -1)
             {
                 struct rr_component_health *mob_health =
@@ -490,7 +500,7 @@ static void system_flower_petal_movement_logic(
             }
             else
             {
-                rr_vector_scale(&delta, 0.4);
+                rr_vector_scale(&delta, 0.25);
                 rr_vector_add(&physical->acceleration, &delta);
                 return;
             }

@@ -80,8 +80,7 @@ struct lightning_captures
 {
     EntityIdx *chain;
     uint32_t length;
-    float curr_x;
-    float curr_y;
+    struct rr_component_physical *curr_physical;
 };
 
 static uint8_t lightning_filter(struct rr_simulation *simulation,
@@ -122,12 +121,12 @@ static void lightning_petal_system(struct rr_simulation *simulation,
     float damage =
         rr_simulation_get_health(simulation, petal->parent_id)->damage * 0.5;
     EntityIdx target = RR_NULL_ENTITY;
-    struct lightning_captures captures = {chain, 2, first_physical->x,
-                                          first_physical->y};
+    struct lightning_captures captures = {chain, 2, first_physical};
     for (; captures.length < chain_amount + 1; ++captures.length)
     {
         target = rr_simulation_find_nearest_enemy_custom_pos(
-            simulation, petal->parent_id, captures.curr_x, captures.curr_y, 400,
+            simulation, petal->parent_id, captures.curr_physical->x,
+            captures.curr_physical->y, 400 + captures.curr_physical->radius,
             &captures, lightning_filter);
         if (target == RR_NULL_ENTITY)
             break;
@@ -155,8 +154,7 @@ static void lightning_petal_system(struct rr_simulation *simulation,
         chain[captures.length] = target;
         animation->points[captures.length].x = physical->x;
         animation->points[captures.length].y = physical->y;
-        captures.curr_x = physical->x;
-        captures.curr_y = physical->y;
+        captures.curr_physical = physical;
     }
     animation->length = captures.length;
     if (!dev_cheat_enabled(simulation, petal->parent_id, invulnerable))
@@ -254,9 +252,10 @@ static void damage_effect(struct rr_simulation *simulation, EntityIdx target,
             rr_frand() < powf(0.3, mob->rarity))
         {
             if (rr_simulation_has_petal(simulation, attacker) &&
-                (rr_simulation_get_petal(simulation,
-                                         attacker)->id != rr_petal_id_meat ||
-                 rr_simulation_get_petal(simulation, attacker)->detached == 0))
+                (rr_simulation_get_petal(simulation, attacker)->detached == 0 ||
+                 (rr_simulation_get_petal(simulation, attacker)->id != rr_petal_id_seed &&
+                  rr_simulation_get_petal(simulation, attacker)->id != rr_petal_id_nest &&
+                  rr_simulation_get_petal(simulation, attacker)->id != rr_petal_id_meat)))
             {
                 struct rr_component_relations *relations =
                     rr_simulation_get_relations(simulation, attacker);

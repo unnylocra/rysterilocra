@@ -70,7 +70,12 @@ static void system_for_each(EntityIdx entity, void *simulation)
         if (tick_summon_return_to_owner(entity, this))
             return;
     if (physical->stun_ticks > 0)
+    {
+        physical->knockback_scale = 1;
+        if (ai->ticks_until_next_action > 0)
+            --ai->ticks_until_next_action;
         return;
+    }
 
     switch (mob->id)
     {
