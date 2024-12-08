@@ -25,6 +25,8 @@ static void system_for_each_function(EntityIdx entity, void *_captures)
         rr_simulation_get_physical(this, entity);
     struct rr_component_arena *arena =
         rr_simulation_get_arena(this, physical->arena);
+    if (arena->pvp)
+        return;
     struct rr_component_relations *relations =
         rr_simulation_get_relations(this, entity);
     struct rr_component_player_info *player_info =
@@ -42,7 +44,11 @@ static void system_for_each_function(EntityIdx entity, void *_captures)
             grid_y >= checkpoint.y * 2 &&
             grid_y < (checkpoint.y + checkpoint.h) * 2)
         {
-            player_info->client->checkpoint = i;
+            if (player_info->client->checkpoint != i)
+            {
+                player_info->client->checkpoint = i;
+                rr_server_client_write_to_api(player_info->client);
+            }
             break;
         }
     }

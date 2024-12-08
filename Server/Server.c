@@ -563,7 +563,6 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                        sizeof this->clients[j].joined_squad_before);
                 client->squad_pos = this->clients[j].squad_pos;
                 client->squad = this->clients[j].squad;
-                client->checkpoint = this->clients[j].checkpoint;
                 client->in_squad = this->clients[j].in_squad;
                 if (client->player_info != NULL)
                 {

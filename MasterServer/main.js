@@ -114,6 +114,7 @@ function apply_missing_defaults(account)
         petals: {"1:0": 5},
         failed_crafts: {},
         mob_gallery: {},
+        checkpoint: 0,
         // inflated_up_to: 1,
     };
 
@@ -423,6 +424,7 @@ wss.on("connection", (ws, req) => {
                     break;
                 const user = connected_clients[uuid].user;
                 user.xp = decoder.ReadFloat64();
+                user.checkpoint = decoder.ReadUint8();
                 user.petals = {};
                 user.failed_crafts = {};
                 user.mob_gallery = {};
