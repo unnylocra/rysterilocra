@@ -129,18 +129,32 @@ static void colliding_with_function(uint64_t i, void *_captures)
     float distance = rr_vector_get_magnitude(&delta);
     if (distance == 0)
         return;
+    struct rr_component_relations *relations1 =
+        rr_simulation_get_relations(this, entity1);
+    struct rr_component_relations *relations2 =
+        rr_simulation_get_relations(this, entity2);
+    uint8_t inf1 = rr_simulation_has_nest(this, entity1) ||
+                   (rr_simulation_has_flower(this, entity1) &&
+                    rr_simulation_has_mob(this, entity2) &&
+                    rr_simulation_get_mob(this, entity2)->player_spawned &&
+                    is_same_team(relations1->team, relations2->team));
+    uint8_t inf2 = rr_simulation_has_nest(this, entity2) ||
+                   (rr_simulation_has_flower(this, entity2) &&
+                    rr_simulation_has_mob(this, entity1) &&
+                    rr_simulation_get_mob(this, entity1)->player_spawned &&
+                    is_same_team(relations1->team, relations2->team));
     float v2_coeff, v1_coeff;
-    if (physical1->mass == -1 && physical2->mass == -1)
+    if (inf1 && inf2)
     {
         v2_coeff = 0.5f;
         v1_coeff = 0.5f;
     }
-    else if (physical1->mass == -1)
+    else if (inf1)
     {
         v2_coeff = 1.0f;
         v1_coeff = 0.0f;
     }
-    else if (physical2->mass == -1)
+    else if (inf2)
     {
         v2_coeff = 0.0f;
         v1_coeff = 1.0f;

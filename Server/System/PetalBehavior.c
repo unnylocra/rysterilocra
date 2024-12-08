@@ -968,7 +968,6 @@ static void system_petal_misc_logic(EntityIdx id, void *_simulation)
                 rr_component_physical_set_y(nest_physical, physical->y);
                 rr_component_physical_set_radius(nest_physical, 250);
                 rr_component_physical_set_angle(nest_physical, rr_frand() * 2 * M_PI);
-                nest_physical->mass = -1; // inf
                 nest_physical->friction = 0.75;
                 nest_physical->arena = physical->arena;
                 struct rr_component_relations *nest_relations =
