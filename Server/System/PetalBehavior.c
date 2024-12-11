@@ -300,7 +300,7 @@ static void system_flower_petal_movement_logic(
                 struct rr_vector delta = {
                     (flower_vector.x - position_vector.x),
                     (flower_vector.y - position_vector.y)};
-                if (rr_vector_magnitude_cmp(&delta, flower_physical->radius -
+                if (rr_vector_magnitude_cmp(&delta, flower_physical->radius +
                                                         physical->radius) == -1)
                 {
                     float max_heal =
@@ -322,7 +322,7 @@ static void system_flower_petal_movement_logic(
                 }
                 else
                 {
-                    rr_vector_scale(&delta, 0.25);
+                    rr_vector_scale(&delta, 0.4);
                     rr_vector_add(&physical->acceleration, &delta);
                     return;
                 }
@@ -350,7 +350,7 @@ static void system_flower_petal_movement_logic(
                     if (flower_health->health == flower_health->max_health)
                         continue;
                     if (rr_vector_magnitude_cmp(&delta,
-                                                target_physical->radius -
+                                                target_physical->radius +
                                                     physical->radius) == -1)
                     {
                         float max_heal =
@@ -373,7 +373,7 @@ static void system_flower_petal_movement_logic(
                     }
                     else
                     {
-                        rr_vector_scale(&delta, 0.25);
+                        rr_vector_scale(&delta, 0.4);
                         rr_vector_add(&physical->acceleration, &delta);
                         return;
                     }
@@ -476,7 +476,7 @@ static void system_flower_petal_movement_logic(
                 rr_simulation_get_physical(simulation, mob_to_heal);
             struct rr_vector delta = {target_physical->x - physical->x,
                                       target_physical->y - physical->y};
-            if (rr_vector_magnitude_cmp(&delta, target_physical->radius -
+            if (rr_vector_magnitude_cmp(&delta, target_physical->radius +
                                                     physical->radius) == -1)
             {
                 struct rr_component_health *mob_health =
@@ -500,7 +500,7 @@ static void system_flower_petal_movement_logic(
             }
             else
             {
-                rr_vector_scale(&delta, 0.25);
+                rr_vector_scale(&delta, 0.4);
                 rr_vector_add(&physical->acceleration, &delta);
                 return;
             }
