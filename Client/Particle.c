@@ -15,6 +15,7 @@
 
 #include <Client/Particle.h>
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -70,8 +71,9 @@ void rr_renderer_render_particle(struct rr_renderer *renderer,
     case rr_animation_type_damagenumber:
         rr_renderer_set_fill(renderer, this->color);
         rr_renderer_set_stroke(renderer, 0xff222222);
-        rr_renderer_set_text_size(renderer, 36);
-        rr_renderer_set_line_width(renderer, 36 * 0.12);
+        float size = 0.25 * log10f(this->damage + 1) + 0.5;
+        rr_renderer_set_text_size(renderer, size * 36);
+        rr_renderer_set_line_width(renderer, size * 36 * 0.12);
         rr_renderer_set_text_align(renderer, 1);
         rr_renderer_set_text_baseline(renderer, 1);
         rr_renderer_begin_path(renderer);

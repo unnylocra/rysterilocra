@@ -319,10 +319,11 @@ static uint8_t crafting_result_container_should_show(struct rr_ui_element *this,
 static void crafting_result_container_on_render(struct rr_ui_element *this,
                                                 struct rr_game *game)
 {
-    rr_system_particle_render_tick(game, &game->crafting_particle_manager, game->lerp_delta);
     struct rr_renderer *renderer = game->renderer;
     struct rr_renderer_context_state state;
     rr_renderer_scale(renderer, renderer->scale);
+    rr_system_particle_render_tick(game, &game->crafting_particle_manager,
+                                   game->lerp_delta);
     rr_renderer_context_state_init(renderer, &state);
     rr_renderer_draw_background(renderer,
                                 game->crafting_data.crafting_rarity + 1, 1);

@@ -97,7 +97,7 @@ void rr_component_health_render(EntityIdx entity, struct rr_game *game,
     rr_renderer_context_state_init(renderer, &state);
     rr_renderer_set_global_alpha(
         renderer,
-        rr_fclamp(20 * health->lerp_prev_health / health->max_health, 0, 1) *
+        rr_fclamp(10 * health->lerp_prev_health / health->max_health, 0, 1) *
             state.global_alpha);
     rr_renderer_set_stroke(renderer, 0xffdd3434);
     rr_renderer_set_line_width(renderer, 5);
@@ -110,7 +110,7 @@ void rr_component_health_render(EntityIdx entity, struct rr_game *game,
 
     rr_renderer_set_global_alpha(
         renderer,
-        rr_fclamp(20 * health->lerp_health / health->max_health, 0, 1) *
+        rr_fclamp(10 * health->lerp_health / health->max_health, 0, 1) *
             state.global_alpha);
     rr_renderer_set_stroke(renderer, 0xff75dd34);
     rr_renderer_set_line_width(renderer, 7);

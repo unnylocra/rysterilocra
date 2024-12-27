@@ -90,7 +90,7 @@ static void player_hud_on_render(struct rr_ui_element *this,
         rr_renderer_context_state_init(renderer, &state2);
         rr_renderer_set_global_alpha(
             renderer,
-            rr_fclamp(20 * health->lerp_prev_health / health->max_health,
+            rr_fclamp(10 * health->lerp_prev_health / health->max_health,
                       0, 1) * state2.global_alpha);
         rr_renderer_set_stroke(renderer, 0xffdd3434);
         rr_renderer_set_line_width(renderer, 16);
@@ -105,7 +105,7 @@ static void player_hud_on_render(struct rr_ui_element *this,
 
         rr_renderer_set_global_alpha(
             renderer,
-            rr_fclamp(20 * health->lerp_health / health->max_health, 0, 1) *
+            rr_fclamp(10 * health->lerp_health / health->max_health, 0, 1) *
                 state2.global_alpha);
         rr_renderer_set_stroke(renderer, 0xff75dd34);
         rr_renderer_set_line_width(renderer, 20);

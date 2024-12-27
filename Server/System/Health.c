@@ -71,9 +71,13 @@ static void system_default_idle_heal(EntityIdx entity, void *captures)
             rr_simulation_request_entity_deletion(this, entity);
     }
     else
-        // heal 0.25% of max hp per second (0.0001 is 0.0025 / 25)
-        rr_component_health_set_health(health, health->health +
-                                               health->max_health * 0.0001);
+    {
+        float heal = (-0.0001 * log10f(health->max_health) + 0.0006) *
+                         health->max_health;
+        if (heal < 0)
+            heal = 0;
+        rr_component_health_set_health(health, health->health + heal);
+    }
 }
 
 struct lightning_captures
@@ -118,6 +122,8 @@ static void lightning_petal_system(struct rr_simulation *simulation,
     animation->points[1].x = first_physical->x;
     animation->points[1].y = first_physical->y;
     uint32_t chain_amount = petal->rarity + 1;
+    if (rr_simulation_has_petal(simulation, first))
+        chain_amount = 1;
     float damage =
         rr_simulation_get_health(simulation, petal->parent_id)->damage * 0.5;
     EntityIdx target = RR_NULL_ENTITY;

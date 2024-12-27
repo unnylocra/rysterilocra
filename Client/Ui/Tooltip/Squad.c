@@ -85,9 +85,10 @@ static uint8_t dev_text_choose(struct rr_ui_element *this, struct rr_game *game)
 {
     struct rr_ui_choose_element_metadata *data = this->data;
     struct rr_squad_member *member = data->data;
-    if (&game->squad.squad_members[game->squad.squad_pos] == member ||
-        &game->other_squads[game->squad.squad_index]
-            .squad_members[game->squad.squad_pos] == member)
+    if (game->joined_squad &&
+        (&game->squad.squad_members[game->squad.squad_pos] == member ||
+         &game->other_squads[game->squad.squad_index]
+              .squad_members[game->squad.squad_pos] == member))
         return 0;
     if (member->is_dev)
         return 2;

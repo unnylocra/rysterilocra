@@ -79,7 +79,7 @@ void rr_component_petal_render(EntityIdx entity, struct rr_game *game,
         particle->size = (3 + 2 * rr_frand()) * exotic_coeff * size_coeff;
         particle->opacity = (0.3 + 0.2 * rr_frand()) *
                                 exotic_coeff * fireball_coeff;
-        particle->disappearance = 4;
+        particle->disappearance = physical->on_title_screen ? 4 : 6;
         particle->color = 0xffffffff;
         if (petal->id == rr_petal_id_fireball)
         {

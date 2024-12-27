@@ -197,6 +197,9 @@ void rr_server_client_craft_petal(struct rr_server_client *this,
             now -= 1 + rand() % 4;
         xp_gain += CRAFT_XP_GAINS[rarity];
     }
+    if (success > 0)
+        printf("[craft] %s: %s %s x%u\n", this->rivet_account.uuid,
+               RR_RARITY_NAMES[rarity + 1], RR_PETAL_NAMES[id], success);
     this->inventory[id][rarity] -= (count - now);
     this->inventory[id][rarity + 1] += success;
     this->experience += xp_gain;
