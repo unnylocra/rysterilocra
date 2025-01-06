@@ -167,6 +167,8 @@ struct rr_game
     struct rr_ui_element *leave_squad_tooltip;
     struct rr_ui_element *kick_from_squad_tooltip;
     struct rr_ui_element *vote_for_kick_tooltip;
+    struct rr_ui_element *block_in_chat_tooltip;
+    struct rr_ui_element *unblock_in_chat_tooltip;
     struct rr_ui_element *experience_tooltip;
     struct rr_ui_element *link_reminder_tooltip;
     struct rr_ui_element *window;

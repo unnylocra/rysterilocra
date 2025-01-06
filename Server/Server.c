@@ -121,6 +121,9 @@ void rr_server_client_free(struct rr_server_client *this)
         rr_simulation_request_entity_deletion(&this->server->simulation,
                                               this->player_info->parent_id);
     rr_client_leave_squad(this->server, this);
+    uint8_t i = this - this->server->clients;
+    for (uint8_t j = 0; j < RR_MAX_CLIENT_COUNT; ++j)
+        rr_bitset_unset(this->server->clients[j].blocked_clients, i);
     struct rr_server_client_message *message = this->message_root;
     while (message != NULL)
     {
@@ -143,8 +146,12 @@ static void write_animation_function(struct rr_simulation *simulation,
     if (animation->type != rr_animation_type_chat &&
         client->player_info == NULL)
         return;
-    EntityIdx p_info_id =
-        rr_simulation_get_relations(simulation, animation->owner)->root_owner;
+    EntityIdx p_info_id;
+    if (animation->type == rr_animation_type_chat)
+        p_info_id = animation->owner;
+    else
+        p_info_id = rr_simulation_get_relations(simulation,
+                                                animation->owner)->root_owner;
     if (animation->type != rr_animation_type_chat &&
         p_info_id != client->player_info->parent_id)
     {
@@ -158,6 +165,15 @@ static void write_animation_function(struct rr_simulation *simulation,
         animation->color_type != rr_animation_color_type_heal &&
         animation->squad != client->squad)
         return;
+    if (animation->type == rr_animation_type_chat)
+    {
+        struct rr_server_client *sender =
+            rr_simulation_get_player_info(simulation, p_info_id)->client;
+        uint8_t j = sender - client->server->clients;
+        uint8_t blocked = rr_bitset_get(client->blocked_clients, j);
+        if (blocked)
+            return;
+    }
     proto_bug_write_uint8(encoder, 1, "continue");
     proto_bug_write_uint8(encoder, animation->type, "ani type");
     switch (animation->type)
@@ -215,6 +231,9 @@ void rr_server_client_broadcast_update(struct rr_server_client *this)
         proto_bug_write_uint8(&encoder, member->playing, "ready");
         proto_bug_write_uint8(&encoder, member->client->disconnected,
                               "disconnected");
+        uint8_t j = member->client - server->clients;
+        uint8_t blocked = rr_bitset_get(this->blocked_clients, j);
+        proto_bug_write_uint8(&encoder, blocked, "blocked");
         proto_bug_write_uint8(&encoder, member->is_dev, "is_dev");
         proto_bug_write_uint8(&encoder, member->kick_vote_count, "kick votes");
         proto_bug_write_varuint(&encoder, member->level, "level");
@@ -561,6 +580,16 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 memcpy(client->joined_squad_before,
                        this->clients[j].joined_squad_before,
                        sizeof this->clients[j].joined_squad_before);
+                memcpy(client->blocked_clients,
+                       this->clients[j].blocked_clients,
+                       sizeof this->clients[j].blocked_clients);
+                for (uint8_t k = 0; k < RR_MAX_CLIENT_COUNT; ++k)
+                {
+                    uint8_t blocked =
+                        rr_bitset_get(this->clients[k].blocked_clients, j);
+                    if (blocked)
+                        rr_bitset_set(this->clients[k].blocked_clients, i);
+                }
                 client->squad_pos = this->clients[j].squad_pos;
                 client->squad = this->clients[j].squad;
                 client->in_squad = this->clients[j].in_squad;
@@ -1033,7 +1062,31 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
             }
             printf("[chat] %s: %s\n", animation->name, animation->message);
             animation->type = rr_animation_type_chat;
-            animation->squad = client->squad;
+            animation->owner = client->player_info->parent_id;
+            break;
+        }
+        case rr_serverbound_chat_block:
+        {
+            if (client->ticks_to_next_squad_action > 0)
+                break;
+            client->ticks_to_next_squad_action = 10;
+            uint8_t index = proto_bug_read_uint8(&encoder, "block index");
+            uint8_t pos = proto_bug_read_uint8(&encoder, "block pos");
+            if (index >= RR_SQUAD_COUNT)
+                break;
+            if (pos >= RR_SQUAD_MEMBER_COUNT)
+                break;
+            struct rr_squad *squad = &this->squads[index];
+            struct rr_squad_member *block_member = &squad->members[pos];
+            if (!block_member->in_use)
+                break;
+            if (!client->dev && client->in_squad &&
+                client->squad == index && client->squad_pos == pos)
+                break;
+            struct rr_server_client *to_block = block_member->client;
+            uint8_t j = to_block - this->clients;
+            uint8_t blocked = rr_bitset_get(client->blocked_clients, j);
+            rr_bitset_maybe_set(client->blocked_clients, j, blocked ^ 1);
             break;
         }
         case rr_serverbound_dev_cheat:
@@ -1421,6 +1474,9 @@ static void server_tick(struct rr_server *this)
                     proto_bug_write_uint8(&encoder,
                                           member->client->disconnected,
                                           "disconnected");
+                    uint8_t j = member->client - this->clients;
+                    uint8_t blocked = rr_bitset_get(client->blocked_clients, j);
+                    proto_bug_write_uint8(&encoder, blocked, "blocked");
                     proto_bug_write_uint8(&encoder, member->is_dev, "is_dev");
                     proto_bug_write_uint8(&encoder, member->kick_vote_count,
                                           "kick votes");

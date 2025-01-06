@@ -714,6 +714,16 @@ void rr_game_init(struct rr_game *this)
         make_label_tooltip("Vote for kick", 12)
     );
 
+    this->block_in_chat_tooltip = rr_ui_container_add_element(
+        this->window,
+        make_label_tooltip("Block in chat", 12)
+    );
+
+    this->unblock_in_chat_tooltip = rr_ui_container_add_element(
+        this->window,
+        make_label_tooltip("Unblock in chat", 12)
+    );
+
     // this->anti_afk = rr_ui_container_add_element(
     //     this->window,
     //     rr_ui_anti_afk_container_init()
@@ -855,6 +865,8 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     proto_bug_read_uint8(&encoder, "ready");
                 this->squad.squad_members[i].disconnected =
                     proto_bug_read_uint8(&encoder, "disconnected");
+                this->squad.squad_members[i].blocked =
+                    proto_bug_read_uint8(&encoder, "blocked");
                 this->squad.squad_members[i].is_dev =
                     proto_bug_read_uint8(&encoder, "is_dev");
                 uint8_t kick_vote_count =
@@ -866,11 +878,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                         kick_vote_count;
                     sprintf(this->squad.squad_members[i].kick_text, "%u/%u",
                             kick_vote_count, RR_SQUAD_MEMBER_COUNT - 1);
-                    if (kick_vote_count == 0)
-                        rr_ui_set_background(
-                            this->squad.squad_members[i].kick_text_el,
-                            0x00000000);
-                    else if (this->kick_vote_pos == i)
+                    if (this->kick_vote_pos == i)
                         rr_ui_set_background(
                             this->squad.squad_members[i].kick_text_el,
                             0xffff4444);
@@ -976,6 +984,8 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                         proto_bug_read_uint8(&encoder, "ready");
                     squad->squad_members[i].disconnected =
                         proto_bug_read_uint8(&encoder, "disconnected");
+                    squad->squad_members[i].blocked =
+                        proto_bug_read_uint8(&encoder, "blocked");
                     squad->squad_members[i].is_dev =
                         proto_bug_read_uint8(&encoder, "is_dev");
                     uint8_t kick_vote_count =
@@ -987,13 +997,9 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                             kick_vote_count;
                         sprintf(squad->squad_members[i].kick_text, "%u/%u",
                                 kick_vote_count, RR_SQUAD_MEMBER_COUNT - 1);
-                        if (kick_vote_count == 0)
-                            rr_ui_set_background(
-                                squad->squad_members[i].kick_text_el,
-                                0x00000000);
-                        else if (this->joined_squad &&
-                                 this->squad.squad_index == s &&
-                                 this->kick_vote_pos == i)
+                        if (this->joined_squad &&
+                            this->squad.squad_index == s &&
+                            this->kick_vote_pos == i)
                             rr_ui_set_background(
                                 squad->squad_members[i].kick_text_el,
                                 0xffff4444);

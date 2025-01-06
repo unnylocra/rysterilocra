@@ -48,6 +48,7 @@ enum rr_serverbound_packet_header
     rr_serverbound_squad_kick,
     rr_serverbound_petals_craft,
     rr_serverbound_chat,
+    rr_serverbound_chat_block,
     rr_serverbound_dev_cheat,
 };
 

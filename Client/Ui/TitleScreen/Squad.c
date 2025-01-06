@@ -40,10 +40,11 @@ struct squad_flower_metadata
     struct rr_squad_member *member;
 };
 
-struct squad_pos_metadata
+struct squad_member_metadata
 {
     struct rr_game_squad *squad;
     uint8_t pos;
+    struct rr_squad_member *member;
 };
 
 void render_flower(struct rr_ui_element *element, struct rr_game *game)
@@ -202,7 +203,7 @@ static void squad_container_on_event(struct rr_ui_element *this,
 static uint8_t kick_player_should_slow(struct rr_ui_element *this,
                                        struct rr_game *game)
 {
-    struct squad_pos_metadata *data = this->data;
+    struct squad_member_metadata *data = this->data;
     uint8_t index = data->squad->squad_index;
     uint8_t pos = data->pos;
     if (game->is_dev)
@@ -223,10 +224,46 @@ static uint8_t kick_player_should_slow(struct rr_ui_element *this,
     return 1;
 }
 
+static uint8_t member_kick_text_should_slow(struct rr_ui_element *this,
+                                            struct rr_game *game)
+{
+    struct rr_ui_text_metadata *data = this->data;
+    struct rr_squad_member *member = data->data;
+    return member->kick_vote_count > 0;
+}
+
+static uint8_t block_player_should_slow(struct rr_ui_element *this,
+                                        struct rr_game *game)
+{
+    struct squad_member_metadata *data = this->data;
+    uint8_t index = data->squad->squad_index;
+    uint8_t pos = data->pos;
+    if (game->is_dev)
+        return 1;
+    if (!game->joined_squad)
+        return 1;
+    if (game->squad.squad_index != index)
+        return 1;
+    if (game->squad.squad_pos != pos)
+        return 1;
+    return 0;
+}
+
+static void block_player_animate(struct rr_ui_element *this,
+                                 struct rr_game *game)
+{
+    rr_ui_default_animate(this, game);
+    struct squad_member_metadata *data = this->data;
+    if (!data->member->blocked)
+        rr_ui_set_background(this, 0x80fc3434);
+    else
+        rr_ui_set_background(this, 0x800080ff);
+}
+
 static void kick_player_on_event(struct rr_ui_element *this,
                                  struct rr_game *game)
 {
-    struct squad_pos_metadata *data = this->data;
+    struct squad_member_metadata *data = this->data;
     if (game->input_data->mouse_buttons_up_this_tick & 1)
     {
         struct proto_bug encoder;
@@ -244,16 +281,63 @@ static void kick_player_on_event(struct rr_ui_element *this,
     game->cursor = rr_game_cursor_pointer;
 }
 
+static void block_player_on_event(struct rr_ui_element *this,
+                                  struct rr_game *game)
+{
+    struct squad_member_metadata *data = this->data;
+    if (game->input_data->mouse_buttons_up_this_tick & 1)
+    {
+        struct proto_bug encoder;
+        proto_bug_init(&encoder, RR_OUTGOING_PACKET);
+        proto_bug_write_uint8(&encoder, game->socket.quick_verification, "qv");
+        proto_bug_write_uint8(&encoder, rr_serverbound_chat_block, "header");
+        proto_bug_write_uint8(&encoder, data->squad->squad_index, "block index");
+        proto_bug_write_uint8(&encoder, data->pos, "block pos");
+        rr_websocket_send(&game->socket, encoder.current - encoder.start);
+    }
+    if (!data->member->blocked)
+        rr_ui_render_tooltip_below(this, game->block_in_chat_tooltip, game);
+    else
+        rr_ui_render_tooltip_below(this, game->unblock_in_chat_tooltip, game);
+    game->cursor = rr_game_cursor_pointer;
+}
+
 static struct rr_ui_element *kick_player_button_init(struct rr_game_squad *squad,
                                                      uint8_t pos)
 {
     struct rr_ui_element *this =
         rr_ui_close_button_init(20, kick_player_on_event);
-    this->no_reposition = 1;
     this->should_show = kick_player_should_slow;
-    struct squad_pos_metadata *data = malloc(sizeof *data);
+    struct squad_member_metadata *data = malloc(sizeof *data);
     data->squad = squad;
     data->pos = pos;
+    data->member = &squad->squad_members[pos];
+    this->data = data;
+    return this;
+}
+
+static struct rr_ui_element *
+member_kick_text_init(struct rr_squad_member *member)
+{
+    struct rr_ui_element *this =
+        rr_ui_text_init(member->kick_text, 10, 0xffffffff);
+    this->should_show = member_kick_text_should_slow;
+    struct rr_ui_text_metadata *data = this->data;
+    data->data = member;
+    return this;
+}
+
+static struct rr_ui_element *
+block_player_button_init(struct rr_game_squad *squad, uint8_t pos)
+{
+    struct rr_ui_element *this =
+        rr_ui_message_button_init(20, block_player_on_event);
+    this->should_show = block_player_should_slow;
+    this->animate = block_player_animate;
+    struct squad_member_metadata *data = malloc(sizeof *data);
+    data->squad = squad;
+    data->pos = pos;
+    data->member = &squad->squad_members[pos];
     this->data = data;
     return this;
 }
@@ -272,25 +356,24 @@ struct rr_ui_element *squad_player_container_init(struct rr_game_squad *squad,
     struct rr_ui_element *top = rr_ui_v_container_init(
         rr_ui_container_init(), 0, 10, rr_ui_flower_init(member, 50),
         rr_ui_text_init(member->nickname, 14, 0xffffffff), NULL);
-    member->kick_text_el = rr_ui_text_init(member->kick_text, 10, 0x00000000);
-    struct rr_ui_element *fixed = rr_ui_container_init();
-    rr_ui_container_add_element(fixed, kick_player_button_init(squad, pos));
-    fixed->abs_width = fixed->width = fixed->elements.start[0]->abs_width;
-    fixed->abs_height = fixed->height = fixed->elements.start[0]->abs_height;
-    struct rr_ui_element *kick = rr_ui_v_container_init(
-        rr_ui_container_init(), 0, 5, fixed, member->kick_text_el, NULL);
+    member->kick_text_el = member_kick_text_init(member);
+    struct rr_ui_element *options =
+        rr_ui_v_container_init(rr_ui_container_init(), 0, 5,
+                               kick_player_button_init(squad, pos),
+                               member->kick_text_el,
+                               block_player_button_init(squad, pos),
+                               NULL);
     rr_ui_v_pad(rr_ui_set_justify(top, 0, -1), 10);
     rr_ui_v_pad(rr_ui_set_justify(loadout, 0, 1), 10);
-    rr_ui_pad(rr_ui_set_justify(kick, 1, -1), 5);
+    rr_ui_pad(rr_ui_set_justify(options, 1, -1), 5);
     top->prevent_on_event = loadout->prevent_on_event = 1;
-    kick->pass_on_event = fixed->pass_on_event =
-        member->kick_text_el->pass_on_event = 1;
+    options->pass_on_event = member->kick_text_el->pass_on_event = 1;
     struct rr_ui_element *squad_container = rr_ui_container_init();
     squad_container->abs_width = squad_container->width = 120;
     squad_container->abs_height = squad_container->height = 120;
     rr_ui_container_add_element(squad_container, loadout);
     rr_ui_container_add_element(squad_container, top);
-    rr_ui_container_add_element(squad_container, kick);
+    rr_ui_container_add_element(squad_container, options);
     squad_container->on_event = squad_container_on_event;
     squad_container->resizeable = 0;
     struct rr_ui_container_metadata *d_data = squad_container->data;

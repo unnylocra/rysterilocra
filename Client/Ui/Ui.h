@@ -45,6 +45,7 @@ struct rr_ui_text_metadata
 {
     char const *text;
     float size;
+    void *data;
 };
 
 struct rr_ui_dynamic_text_metadata
@@ -174,6 +175,9 @@ extern struct rr_ui_element *rr_ui_h_slider_init(float, float, float *,
 extern struct rr_ui_element *
 rr_ui_close_button_init(float,
                         void (*)(struct rr_ui_element *, struct rr_game *));
+extern struct rr_ui_element *
+rr_ui_message_button_init(float,
+                          void (*)(struct rr_ui_element *, struct rr_game *));
 
 extern struct rr_ui_element *rr_ui_scroll_container_init(struct rr_ui_element *,
                                                          float);
