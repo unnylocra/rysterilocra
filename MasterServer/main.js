@@ -342,7 +342,7 @@ const saveDatabaseToFile = () => {
     if (changed)
     {
         changed = false;
-        console.log("saving database to file:", databaseFilePath);
+        // console.log("saving database to file:", databaseFilePath);
         const databaseData = JSON.stringify(database);
         fs.writeFileSync(databaseFilePath, databaseData, "utf8");
     }
@@ -436,6 +436,12 @@ wss.on("connection", (ws, req) => {
                     user.petals[id+':'+rarity] = count;
                     id = decoder.ReadUint8();
                 }
+                let basic_count = 0;
+                for (let rarity = 0; rarity < 8; ++rarity)
+                    if ("1:" + rarity in user.petals)
+                        basic_count += user.petals["1:" + rarity];
+                if (basic_count === 0)
+                    console.log(`server -> api bad account ${user.username}`);
                 id = decoder.ReadUint8();
                 while (id)
                 {

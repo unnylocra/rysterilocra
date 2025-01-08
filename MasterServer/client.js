@@ -29,6 +29,12 @@ class GameClient
         encoder.WriteStringNT(user.username);
         encoder.WriteFloat64(user.xp);
         encoder.WriteUint8(user.checkpoint);
+        let basic_count = 0;
+        for (let rarity = 0; rarity < 8; ++rarity)
+            if ("1:" + rarity in user.petals)
+                basic_count += user.petals["1:" + rarity];
+        if (basic_count === 0)
+            console.log(`api -> server bad account ${user.username}`);
         for (const petal of Object.keys(user.petals))
         {
             if (!(user.petals[petal] > 0))
