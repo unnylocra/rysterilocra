@@ -94,6 +94,7 @@ void rr_client_can_rejoin_squads(struct rr_server *this,
 uint8_t rr_client_find_squad(struct rr_server *this,
                              struct rr_server_client *member)
 {
+    return rr_client_create_squad(this, member);
     for (uint8_t i = 0; i < RR_SQUAD_COUNT; ++i)
         if (rr_squad_has_space(&this->squads[i]) && !this->squads[i].private &&
             !rr_bitset_get(member->joined_squad_before, i))
