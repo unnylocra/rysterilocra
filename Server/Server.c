@@ -250,7 +250,6 @@ void rr_server_client_broadcast_update(struct rr_server_client *this)
     proto_bug_write_uint8(&encoder, RR_GLOBAL_BIOME, "biome");
     char joined_code[16];
     sprintf(joined_code, "%s-%s", server->server_alias, squad->squad_code);
-    strcpy(joined_code, "(private)");
     proto_bug_write_string(&encoder, joined_code, 16, "squad code");
     proto_bug_write_uint8(&encoder, this->player_info != NULL, "in game");
     if (this->player_info != NULL)
@@ -962,8 +961,8 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                             rr_bitset_unset(this->clients[i].joined_squad_before,
                                             client->squad);
                 }
-                // else if (client->squad_pos == 0)
-                //     squad->private = 0;
+                else if (client->squad_pos == 0)
+                    squad->private = 0;
             }
             break;
         }
@@ -1495,8 +1494,8 @@ static void server_tick(struct rr_server *this)
                 proto_bug_write_uint8(&encoder, squad->private, "private");
                 proto_bug_write_uint8(&encoder, RR_GLOBAL_BIOME, "biome");
                 char joined_code[16];
-                if (client->dev || !squad->private /*||
-                    (client->in_squad && client->squad == s)*/)
+                if (client->dev || !squad->private ||
+                    (client->in_squad && client->squad == s))
                     sprintf(joined_code, "%s-%s", this->server_alias,
                             squad->squad_code);
                 else
