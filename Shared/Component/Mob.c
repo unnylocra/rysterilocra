@@ -117,7 +117,7 @@ void rr_component_mob_free(struct rr_component_mob *this,
             if (rr_vector_magnitude_cmp(&delta, 2000) == 1)
                 continue;
             ++member->client->mob_gallery[this->id][this->rarity];
-            rr_server_client_write_to_api(member->client);
+            rr_server_client_write_to_api(member->client, __func__);
             rr_server_client_write_account(member->client);
         }
 

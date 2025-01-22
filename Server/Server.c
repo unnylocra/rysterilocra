@@ -1434,7 +1434,7 @@ static void server_tick(struct rr_server *this)
                             client->player_info->drops_this_tick[i].rarity;
                         ++client->inventory[id][rarity];
                     }
-                    rr_server_client_write_to_api(client);
+                    rr_server_client_write_to_api(client, __func__);
                     rr_server_client_write_account(client);
                     client->player_info->drops_this_tick_size = 0;
                 }

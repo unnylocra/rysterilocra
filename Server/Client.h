@@ -99,4 +99,4 @@ void rr_server_client_craft_petal(struct rr_server_client *, struct rr_server *,
                                   uint8_t, uint8_t, uint32_t);
 int rr_server_client_read_from_api(struct rr_server_client *,
                                    struct rr_binary_encoder *);
-void rr_server_client_write_to_api(struct rr_server_client *);
+void rr_server_client_write_to_api(struct rr_server_client *, char const *);

@@ -47,7 +47,7 @@ static void system_for_each_function(EntityIdx entity, void *_captures)
             if (player_info->client->checkpoint != i)
             {
                 player_info->client->checkpoint = i;
-                rr_server_client_write_to_api(player_info->client);
+                rr_server_client_write_to_api(player_info->client, __func__);
             }
             break;
         }
