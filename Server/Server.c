@@ -251,6 +251,7 @@ void rr_server_client_broadcast_update(struct rr_server_client *this)
     char joined_code[16];
     sprintf(joined_code, "%s-%s", server->server_alias, squad->squad_code);
     proto_bug_write_string(&encoder, joined_code, 16, "squad code");
+    proto_bug_write_uint8(&encoder, this->afk_ticks > 9 * 60 * 25, "afk");
     proto_bug_write_uint8(&encoder, this->player_info != NULL, "in game");
     if (this->player_info != NULL)
         rr_simulation_write_binary(&server->simulation, &encoder,
@@ -697,15 +698,21 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
             }
             if ((x != 0 || y != 0) && fabsf(x) < 10000 && fabsf(y) < 10000)
             {
+                if (client->player_accel_x != x || client->player_accel_y != y)
+                    client->afk_ticks = 0;
                 client->player_accel_x = x;
                 client->player_accel_y = y;
             }
             else
             {
+                if (client->player_accel_x != 0 || client->player_accel_y != 0)
+                    client->afk_ticks = 0;
                 client->player_accel_x = 0;
                 client->player_accel_y = 0;
             }
 
+            if (client->player_info->input != ((movementFlags >> 4) & 3))
+                client->afk_ticks = 0;
             client->player_info->input = (movementFlags >> 4) & 3;
             break;
         }
@@ -1410,6 +1417,32 @@ static void server_tick(struct rr_server *this)
                 }
                 continue;
             }
+            if (!client->dev && client->player_info != NULL &&
+                client->player_info->flower_id != RR_NULL_ENTITY &&
+                !is_dead_flower(&this->simulation,
+                                client->player_info->flower_id))
+            {
+                if (++client->afk_ticks > 10 * 60 * 25)
+                {
+                    rr_simulation_request_entity_deletion(
+                        &this->simulation, client->player_info->parent_id);
+                    client->player_info = NULL;
+                    rr_client_leave_squad(this, client);
+                    if (client->disconnected == 0)
+                    {
+                        struct proto_bug failure;
+                        proto_bug_init(&failure, outgoing_message);
+                        proto_bug_write_uint8(
+                            &failure, rr_clientbound_squad_fail, "header");
+                        proto_bug_write_uint8(&failure, 3, "fail type");
+                        rr_server_client_write_message(
+                            client, failure.start,
+                            failure.current - failure.start);
+                    }
+                }
+            }
+            else
+                client->afk_ticks = 0;
             if (client->pending_kick)
                 lws_callback_on_writable(client->socket_handle);
             if (!client->verified)

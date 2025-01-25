@@ -511,6 +511,7 @@ void rr_game_init(struct rr_game *this)
                                             rr_ui_text_init("Squad doesn't exist", 24, 0xffff2222),
                                             rr_ui_text_init("Squad is full", 24, 0xffff2222),
                                             rr_ui_text_init("Kicked from squad", 24, 0xffff2222),
+                                            rr_ui_text_init("Kicked for AFK", 24, 0xffff2222),
                                             NULL
                                         ),
                                         rr_ui_flex_container_init(
@@ -724,10 +725,10 @@ void rr_game_init(struct rr_game *this)
         make_label_tooltip("Unblock in chat", 12)
     );
 
-    // this->anti_afk = rr_ui_container_add_element(
-    //     this->window,
-    //     rr_ui_anti_afk_container_init()
-    // );
+    this->anti_afk = rr_ui_container_add_element(
+        this->window,
+        rr_ui_anti_afk_container_init()
+    );
 
     // clang-format on
 
@@ -920,6 +921,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                                   "squad code");
             // this->is_dev =
             //     this->squad.squad_members[this->squad.squad_pos].is_dev;
+            this->afk = proto_bug_read_uint8(&encoder, "afk");
             if (proto_bug_read_uint8(&encoder, "in game") == 1)
             {
                 if (!this->simulation_ready)

@@ -202,6 +202,7 @@ struct rr_game
     uint8_t account_linked : 1;
     uint8_t is_dev : 1;
     uint8_t text_input_focused : 1;
+    uint8_t afk : 1;
     uint8_t socket_error;
     uint8_t menu_open;
     uint8_t ticks_until_text_cache;
