@@ -87,7 +87,7 @@ static void petal_switch_button_event(struct rr_ui_element *this,
     if (slot->id != 0)
         rr_ui_render_tooltip_above(this,
             game->petal_tooltips[slot->id][slot->rarity], game);
-    if ((slot1->id != 0 || slot2->id != 0) && !game->flower_dead)
+    if (slot1->id != 0 || slot2->id != 0)
         game->cursor = rr_game_cursor_pointer;
 }
 

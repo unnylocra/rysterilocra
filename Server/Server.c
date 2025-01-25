@@ -720,10 +720,6 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
         {
             if (client->player_info == NULL)
                 break;
-            if (client->player_info->flower_id == RR_NULL_ENTITY ||
-                is_dead_flower(&this->simulation,
-                               client->player_info->flower_id))
-                break;
             uint8_t pos = proto_bug_read_uint8(&encoder, "petal switch");
             while (pos != 0 && pos <= RR_MAX_SLOT_COUNT)
             {
