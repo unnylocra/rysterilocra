@@ -105,6 +105,8 @@ void rr_component_mob_free(struct rr_component_mob *this,
                 continue;
             if (member->client->disconnected)
                 continue;
+            if (member->client->verified == 0)
+                continue;
             if (member->client->player_info == NULL)
                 continue;
             if (member->client->player_info->flower_id == RR_NULL_ENTITY)

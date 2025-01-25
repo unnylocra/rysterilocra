@@ -31,6 +31,10 @@ static void system_for_each_function(EntityIdx entity, void *_captures)
         rr_simulation_get_relations(this, entity);
     struct rr_component_player_info *player_info =
         rr_simulation_get_player_info(this, relations->owner);
+    if (player_info->client->disconnected)
+        return;
+    if (player_info->client->verified == 0)
+        return;
     uint32_t grid_x = rr_fclamp(physical->x / arena->maze->grid_size,
                                 0, arena->maze->maze_dim - 1);
     uint32_t grid_y = rr_fclamp(physical->y / arena->maze->grid_size,
