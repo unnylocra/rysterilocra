@@ -19,6 +19,11 @@
 
 #include <Shared/Entity.h>
 
+#define get_petal_cooldown(id, rarity)                                         \
+    (id != rr_petal_id_bubble                                                  \
+         ? RR_PETAL_DATA[id].cooldown                                          \
+         : 25 * RR_PETAL_RARITY_SCALE[rarity].bubble_cooldown)
+
 enum rr_animation_type
 {
     rr_animation_type_default = 0,
@@ -125,13 +130,14 @@ enum rr_petal_id
     rr_petal_id_nest,      // 24
     rr_petal_id_fireball,  // 25
     rr_petal_id_meat,      // 26
+    rr_petal_id_bubble,    // 27
 
-    rr_petal_id_mandible,  // 27
-    rr_petal_id_wax,       // 28
-    rr_petal_id_sand,      // 29
-    rr_petal_id_mint,      // 30
+    rr_petal_id_mandible,  // 28
+    rr_petal_id_wax,       // 29
+    rr_petal_id_sand,      // 30
+    rr_petal_id_mint,      // 31
 
-    rr_petal_id_max,       // 31
+    rr_petal_id_max,       // 32
 };
 
 enum rr_mob_id
@@ -201,6 +207,7 @@ struct rr_petal_rarity_scale
 {
     float heal;
     float seed_cooldown;
+    float bubble_cooldown;
     float web_radius;
     float bone_reduction;
 };

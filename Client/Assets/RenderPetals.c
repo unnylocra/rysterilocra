@@ -1609,6 +1609,25 @@ void rr_renderer_draw_petal(struct rr_renderer *renderer, uint8_t id,
             rr_renderer_bezier_curve_to(renderer, 265.99, 318.79, 312.40, 322.99, 312.40, 322.99);
             rr_renderer_stroke(renderer);
             break;
+        case rr_petal_id_bubble:
+            rr_renderer_scale(renderer, 12.0f / 928.0f);
+            rr_renderer_translate(renderer, -1028, -1028);
+            rr_renderer_set_fill(renderer, 0x80bce3ea);
+            rr_renderer_begin_path(renderer);
+            rr_renderer_arc(renderer, 1028, 1028, 828);
+            rr_renderer_fill(renderer);
+            rr_renderer_set_stroke(renderer, 0x99bfe4e2);
+            rr_renderer_set_line_width(renderer, 200);
+            rr_renderer_begin_path(renderer);
+            rr_renderer_arc(renderer, 1028, 1028, 928);
+            rr_renderer_stroke(renderer);
+            rr_renderer_translate(renderer, 603.593, 728.503);
+            rr_renderer_rotate(renderer, 0.726);
+            rr_renderer_set_fill(renderer, 0xcce7edf0);
+            rr_renderer_begin_path(renderer);
+            rr_renderer_ellipse(renderer, 0, 0, 187, 314);
+            rr_renderer_fill(renderer);
+            break;
         case rr_petal_id_mandible:
             rr_renderer_scale(renderer, 0.09);
             rr_renderer_set_fill(renderer, 0xff171612);

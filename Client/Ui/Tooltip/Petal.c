@@ -30,10 +30,6 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     char fmt[16];
     if (RR_PETAL_DATA[id].cooldown == 0)
         cd[0] = 0;
-    else if (RR_PETAL_DATA[id].secondary_cooldown > 1)
-        sprintf(cd, "↻ %.1f + %.1fs",
-                (RR_PETAL_DATA[id].cooldown * 2 / 5) * 0.1,
-                (RR_PETAL_DATA[id].secondary_cooldown * 2 / 5) * 0.1);
     else if (id == rr_petal_id_seed)
         sprintf(cd, "↻ %.1f + %.1fs",
                 (RR_PETAL_DATA[id].cooldown * 2 / 5) * 0.1,
@@ -41,6 +37,14 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     else if (id == rr_petal_id_nest)
         sprintf(cd, "↻ %.1f + %.1fs",
                 (RR_PETAL_DATA[id].cooldown * 2 / 5) * 0.1, 5.0);
+    else if (id == rr_petal_id_bubble)
+        sprintf(cd, "↻ %.1f + %.1fs",
+                RR_PETAL_RARITY_SCALE[rarity].bubble_cooldown,
+                (RR_PETAL_DATA[id].secondary_cooldown * 2 / 5) * 0.1);
+    else if (RR_PETAL_DATA[id].secondary_cooldown > 1)
+        sprintf(cd, "↻ %.1f + %.1fs",
+                (RR_PETAL_DATA[id].cooldown * 2 / 5) * 0.1,
+                (RR_PETAL_DATA[id].secondary_cooldown * 2 / 5) * 0.1);
     else
         sprintf(cd, "↻ %.1fs", (RR_PETAL_DATA[id].cooldown * 2 / 5) * 0.1);
     char *hp = malloc((sizeof *hp) * 16);

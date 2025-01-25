@@ -170,7 +170,7 @@ static void system_petal_detach(struct rr_simulation *simulation,
     struct rr_component_player_info_petal *ppetal =
         &player_info->slots[outer_pos].petals[inner_pos];
     ppetal->entity_hash = RR_NULL_ENTITY;
-    ppetal->cooldown_ticks = petal_data->cooldown;
+    ppetal->cooldown_ticks = get_petal_cooldown(petal->id, petal->rarity);
 }
 
 static uint8_t is_close_enough_to_parent(struct rr_simulation *simulation,
@@ -506,6 +506,17 @@ static void system_flower_petal_movement_logic(
             }
             break;
         }
+        case rr_petal_id_bubble:
+        {
+            if ((player_info->input & 2) == 0)
+                break;
+            struct rr_vector accel = {flower_vector.x - position_vector.x,
+                                      flower_vector.y - position_vector.y};
+            rr_vector_set_magnitude(&accel, 40);
+            rr_vector_add(&flower_physical->acceleration, &accel);
+            rr_simulation_request_entity_deletion(simulation, id);
+            break;
+        }
         default:
             break;
         }
@@ -809,12 +820,14 @@ static void rr_system_petal_reload_foreach_function(EntityIdx id,
                 !rr_simulation_entity_alive(simulation, p_petal->entity_hash))
             {
                 p_petal->entity_hash = RR_NULL_ENTITY;
-                p_petal->cooldown_ticks = data->cooldown;
+                p_petal->cooldown_ticks =
+                    get_petal_cooldown(slot->id, slot->rarity);
             }
             if (p_petal->entity_hash == RR_NULL_ENTITY)
             {
                 float cd = rr_fclamp(
-                    255.0f * p_petal->cooldown_ticks / data->cooldown, 0, 255);
+                    255.0f * p_petal->cooldown_ticks /
+                        get_petal_cooldown(slot->id, slot->rarity), 0, 255);
                 if (cd > max_cd)
                     max_cd = cd;
                 if (--p_petal->cooldown_ticks <= 0)

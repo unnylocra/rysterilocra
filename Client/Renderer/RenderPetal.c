@@ -58,7 +58,8 @@ void rr_component_petal_render(EntityIdx entity, struct rr_game *game,
         if (physical->on_title_screen)
         {
             if (petal->id == rr_petal_id_magnet ||
-                petal->id == rr_petal_id_crest)
+                petal->id == rr_petal_id_crest ||
+                petal->id == rr_petal_id_bubble)
                 pos_offset = physical->radius * rr_frand();
         }
         struct rr_simulation_animation *particle =
