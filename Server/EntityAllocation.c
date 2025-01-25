@@ -202,9 +202,6 @@ EntityIdx rr_simulation_alloc_mob(struct rr_simulation *this,
     mob->zone = &DEFAULT_GRID;
     rr_component_mob_set_id(mob, mob_id);
     rr_component_mob_set_rarity(mob, rarity_id);
-    if (mob->id == rr_mob_id_fern && mob->rarity <= rr_rarity_id_exotic)
-        mob->force_despawn = 1;
-    mob->ticks_to_force_despawn = powf(1.65, mob->rarity) * (1 + 0.25 * rr_frand()) * 60 * 25;
     struct rr_mob_rarity_scale const *rarity_scale =
         RR_MOB_RARITY_SCALING + rarity_id;
     struct rr_mob_data const *mob_data = RR_MOB_DATA + mob_id;

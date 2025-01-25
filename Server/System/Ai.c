@@ -84,21 +84,11 @@ static void system_for_each(EntityIdx entity, void *simulation)
         ai->ai_type = rr_ai_type_none;
         break;
     case rr_mob_id_triceratops:
-        if (mob->rarity >= rr_rarity_id_exotic)
-            ai->ai_type = rr_ai_type_aggro;
-        else
-        {
-            if (mob->rarity >= rr_rarity_id_legendary)
-                mob->force_despawn = 1;
-            ai->ai_type = rr_ai_type_neutral;
-        }
+        ai->ai_type = rr_ai_type_neutral;
         tick_ai_triceratops(entity, this);
         break;
     case rr_mob_id_trex:
-        if (mob->rarity >= rr_rarity_id_rare || mob->player_spawned)
-            ai->ai_type = rr_ai_type_aggro;
-        else
-            ai->ai_type = rr_ai_type_neutral;
+        ai->ai_type = rr_ai_type_aggro;
         tick_ai_trex(entity, this);
         break;
     case rr_mob_id_meteor:
@@ -106,17 +96,11 @@ static void system_for_each(EntityIdx entity, void *simulation)
         tick_ai_meteor(entity, this);
         break;
     case rr_mob_id_pteranodon:
-        if (mob->rarity >= rr_rarity_id_rare)
-            ai->ai_type = rr_ai_type_aggro;
-        else
-            ai->ai_type = rr_ai_type_neutral;
+        ai->ai_type = rr_ai_type_aggro;
         tick_ai_pteranodon(entity, this);
         break;
     case rr_mob_id_dakotaraptor:
-        if (mob->rarity >= rr_rarity_id_epic)
-            ai->ai_type = rr_ai_type_aggro;
-        else
-            ai->ai_type = rr_ai_type_neutral;
+        ai->ai_type = rr_ai_type_aggro;
         tick_ai_default(entity, this, RR_PLAYER_SPEED *
                                       (1.5 - mob->rarity * 0.05));
         break;
@@ -125,38 +109,19 @@ static void system_for_each(EntityIdx entity, void *simulation)
         tick_ai_pachycephalosaurus(entity, this);
         break;
     case rr_mob_id_ornithomimus:
-        if (mob->rarity >= rr_rarity_id_legendary)
-            ai->ai_type = rr_ai_type_aggro;
-        else
-        {
-            mob->force_despawn = 1;
-            ai->ai_type = rr_ai_type_neutral;
-        }
+        ai->ai_type = rr_ai_type_neutral;
         tick_ai_ornithomimus(entity, this);
         break;
     case rr_mob_id_ankylosaurus:
-        if (mob->rarity >= rr_rarity_id_legendary)
-            ai->ai_type = rr_ai_type_aggro;
-        else
-            ai->ai_type = rr_ai_type_neutral;
+        ai->ai_type = rr_ai_type_neutral;
         tick_ai_ankylosaurus(entity, this);
         break;
     case rr_mob_id_quetzalcoatlus:
-        if (mob->rarity >= rr_rarity_id_rare)
-            ai->ai_type = rr_ai_type_aggro;
-        else
-            ai->ai_type = rr_ai_type_neutral;
+        ai->ai_type = rr_ai_type_aggro;
         tick_ai_quetzalcoaltus(entity, this);
         break;
     case rr_mob_id_edmontosaurus:
-        if (mob->rarity >= rr_rarity_id_mythic)
-            ai->ai_type = rr_ai_type_aggro;
-        else
-        {
-            if (mob->rarity >= rr_rarity_id_legendary)
-                mob->force_despawn = 1;
-            ai->ai_type = rr_ai_type_neutral;
-        }
+        ai->ai_type = rr_ai_type_neutral;
         tick_ai_default(entity, this, RR_PLAYER_SPEED);
         break;
     default:

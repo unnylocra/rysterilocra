@@ -294,15 +294,6 @@ static void despawn_mob(EntityIdx entity, void *_simulation)
     }
     else
         mob->ticks_to_despawn = 30 * 25;
-    if (mob->force_despawn && (mob->id == rr_mob_id_ornithomimus ||
-                               ai_is_passive(ai)))
-    {
-        if (--mob->ticks_to_force_despawn == 0)
-        {
-            mob->no_drop = 1;
-            rr_simulation_request_entity_deletion(this, entity);
-        }
-    }
 }
 
 static float get_max_points(struct rr_simulation *this,
