@@ -133,11 +133,6 @@ void rr_server_client_write_account(struct rr_server_client *client)
     proto_bug_write_string(&encoder, client->rivet_account.uuid,
                            sizeof client->rivet_account.uuid, "uuid");
     proto_bug_write_float64(&encoder, client->experience, "xp");
-    uint32_t basic_count = 0;
-    for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
-        basic_count += client->inventory[rr_petal_id_basic][rarity];
-    if (basic_count == 0)
-        printf("server -> client bad account %s\n", client->rivet_account.uuid);
     for (uint8_t id = 1; id < rr_petal_id_max; ++id)
         for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
         {
@@ -282,11 +277,6 @@ int rr_server_client_read_from_api(struct rr_server_client *this,
             this->inventory[id][rarity] = count;
         id = rr_binary_encoder_read_uint8(encoder);
     }
-    uint32_t basic_count = 0;
-    for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
-        basic_count += this->inventory[rr_petal_id_basic][rarity];
-    if (basic_count == 0)
-        printf("api -> server bad account %s\n", this->rivet_account.uuid);
     id = rr_binary_encoder_read_uint8(encoder);
     while (id)
     {
@@ -318,11 +308,6 @@ void rr_server_client_write_to_api(struct rr_server_client *this)
     rr_binary_encoder_write_nt_string(&encoder, this->rivet_account.uuid);
     rr_binary_encoder_write_float64(&encoder, this->experience);
     rr_binary_encoder_write_uint8(&encoder, this->checkpoint);
-    uint32_t basic_count = 0;
-    for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
-        basic_count += this->inventory[rr_petal_id_basic][rarity];
-    if (basic_count == 0)
-        printf("server -> api bad account %s\n", this->rivet_account.uuid);
     for (uint8_t id = 1; id < rr_petal_id_max; ++id)
         for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
         {
