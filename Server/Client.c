@@ -227,7 +227,7 @@ void rr_server_client_craft_petal(struct rr_server_client *this,
             health->damage = health->max_health * 0.1;
         }
     }
-    rr_server_client_write_to_api(this, __func__);
+    rr_server_client_write_to_api(this);
 
     struct proto_bug encoder;
     proto_bug_init(&encoder, outgoing_message);
@@ -308,7 +308,7 @@ int rr_server_client_read_from_api(struct rr_server_client *this,
     return 1;
 }
 
-void rr_server_client_write_to_api(struct rr_server_client *this, char const *caller)
+void rr_server_client_write_to_api(struct rr_server_client *this)
 {
     if (this->dev)
         return;
@@ -322,7 +322,7 @@ void rr_server_client_write_to_api(struct rr_server_client *this, char const *ca
     for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
         basic_count += this->inventory[rr_petal_id_basic][rarity];
     if (basic_count == 0)
-        printf("server -> api bad account %s %s\n", this->rivet_account.uuid, caller);
+        printf("server -> api bad account %s\n", this->rivet_account.uuid);
     for (uint8_t id = 1; id < rr_petal_id_max; ++id)
         for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)
         {
