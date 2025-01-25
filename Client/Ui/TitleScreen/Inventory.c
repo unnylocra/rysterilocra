@@ -43,8 +43,9 @@ static void inventory_button_on_event(struct rr_ui_element *this,
     if (data->count == 0)
         return;
     if (!game->simulation_ready)
-        for (uint8_t i = 0; i < 20; ++i)
-            if (i % 10 < game->slots_unlocked && game->cache.loadout[i].id == 0)
+        for (uint8_t i = 0; i < RR_MAX_SLOT_COUNT * 2; ++i)
+            if (i % RR_MAX_SLOT_COUNT < game->slots_unlocked &&
+                game->cache.loadout[i].id == 0)
             {
                 if (game->input_data->mouse_buttons_up_this_tick & 1 &&
                     game->pressed == this)

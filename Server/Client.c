@@ -76,14 +76,14 @@ void rr_server_client_create_flower(struct rr_server_client *this)
     struct rr_binary_encoder encoder;
     rr_binary_encoder_init(&encoder, outgoing_message);
     rr_binary_encoder_write_uint8(&encoder, 3);
-    for (uint64_t i = 0; i < 10; i++)
+    for (uint64_t i = 0; i < RR_MAX_SLOT_COUNT; i++)
     {
         struct rr_component_player_info_petal_slot *slot =
             this->player_info->slots + i;
         rr_binary_encoder_write_uint8(&encoder, slot->id);
         rr_binary_encoder_write_uint8(&encoder, slot->rarity);
     }
-    for (uint64_t i = 0; i < 10; i++)
+    for (uint64_t i = 0; i < RR_MAX_SLOT_COUNT; i++)
     {
         struct rr_component_player_info_petal_slot *slot =
             this->player_info->secondary_slots + i;
@@ -252,7 +252,7 @@ int rr_server_client_read_from_api(struct rr_server_client *this,
     {
         this->checkpoint = 4;
         this->experience = 0;
-        for (uint32_t lvl = 2; lvl <= 120; ++lvl)
+        for (uint32_t lvl = 2; lvl <= 140; ++lvl)
             this->experience += xp_to_reach_level(lvl);
         for (uint8_t id = 1; id < rr_petal_id_max; ++id)
             for (uint8_t rarity = 0; rarity < rr_rarity_id_max; ++rarity)

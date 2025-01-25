@@ -28,6 +28,8 @@ typedef uint32_t EntityHash;
 #define RR_SQUAD_COUNT (RR_MAX_CLIENT_COUNT)
 #define RR_MAX_COLLISION_COUNT (256)
 
+#define RR_MAX_SLOT_COUNT (12)
+
 struct rr_id_rarity_pair
 {
     uint8_t id;

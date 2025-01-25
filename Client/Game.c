@@ -55,14 +55,14 @@
 static void rr_game_validate_loadout(struct rr_game *this)
 {
     memset(this->loadout_counts, 0, sizeof this->loadout_counts);
-    for (uint8_t i = 0; i < 20; ++i)
+    for (uint8_t i = 0; i < RR_MAX_SLOT_COUNT * 2; ++i)
     {
         uint8_t id = this->cache.loadout[i].id;
         if (id == 0)
             continue;
         uint8_t rarity = this->cache.loadout[i].rarity;
         if (this->loadout_counts[id][rarity] >= this->inventory[id][rarity] ||
-            (i % 10) >= this->slots_unlocked)
+            (i % RR_MAX_SLOT_COUNT) >= this->slots_unlocked)
             this->cache.loadout[i].id = this->cache.loadout[i].rarity = 0;
         else
             ++this->loadout_counts[id][rarity];
@@ -548,11 +548,11 @@ void rr_game_init(struct rr_game *this)
                         rr_ui_title_screen_loadout_button_init(7),
                         rr_ui_title_screen_loadout_button_init(8),
                         rr_ui_title_screen_loadout_button_init(9),
+                        rr_ui_title_screen_loadout_button_init(10),
+                        rr_ui_title_screen_loadout_button_init(11),
                         NULL
                     ),
                     rr_ui_h_container_init(rr_ui_container_init(), 0, 15,
-                        rr_ui_title_screen_loadout_button_init(10),
-                        rr_ui_title_screen_loadout_button_init(11),
                         rr_ui_title_screen_loadout_button_init(12),
                         rr_ui_title_screen_loadout_button_init(13),
                         rr_ui_title_screen_loadout_button_init(14),
@@ -561,6 +561,10 @@ void rr_game_init(struct rr_game *this)
                         rr_ui_title_screen_loadout_button_init(17),
                         rr_ui_title_screen_loadout_button_init(18),
                         rr_ui_title_screen_loadout_button_init(19),
+                        rr_ui_title_screen_loadout_button_init(20),
+                        rr_ui_title_screen_loadout_button_init(21),
+                        rr_ui_title_screen_loadout_button_init(22),
+                        rr_ui_title_screen_loadout_button_init(23),
                         NULL
                     ),
                     // rr_ui_text_init("https://github.com/maxnest0x0/rysteria", 15, 0xffffffff),
@@ -615,6 +619,8 @@ void rr_game_init(struct rr_game *this)
                         rr_ui_loadout_button_init(7),
                         rr_ui_loadout_button_init(8),
                         rr_ui_loadout_button_init(9),
+                        rr_ui_loadout_button_init(10),
+                        rr_ui_loadout_button_init(11),
                         rr_ui_text_init("[X]", 18, 0x00000000),
                         NULL
                     ),
@@ -630,6 +636,8 @@ void rr_game_init(struct rr_game *this)
                         rr_ui_secondary_loadout_button_init(7),
                         rr_ui_secondary_loadout_button_init(8),
                         rr_ui_secondary_loadout_button_init(9),
+                        rr_ui_secondary_loadout_button_init(10),
+                        rr_ui_secondary_loadout_button_init(11),
                         NULL
                     ),
                     NULL
@@ -904,7 +912,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                 proto_bug_read_string(&encoder,
                                       this->squad.squad_members[i].nickname, 16,
                                       "nickname");
-                for (uint32_t j = 0; j < 20; ++j)
+                for (uint32_t j = 0; j < RR_MAX_SLOT_COUNT * 2; ++j)
                 {
                     this->squad.squad_members[i].loadout[j].id =
                         proto_bug_read_uint8(&encoder, "id");
@@ -959,10 +967,13 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                                           "id");
                     proto_bug_write_uint8(
                         &encoder, this->cache.loadout[i].rarity, "rarity");
-                    proto_bug_write_uint8(&encoder,
-                                          this->cache.loadout[i + 10].id, "id");
                     proto_bug_write_uint8(
-                        &encoder, this->cache.loadout[i + 10].rarity, "rarity");
+                        &encoder,
+                        this->cache.loadout[i + RR_MAX_SLOT_COUNT].id, "id");
+                    proto_bug_write_uint8(
+                        &encoder,
+                        this->cache.loadout[i + RR_MAX_SLOT_COUNT].rarity,
+                        "rarity");
                 }
                 rr_websocket_send(&this->socket,
                                   encoder.current - encoder.start);
@@ -1024,7 +1035,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     proto_bug_read_string(&encoder,
                                           squad->squad_members[i].nickname, 16,
                                           "nickname");
-                    for (uint32_t j = 0; j < 20; ++j)
+                    for (uint32_t j = 0; j < RR_MAX_SLOT_COUNT * 2; ++j)
                     {
                         squad->squad_members[i].loadout[j].id =
                             proto_bug_read_uint8(&encoder, "id");
@@ -1365,13 +1376,19 @@ static void write_serverbound_packet_desktop(struct rr_game *this)
         uint8_t switch_all =
             rr_bitset_get_bit(this->input_data->keys_pressed_this_tick, 'X');
         for (uint8_t n = 1; n <= this->slots_unlocked; ++n)
+        {
+            uint32_t key = '0' + (n % 10);
+            if (n == 11)
+                key = 189;
+            if (n == 12)
+                key = 187;
             if (rr_bitset_get_bit(this->input_data->keys_pressed_this_tick,
-                                '0' + (n % 10)) ||
-                switch_all)
+                                  key) || switch_all)
             {
                 proto_bug_write_uint8(&encoder, n, "petal switch");
                 should_write = 1;
             }
+        }
         if (should_write)
         {
             proto_bug_write_uint8(&encoder, 0, "petal switch");

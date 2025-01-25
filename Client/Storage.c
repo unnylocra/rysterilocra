@@ -108,7 +108,7 @@ uint32_t rr_local_storage_get_bytes(char *label, void *bytes)
 
 #define STORE_LOADOUT                                                          \
     {                                                                          \
-        for (uint32_t n = 0; n < 20; ++n)                                      \
+        for (uint32_t n = 0; n < RR_MAX_SLOT_COUNT * 2; ++n)                   \
         {                                                                      \
             if (this->cache.loadout[n].id == 0)                                \
                 continue;                                                      \
@@ -124,7 +124,7 @@ uint32_t rr_local_storage_get_bytes(char *label, void *bytes)
 #define READ_LOADOUT                                                           \
     {                                                                          \
         uint8_t pos = rr_binary_encoder_read_uint8(&decoder);                  \
-        while (pos && pos <= 20)                                               \
+        while (pos && pos <= RR_MAX_SLOT_COUNT * 2)                            \
         {                                                                      \
             this->cache.loadout[pos - 1].id =                                  \
                 rr_binary_encoder_read_uint8(&decoder);                        \

@@ -347,8 +347,8 @@ struct rr_ui_element *squad_player_container_init(struct rr_game_squad *squad,
 {
     struct rr_squad_member *member = &squad->squad_members[pos];
     struct rr_ui_element *b = rr_ui_text_init("Empty", 15, 0xffffffff);
-    struct rr_ui_element *loadout = rr_ui_2d_container_init(4, 5, 0, 5);
-    for (uint8_t i = 0; i < 20; ++i)
+    struct rr_ui_element *loadout = rr_ui_2d_container_init(5, 5, 0, 5);
+    for (uint8_t i = 0; i < RR_MAX_SLOT_COUNT * 2; ++i)
         rr_ui_container_add_element(
             loadout,
             rr_ui_set_justify(squad_loadout_button_init(&member->loadout[i]),

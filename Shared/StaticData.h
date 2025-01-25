@@ -77,7 +77,9 @@ enum rr_dev_cheat_type
     rr_dev_cheat_fov_percent
 };
 
-#define RR_SLOT_COUNT_FROM_LEVEL(level) (level < 100 ? 5 + (level) / 20 : 10)
+#define RR_SLOT_COUNT_FROM_LEVEL(level)                                        \
+    (level < (20 * (RR_MAX_SLOT_COUNT - 5))                                    \
+        ? 5 + (level) / 20 : RR_MAX_SLOT_COUNT)
 #define RR_PLAYER_SPEED (4.0f)
 
 enum rr_biome_id

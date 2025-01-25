@@ -90,7 +90,7 @@ static void rr_server_client_create_player_info(struct rr_server *server,
     struct rr_squad_member *member = player_info->squad_member =
         rr_squad_get_client_slot(server, client);
     rr_component_player_info_set_squad_pos(player_info, client->squad_pos);
-    rr_component_player_info_set_slot_count(player_info, 10);
+    rr_component_player_info_set_slot_count(player_info, RR_MAX_SLOT_COUNT);
     player_info->level = level_from_xp(client->experience);
     rr_component_player_info_set_slot_count(
         client->player_info, RR_SLOT_COUNT_FROM_LEVEL(player_info->level));
@@ -107,8 +107,8 @@ static void rr_server_client_create_player_info(struct rr_server *server,
             player_info->slots[i].petals[j].cooldown_ticks =
                 get_petal_cooldown(id, rarity);
 
-        id = member->loadout[i + 10].id;
-        rarity = member->loadout[i + 10].rarity;
+        id = member->loadout[i + RR_MAX_SLOT_COUNT].id;
+        rarity = member->loadout[i + RR_MAX_SLOT_COUNT].rarity;
         player_info->secondary_slots[i].id = id;
         player_info->secondary_slots[i].rarity = rarity;
     }
@@ -238,7 +238,7 @@ void rr_server_client_broadcast_update(struct rr_server_client *this)
         proto_bug_write_uint8(&encoder, member->kick_vote_count, "kick votes");
         proto_bug_write_varuint(&encoder, member->level, "level");
         proto_bug_write_string(&encoder, member->nickname, 16, "nickname");
-        for (uint8_t j = 0; j < 20; ++j)
+        for (uint8_t j = 0; j < RR_MAX_SLOT_COUNT * 2; ++j)
         {
             proto_bug_write_uint8(&encoder, member->loadout[j].id, "id");
             proto_bug_write_uint8(&encoder, member->loadout[j].rarity, "rar");
@@ -725,7 +725,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                                client->player_info->flower_id))
                 break;
             uint8_t pos = proto_bug_read_uint8(&encoder, "petal switch");
-            while (pos != 0 && pos <= 10)
+            while (pos != 0 && pos <= RR_MAX_SLOT_COUNT)
             {
                 rr_component_player_info_petal_swap(client->player_info,
                                                     &this->simulation, pos - 1);
@@ -892,7 +892,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
             uint8_t loadout_count =
                 proto_bug_read_uint8(&encoder, "loadout count");
 
-            if (loadout_count > 10)
+            if (loadout_count > RR_MAX_SLOT_COUNT)
                 break;
             if (member == NULL)
                 break;
@@ -920,8 +920,8 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                     break;
                 if (rarity >= rr_rarity_id_max)
                     break;
-                member->loadout[i + 10].rarity = rarity;
-                member->loadout[i + 10].id = id;
+                member->loadout[i + RR_MAX_SLOT_COUNT].rarity = rarity;
+                member->loadout[i + RR_MAX_SLOT_COUNT].id = id;
                 if (id && temp_inv[id][rarity]-- == 0)
                 {
                     memset(member->loadout, 0, sizeof member->loadout);
@@ -1517,7 +1517,7 @@ static void server_tick(struct rr_server *this)
                     proto_bug_write_varuint(&encoder, member->level, "level");
                     proto_bug_write_string(&encoder, member->nickname, 16,
                                            "nickname");
-                    for (uint8_t j = 0; j < 20; ++j)
+                    for (uint8_t j = 0; j < RR_MAX_SLOT_COUNT * 2; ++j)
                     {
                         proto_bug_write_uint8(&encoder, member->loadout[j].id,
                                               "id");

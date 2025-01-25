@@ -59,8 +59,9 @@ struct rr_player_info_modifiers
 
 struct rr_component_player_info
 {
-    struct rr_component_player_info_petal_slot slots[10];
-    struct rr_component_player_info_petal_slot secondary_slots[10];
+    struct rr_component_player_info_petal_slot slots[RR_MAX_SLOT_COUNT];
+    struct rr_component_player_info_petal_slot
+        secondary_slots[RR_MAX_SLOT_COUNT];
     RR_SERVER_ONLY(struct rr_squad_member *squad_member;)
     RR_SERVER_ONLY(struct rr_player_info_modifiers modifiers;)
     uint32_t *collected_this_run;

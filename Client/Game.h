@@ -90,7 +90,7 @@ struct rr_game_cache
 {
     double experience;
     uint32_t mob_kills[rr_mob_id_max][rr_rarity_id_max];
-    struct rr_id_rarity_pair loadout[20];
+    struct rr_id_rarity_pair loadout[RR_MAX_SLOT_COUNT * 2];
     uint8_t use_mouse;
     uint8_t displaying_debug_information;
     uint8_t tint_petals;
