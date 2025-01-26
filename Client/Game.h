@@ -111,6 +111,7 @@ struct rr_game_squad
 {
     struct rr_squad_member squad_members[RR_SQUAD_MEMBER_COUNT];
     uint8_t squad_index;
+    uint8_t squad_owner;
     uint8_t squad_pos;
     uint8_t squad_private;
     char squad_code[16];
@@ -169,6 +170,8 @@ struct rr_game
     struct rr_ui_element *vote_for_kick_tooltip;
     struct rr_ui_element *block_in_chat_tooltip;
     struct rr_ui_element *unblock_in_chat_tooltip;
+    struct rr_ui_element *transfer_ownership_tooltip;
+    struct rr_ui_element *squad_owner_tooltip;
     struct rr_ui_element *experience_tooltip;
     struct rr_ui_element *link_reminder_tooltip;
     struct rr_ui_element *window;

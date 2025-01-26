@@ -733,6 +733,16 @@ void rr_game_init(struct rr_game *this)
         make_label_tooltip("Unblock in chat", 12)
     );
 
+    this->transfer_ownership_tooltip = rr_ui_container_add_element(
+        this->window,
+        make_label_tooltip("Transfer ownership", 12)
+    );
+
+    this->squad_owner_tooltip = rr_ui_container_add_element(
+        this->window,
+        make_label_tooltip("Squad owner", 12)
+    );
+
     this->anti_afk = rr_ui_container_add_element(
         this->window,
         rr_ui_anti_afk_container_init()
@@ -921,6 +931,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                 }
             }
             this->squad.squad_index = proto_bug_read_uint8(&encoder, "sqidx");
+            this->squad.squad_owner = proto_bug_read_uint8(&encoder, "sqown");
             this->squad.squad_pos = proto_bug_read_uint8(&encoder, "sqpos");
             this->squad.squad_private =
                 proto_bug_read_uint8(&encoder, "private");
@@ -1044,6 +1055,7 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                     }
                 }
                 squad->squad_index = s;
+                squad->squad_owner = proto_bug_read_uint8(&encoder, "sqown");
                 squad->squad_private =
                     proto_bug_read_uint8(&encoder, "private");
                 this->selected_biome = proto_bug_read_uint8(&encoder, "biome");

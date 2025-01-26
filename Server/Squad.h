@@ -32,6 +32,7 @@ struct rr_squad
 {
     struct rr_squad_member members[RR_SQUAD_MEMBER_COUNT];
     uint8_t member_count;
+    uint8_t owner;
     uint8_t private;
     char squad_code[7];
 };

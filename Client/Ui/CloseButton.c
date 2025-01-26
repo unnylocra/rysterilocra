@@ -109,3 +109,48 @@ struct rr_ui_element *rr_ui_message_button_init(
     this->on_render = message_button_on_render;
     return this;
 }
+
+static void owner_button_on_render(struct rr_ui_element *this,
+                                   struct rr_game *game)
+{
+    struct rr_renderer *renderer = game->renderer;
+    rr_renderer_scale(renderer, renderer->scale);
+    if (rr_ui_mouse_over(this, game))
+        rr_renderer_add_color_filter(renderer, 0xff000000, 0.2);
+    rr_renderer_set_fill(renderer, this->fill);
+    rr_renderer_round_rect(renderer, -this->abs_width / 2,
+                           -this->abs_height / 2, this->abs_width,
+                           this->abs_height, this->abs_height / 4);
+    rr_renderer_fill(renderer);
+    rr_renderer_set_fill(renderer, 0xcfffffff);
+    rr_renderer_scale(renderer, 4.0 / 3);
+    rr_renderer_begin_path(renderer);
+    rr_renderer_move_to(renderer, -this->abs_width * 0.1875,
+                        this->abs_height * 0.1875);
+    rr_renderer_line_to(renderer, -this->abs_width * 0.25,
+                        -this->abs_height * 0.125);
+    rr_renderer_line_to(renderer, -this->abs_width * 0.125,
+                        this->abs_height * 0);
+    rr_renderer_line_to(renderer, this->abs_width * 0,
+                        -this->abs_height * 0.1875);
+    rr_renderer_line_to(renderer, this->abs_width * 0.125,
+                        this->abs_height * 0);
+    rr_renderer_line_to(renderer, this->abs_width * 0.25,
+                        -this->abs_height * 0.125);
+    rr_renderer_line_to(renderer, this->abs_width * 0.1875,
+                        this->abs_height * 0.1875);
+    rr_renderer_line_to(renderer, -this->abs_width * 0.1875,
+                        this->abs_height * 0.1875);
+    rr_renderer_fill(renderer);
+}
+
+struct rr_ui_element *rr_ui_owner_button_init(
+    float w, void (*on_event)(struct rr_ui_element *, struct rr_game *))
+{
+    struct rr_ui_element *this = rr_ui_element_init();
+    this->abs_width = this->abs_height = w;
+    this->on_event = on_event;
+    rr_ui_set_background(this, 0x80fc3434);
+    this->on_render = owner_button_on_render;
+    return this;
+}

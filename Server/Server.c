@@ -245,6 +245,7 @@ void rr_server_client_broadcast_update(struct rr_server_client *this)
         }
     }
     proto_bug_write_uint8(&encoder, this->squad, "sqidx");
+    proto_bug_write_uint8(&encoder, squad->owner, "sqown");
     proto_bug_write_uint8(&encoder, this->squad_pos, "sqpos");
     proto_bug_write_uint8(&encoder, squad->private, "private");
     proto_bug_write_uint8(&encoder, RR_GLOBAL_BIOME, "biome");
@@ -961,11 +962,23 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 {
                     squad->private ^= 1;
                     if (squad->private)
+                    {
+                        uint8_t seed = rand() % squad->member_count;
+                        for (uint8_t i = 0; i < RR_SQUAD_MEMBER_COUNT; ++i)
+                        {
+                            struct rr_squad_member *member = &squad->members[i];
+                            if (member->in_use && seed-- == 0)
+                            {
+                                squad->owner = i;
+                                break;
+                            }
+                        }
                         for (uint32_t i = 0; i < RR_MAX_CLIENT_COUNT; ++i)
                             rr_bitset_unset(this->clients[i].joined_squad_before,
                                             client->squad);
+                    }
                 }
-                else if (client->squad_pos == 0)
+                else if (client->squad_pos == squad->owner)
                     squad->private = 0;
             }
             break;
@@ -996,7 +1009,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                     break;
                 if (squad->private)
                 {
-                    if (client->squad_pos != 0)
+                    if (client->squad_pos != squad->owner)
                         break;
                 }
                 else
@@ -1028,6 +1041,32 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
             proto_bug_write_uint8(&failure, 2, "fail type");
             rr_server_client_write_message(to_kick, failure.start,
                                            failure.current - failure.start);
+            break;
+        }
+        case rr_serverbound_squad_transfer_ownership:
+        {
+            uint8_t index = proto_bug_read_uint8(&encoder, "transfer index");
+            uint8_t pos = proto_bug_read_uint8(&encoder, "transfer pos");
+            if (index >= RR_SQUAD_COUNT)
+                break;
+            if (pos >= RR_SQUAD_MEMBER_COUNT)
+                break;
+            struct rr_squad *squad = &this->squads[index];
+            struct rr_squad_member *transfer_member = &squad->members[pos];
+            if (!transfer_member->in_use)
+                break;
+            if (!squad->private)
+                break;
+            if (!client->dev)
+            {
+                if (!client->in_squad)
+                    break;
+                if (client->squad != index)
+                    break;
+                if (squad->owner != client->squad_pos)
+                    break;
+            }
+            squad->owner = pos;
             break;
         }
         case rr_serverbound_petals_craft:
@@ -1521,6 +1560,7 @@ static void server_tick(struct rr_server *this)
                                               member->loadout[j].rarity, "rar");
                     }
                 }
+                proto_bug_write_uint8(&encoder, squad->owner, "sqown");
                 proto_bug_write_uint8(&encoder, squad->private, "private");
                 proto_bug_write_uint8(&encoder, RR_GLOBAL_BIOME, "biome");
                 char joined_code[16];
