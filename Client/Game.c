@@ -500,6 +500,9 @@ void rr_game_init(struct rr_game *this)
                                         rr_ui_h_container_init(rr_ui_container_init(), 0, 10, 
                                             rr_ui_text_init("Private", 14, 0xffffffff),
                                             rr_ui_toggle_private_button_init(this),
+                                            rr_ui_static_space_init(10),
+                                            rr_ui_text_init("Expose code", 14, 0xffffffff),
+                                            rr_ui_toggle_expose_code_button_init(this),
                                             NULL
                                         ),
                                         rr_ui_multi_choose_element_init(
@@ -711,6 +714,11 @@ void rr_game_init(struct rr_game *this)
     this->leave_squad_tooltip = rr_ui_container_add_element(
         this->window,
         make_label_tooltip("Leave Squad", 14)
+    );
+
+    this->click_to_copy_tooltip = rr_ui_container_add_element(
+        this->window,
+        make_label_tooltip("Click to copy", 14)
     );
 
     this->kick_from_squad_tooltip = rr_ui_container_add_element(
@@ -935,6 +943,8 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
             this->squad.squad_pos = proto_bug_read_uint8(&encoder, "sqpos");
             this->squad.squad_private =
                 proto_bug_read_uint8(&encoder, "private");
+            this->squad.squad_expose_code =
+                proto_bug_read_uint8(&encoder, "expose_code");
             this->selected_biome = proto_bug_read_uint8(&encoder, "biome");
             proto_bug_read_string(&encoder, this->squad.squad_code, 16,
                                   "squad code");
@@ -1058,6 +1068,8 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                 squad->squad_owner = proto_bug_read_uint8(&encoder, "sqown");
                 squad->squad_private =
                     proto_bug_read_uint8(&encoder, "private");
+                squad->squad_expose_code =
+                    proto_bug_read_uint8(&encoder, "expose_code");
                 this->selected_biome = proto_bug_read_uint8(&encoder, "biome");
                 proto_bug_read_string(&encoder, squad->squad_code, 16,
                                       "squad code");

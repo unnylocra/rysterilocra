@@ -231,6 +231,7 @@ static void copy_uuid(struct rr_ui_element *this, struct rr_game *game)
 {
     if (game->input_data->mouse_buttons_up_this_tick & 1)
         rr_copy_string(game->rivet_account.uuid);
+    rr_ui_render_tooltip_above(this, game->click_to_copy_tooltip, game);
     game->cursor = rr_game_cursor_pointer;
 }
 

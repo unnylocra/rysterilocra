@@ -23,6 +23,7 @@
 void rr_squad_init(struct rr_squad *this, struct rr_server *server, uint8_t pos)
 {
     memset(this, 0, sizeof *this);
+    this->expose_code = 1;
     for (uint32_t i = 0; i < 6; ++i)
         this->squad_code[i] = (char)(97 + rand() % 26);
     this->squad_code[6] = 0;
@@ -124,6 +125,7 @@ uint8_t rr_client_create_squad(struct rr_server *this,
         if (this->squads[i].member_count == 0)
         {
             this->squads[i].private = 1;
+            this->squads[i].expose_code = 0;
             this->squads[i].owner = 0;
             for (uint32_t j = 0; j < RR_MAX_CLIENT_COUNT; ++j)
                 rr_bitset_unset(this->clients[j].joined_squad_before, i);

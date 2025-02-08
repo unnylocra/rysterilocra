@@ -248,6 +248,7 @@ void rr_server_client_broadcast_update(struct rr_server_client *this)
     proto_bug_write_uint8(&encoder, squad->owner, "sqown");
     proto_bug_write_uint8(&encoder, this->squad_pos, "sqpos");
     proto_bug_write_uint8(&encoder, squad->private, "private");
+    proto_bug_write_uint8(&encoder, squad->expose_code, "expose_code");
     proto_bug_write_uint8(&encoder, RR_GLOBAL_BIOME, "biome");
     char joined_code[16];
     sprintf(joined_code, "%s-%s", server->server_alias, squad->squad_code);
@@ -961,6 +962,7 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                 if (client->dev)
                 {
                     squad->private ^= 1;
+                    squad->expose_code = !squad->private;
                     if (squad->private)
                     {
                         uint8_t seed = rand() % squad->member_count;
@@ -979,7 +981,24 @@ static int handle_lws_event(struct rr_server *this, struct lws *ws,
                     }
                 }
                 else if (client->squad_pos == squad->owner)
+                {
                     squad->private = 0;
+                    squad->expose_code = 1;
+                }
+            }
+            break;
+        }
+        case rr_serverbound_expose_code_update:
+        {
+            if (client->ticks_to_next_squad_action > 0)
+                break;
+            client->ticks_to_next_squad_action = 10;
+            if (client->in_squad)
+            {
+                struct rr_squad *squad = rr_client_get_squad(this, client);
+                if (squad->private &&
+                    (client->dev || client->squad_pos == squad->owner))
+                    squad->expose_code ^= 1;
             }
             break;
         }
@@ -1562,9 +1581,11 @@ static void server_tick(struct rr_server *this)
                 }
                 proto_bug_write_uint8(&encoder, squad->owner, "sqown");
                 proto_bug_write_uint8(&encoder, squad->private, "private");
+                proto_bug_write_uint8(&encoder, squad->expose_code,
+                                      "expose_code");
                 proto_bug_write_uint8(&encoder, RR_GLOBAL_BIOME, "biome");
                 char joined_code[16];
-                if (client->dev || !squad->private ||
+                if (client->dev || squad->expose_code ||
                     (client->in_squad && client->squad == s))
                     sprintf(joined_code, "%s-%s", this->server_alias,
                             squad->squad_code);

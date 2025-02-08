@@ -215,6 +215,8 @@ extern struct rr_ui_element *rr_ui_join_button_init();
 extern struct rr_ui_element *rr_ui_copy_squad_code_button_init();
 extern struct rr_ui_element *rr_ui_join_squad_code_button_init();
 extern struct rr_ui_element *rr_ui_toggle_private_button_init(struct rr_game *);
+extern struct rr_ui_element *
+rr_ui_toggle_expose_code_button_init(struct rr_game *);
 
 extern struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t, uint8_t);
 extern struct rr_ui_element *rr_ui_mob_tooltip_init(uint8_t, uint8_t);

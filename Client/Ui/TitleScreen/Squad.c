@@ -481,6 +481,31 @@ static uint8_t squad_container_should_show(struct rr_ui_element *this,
     return 0;
 }
 
+static void copy_code(struct rr_ui_element *this, struct rr_game *game)
+{
+    struct rr_ui_text_metadata *data = this->data;
+    struct rr_game_squad *squad = data->data;
+    if (squad != &game->squad &&
+        (game->is_dev || squad->squad_expose_code ||
+         (game->joined_squad &&
+          game->squad.squad_index == squad->squad_index))) {
+        if (game->input_data->mouse_buttons_up_this_tick & 1)
+            rr_copy_string(squad->squad_code);
+        rr_ui_render_tooltip_right(this, game->click_to_copy_tooltip, game);
+        game->cursor = rr_game_cursor_pointer;
+    }
+}
+
+static struct rr_ui_element *squad_code_init(struct rr_game_squad *squad)
+{
+    struct rr_ui_element *this =
+        rr_ui_text_init(squad->squad_code, 16, 0xffffffff);
+    this->on_event = copy_code;
+    struct rr_ui_text_metadata *data = this->data;
+    data->data = squad;
+    return this;
+}
+
 struct rr_ui_element *rr_ui_squad_container_init(struct rr_game_squad *squad)
 {
     struct rr_ui_element *this = rr_ui_v_container_init(
@@ -494,7 +519,7 @@ struct rr_ui_element *rr_ui_squad_container_init(struct rr_game_squad *squad)
             rr_ui_h_container_init(
                 rr_ui_container_init(), 5, 0,
                 rr_ui_text_init("Code: ", 16, 0xffffffff),
-                rr_ui_text_init(squad->squad_code, 16, 0xffffffff), NULL),
+                squad_code_init(squad), NULL),
             -1, -1),
         NULL);
     this->data = squad;
@@ -572,8 +597,29 @@ static void toggle_private_on_event(struct rr_ui_element *this,
         {
             struct proto_bug encoder;
             proto_bug_init(&encoder, RR_OUTGOING_PACKET);
-            proto_bug_write_uint8(&encoder, game->socket.quick_verification, "qv");
+            proto_bug_write_uint8(&encoder, game->socket.quick_verification,
+                                  "qv");
             proto_bug_write_uint8(&encoder, rr_serverbound_private_update,
+                                  "header");
+            rr_websocket_send(&game->socket, encoder.current - encoder.start);
+        }
+        game->cursor = rr_game_cursor_pointer;
+    }
+}
+
+static void toggle_expose_code_on_event(struct rr_ui_element *this,
+                                        struct rr_game *game)
+{
+    if (!game->socket_error && game->squad.squad_private &&
+        (game->is_dev || game->squad.squad_pos == game->squad.squad_owner))
+    {
+        if (game->input_data->mouse_buttons_up_this_tick & 1)
+        {
+            struct proto_bug encoder;
+            proto_bug_init(&encoder, RR_OUTGOING_PACKET);
+            proto_bug_write_uint8(&encoder, game->socket.quick_verification,
+                                  "qv");
+            proto_bug_write_uint8(&encoder, rr_serverbound_expose_code_update,
                                   "header");
             rr_websocket_send(&game->socket, encoder.current - encoder.start);
         }
@@ -725,5 +771,13 @@ struct rr_ui_element *rr_ui_toggle_private_button_init(struct rr_game *game)
     struct rr_ui_element *this =
         rr_ui_toggle_box_init(&game->squad.squad_private);
     this->on_event = toggle_private_on_event;
+    return this;
+}
+
+struct rr_ui_element *rr_ui_toggle_expose_code_button_init(struct rr_game *game)
+{
+    struct rr_ui_element *this =
+        rr_ui_toggle_box_init(&game->squad.squad_expose_code);
+    this->on_event = toggle_expose_code_on_event;
     return this;
 }

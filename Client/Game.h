@@ -114,6 +114,7 @@ struct rr_game_squad
     uint8_t squad_owner;
     uint8_t squad_pos;
     uint8_t squad_private;
+    uint8_t squad_expose_code;
     char squad_code[16];
 };
 
@@ -166,6 +167,7 @@ struct rr_game
     struct rr_ui_element *github_tooltip;
     struct rr_ui_element *abandon_game_tooltip;
     struct rr_ui_element *leave_squad_tooltip;
+    struct rr_ui_element *click_to_copy_tooltip;
     struct rr_ui_element *kick_from_squad_tooltip;
     struct rr_ui_element *vote_for_kick_tooltip;
     struct rr_ui_element *block_in_chat_tooltip;

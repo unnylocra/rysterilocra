@@ -50,6 +50,7 @@ enum rr_serverbound_packet_header
     rr_serverbound_squad_ready,
     rr_serverbound_squad_update,
     rr_serverbound_private_update,
+    rr_serverbound_expose_code_update,
     rr_serverbound_squad_kick,
     rr_serverbound_squad_transfer_ownership,
     rr_serverbound_petals_craft,

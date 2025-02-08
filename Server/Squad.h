@@ -34,6 +34,7 @@ struct rr_squad
     uint8_t member_count;
     uint8_t owner;
     uint8_t private;
+    uint8_t expose_code;
     char squad_code[7];
 };
 
