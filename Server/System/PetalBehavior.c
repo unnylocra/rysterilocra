@@ -512,7 +512,7 @@ static void system_flower_petal_movement_logic(
                 break;
             struct rr_vector accel = {flower_vector.x - position_vector.x,
                                       flower_vector.y - position_vector.y};
-            rr_vector_set_magnitude(&accel, 40);
+            rr_vector_set_magnitude(&accel, 30);
             rr_vector_add(&flower_physical->acceleration, &accel);
             rr_simulation_request_entity_deletion(simulation, id);
             break;
