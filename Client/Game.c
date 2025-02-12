@@ -501,7 +501,7 @@ void rr_game_init(struct rr_game *this)
                                             rr_ui_text_init("Private", 14, 0xffffffff),
                                             rr_ui_toggle_private_button_init(this),
                                             rr_ui_static_space_init(10),
-                                            rr_ui_text_init("Expose code", 14, 0xffffffff),
+                                            rr_ui_text_init("Reveal code", 14, 0xffffffff),
                                             rr_ui_toggle_expose_code_button_init(this),
                                             NULL
                                         ),
