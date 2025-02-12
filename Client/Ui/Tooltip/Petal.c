@@ -36,7 +36,7 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                 RR_PETAL_RARITY_SCALE[rarity].seed_cooldown);
     else if (id == rr_petal_id_nest)
         sprintf(cd, "↻ %.1f + %.1fs",
-                (RR_PETAL_DATA[id].cooldown * 2 / 5) * 0.1, 5.0);
+                (RR_PETAL_DATA[id].cooldown * 2 / 5) * 0.1, 15.0);
     else if (id == rr_petal_id_bubble)
         sprintf(cd, "↻ %.1f + %.1fs",
                 RR_PETAL_RARITY_SCALE[rarity].bubble_cooldown,
