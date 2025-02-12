@@ -211,7 +211,7 @@ static void spawn_mob(struct rr_simulation *this, uint32_t grid_x,
         if (too_close(this, pos.x, pos.y,
                       RR_MOB_DATA[id].radius *
                               RR_MOB_RARITY_SCALING[rarity].radius +
-                          250))
+                          500))
             continue;
         EntityIdx mob_id = rr_simulation_alloc_mob(
             this, 1, pos.x, pos.y, id, rarity, rr_simulation_team_id_mobs);
