@@ -56,6 +56,8 @@ static void inventory_button_on_event(struct rr_ui_element *this,
                 game->cursor = rr_game_cursor_pointer;
                 break;
             }
+    rr_ui_set_tooltip_count(game->petal_tooltips[data->id][data->rarity],
+                            data->count);
     rr_ui_render_tooltip_above(
         this, game->petal_tooltips[data->id][data->rarity], game);
 }

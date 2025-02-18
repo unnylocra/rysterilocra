@@ -55,12 +55,19 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                         RR_PETAL_DATA[id].scale[rarity].damage /
                         RR_PETAL_DATA[id].count[rarity]);
 
+    char *count = malloc((sizeof *count) * 12);
+    count[0] = 0;
     struct rr_ui_element *this = rr_ui_set_background(
         rr_ui_v_container_init(
             rr_ui_tooltip_container_init(), 10, 5,
             rr_ui_flex_container_init(
                 rr_ui_set_justify(
-                    rr_ui_text_init(RR_PETAL_NAMES[id], 24, 0xffffffff), -1, 0),
+                    rr_ui_h_container_init(rr_ui_container_init(), 0, 10,
+                        rr_ui_text_init(RR_PETAL_NAMES[id], 24, 0xffffffff),
+                        rr_ui_text_init(count, 16, 0xffffffff),
+                        NULL
+                    ),
+                -1, 0),
                 rr_ui_set_justify(rr_ui_text_init(cd, 16, 0xffffffff), 1, 0),
                 30),
             rr_ui_set_justify(rr_ui_text_init(RR_RARITY_NAMES[rarity], 16,
@@ -72,6 +79,9 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                 0),
             NULL),
         0x80000000);
+    struct rr_ui_container_metadata *data = this->data;
+    data->data = count;
+
     if (id != rr_petal_id_crest && id != rr_petal_id_third_eye &&
         id != rr_petal_id_lightning && id != rr_petal_id_fireball)
         rr_ui_container_add_element(
