@@ -582,30 +582,6 @@ void rr_game_init(struct rr_game *this)
 
     rr_ui_container_add_element(
         this->window,
-        rr_ui_set_justify(
-            rr_ui_h_container_init(rr_ui_container_init(), 0, 0,
-                rr_ui_link_toggle(
-                    rr_ui_set_justify(
-                        rr_ui_v_container_init(rr_ui_container_init(), 10, 10,
-                            rr_ui_inventory_toggle_button_init(),
-                            rr_ui_mob_gallery_toggle_button_init(),
-                            rr_ui_crafting_toggle_button_init(),
-                            NULL
-                        ),
-                    -1, 1),
-                ui_not_hidden_and_player_dead),
-                rr_ui_pad(
-                    rr_ui_set_justify(
-                        rr_ui_chat_bar_init(this),
-                    -1, 1)
-                , 20),
-                NULL
-            ),
-        -1, 1)
-    );
-
-    rr_ui_container_add_element(
-        this->window,
         rr_ui_link_toggle(
             rr_ui_set_justify(
                 rr_ui_v_container_init(rr_ui_container_init(), 15, 15,
@@ -647,6 +623,30 @@ void rr_game_init(struct rr_game *this)
                 ),
             0, 1),
         ui_not_hidden_and_simulation_ready)
+    );
+
+    rr_ui_container_add_element(
+        this->window,
+        rr_ui_set_justify(
+            rr_ui_h_container_init(rr_ui_container_init(), 0, 0,
+                rr_ui_link_toggle(
+                    rr_ui_set_justify(
+                        rr_ui_v_container_init(rr_ui_container_init(), 10, 10,
+                            rr_ui_inventory_toggle_button_init(),
+                            rr_ui_mob_gallery_toggle_button_init(),
+                            rr_ui_crafting_toggle_button_init(),
+                            NULL
+                        ),
+                    -1, 1),
+                ui_not_hidden_and_player_dead),
+                rr_ui_pad(
+                    rr_ui_set_justify(
+                        rr_ui_chat_bar_init(this),
+                    -1, 1)
+                , 20),
+                NULL
+            ),
+        -1, 1)
     );
 
     rr_ui_container_add_element(this->window, rr_ui_container_add_element(rr_ui_inventory_container_init(), close_menu_button_init(25))->container);
