@@ -33,9 +33,8 @@ struct rr_component_mob
     RR_SERVER_ONLY(uint8_t protocol_state;)
     uint8_t id;
     uint8_t rarity;
-    uint8_t flags;
     RR_CLIENT_ONLY(uint8_t counted_as_killed;)
-    RR_SERVER_ONLY(uint8_t player_spawned : 1;)
+    uint8_t player_spawned : 1;
     RR_SERVER_ONLY(uint8_t no_drop : 1;)
 };
 
@@ -50,4 +49,4 @@ RR_CLIENT_ONLY(void rr_component_mob_read(struct rr_component_mob *,
 
 RR_DECLARE_PUBLIC_FIELD(mob, uint8_t, id)
 RR_DECLARE_PUBLIC_FIELD(mob, uint8_t, rarity)
-RR_DECLARE_PUBLIC_FIELD(mob, uint8_t, flags)
+RR_DECLARE_PUBLIC_FIELD(mob, uint8_t, player_spawned)

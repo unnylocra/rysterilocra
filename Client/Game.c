@@ -824,7 +824,8 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
         if (this->simulation_ready)
         {
             rr_simulation_init(this->simulation);
-            rr_particle_manager_clear(&this->title_screen_particle_manager);
+            rr_particle_manager_clear(&this->default_particle_manager);
+            rr_particle_manager_clear(&this->foreground_particle_manager);
         }
         this->simulation_ready = 0;
         this->socket.recieved_first_packet = 0;
@@ -970,8 +971,9 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
                 if (this->simulation_ready)
                 {
                     rr_simulation_init(this->simulation);
+                    rr_particle_manager_clear(&this->default_particle_manager);
                     rr_particle_manager_clear(
-                        &this->title_screen_particle_manager);
+                        &this->foreground_particle_manager);
                 }
                 this->simulation_ready = 0;
                 proto_bug_init(&encoder, RR_OUTGOING_PACKET);
@@ -1174,7 +1176,8 @@ void rr_game_websocket_on_event_function(enum rr_websocket_event_type type,
             if (this->simulation_ready)
             {
                 rr_simulation_init(this->simulation);
-                rr_particle_manager_clear(&this->title_screen_particle_manager);
+                rr_particle_manager_clear(&this->default_particle_manager);
+                rr_particle_manager_clear(&this->foreground_particle_manager);
             }
             this->simulation_ready = 0;
             this->joined_squad = 0;
@@ -1667,7 +1670,8 @@ void rr_game_tick(struct rr_game *this, float delta)
             physical->animation_timer = rr_frand() * M_PI * 2;
             physical->parent_id = rand() % 3;
         }
-        rr_system_particle_render_tick(this, &this->title_screen_particle_manager, delta);
+        rr_system_particle_render_tick(this, &this->default_particle_manager,
+                                       delta);
         struct rr_renderer_context_state state2;
         for (uint32_t i = 0; i < this->simulation->petal_count; ++i)
         {
@@ -1694,6 +1698,8 @@ void rr_game_tick(struct rr_game *this, float delta)
                     this->simulation->petal_vector[i], sim);
             }
         }
+        rr_system_particle_render_tick(this, &this->foreground_particle_manager,
+                                       delta);
         rr_renderer_context_state_free(this->renderer, &state1);
     }
     // ui

@@ -36,13 +36,13 @@
 #define FOR_EACH_PUBLIC_FIELD                                                  \
     X(id, uint8)                                                               \
     X(rarity, uint8)                                                           \
-    X(flags, uint8)
+    X(player_spawned, uint8)
 
 enum
 {
     state_flags_rarity = 0b000001,
     state_flags_id = 0b000010,
-    state_flags_flags = 0b000100,
+    state_flags_player_spawned = 0b000100,
     state_flags_all = 0b000111
 };
 
@@ -202,7 +202,7 @@ void rr_component_mob_write(struct rr_component_mob *this,
 
 RR_DEFINE_PUBLIC_FIELD(mob, uint8_t, id)
 RR_DEFINE_PUBLIC_FIELD(mob, uint8_t, rarity)
-RR_DEFINE_PUBLIC_FIELD(mob, uint8_t, flags)
+RR_DEFINE_PUBLIC_FIELD(mob, uint8_t, player_spawned)
 #endif
 
 #ifdef RR_CLIENT

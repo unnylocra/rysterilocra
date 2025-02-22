@@ -17,6 +17,7 @@
 
 #include <math.h>
 
+#include <Client/Assets/Render.h>
 #include <Client/Renderer/Renderer.h>
 #include <Shared/StaticData.h>
 
@@ -1628,6 +1629,10 @@ void rr_renderer_draw_petal(struct rr_renderer *renderer, uint8_t id,
             rr_renderer_ellipse(renderer, 0, 0, 187, 314);
             rr_renderer_fill(renderer);
             break;
+        case rr_petal_id_meteor:
+            rr_renderer_scale(renderer, 0.2f);
+            rr_meteor_draw(renderer);
+            break;
         case rr_petal_id_mandible:
             rr_renderer_scale(renderer, 0.09);
             rr_renderer_set_fill(renderer, 0xff171612);
@@ -2200,6 +2205,8 @@ void rr_renderer_draw_static_petal(struct rr_renderer *renderer, uint8_t id,
             rr_renderer_rotate(renderer, 1.0f);
         else if (id == rr_petal_id_fireball)
             rr_renderer_rotate(renderer, -1.0f + M_PI);
+        else if (id == rr_petal_id_meteor)
+            rr_renderer_rotate(renderer, -M_PI / 4);
         else if (id == rr_petal_id_mandible)
             rr_renderer_rotate(renderer, -1.0f);
         else if (id == rr_petal_id_wax)

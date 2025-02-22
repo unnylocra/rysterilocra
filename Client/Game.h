@@ -141,7 +141,6 @@ struct rr_game
 {
     struct rr_particle_manager default_particle_manager;
     struct rr_particle_manager foreground_particle_manager;
-    struct rr_particle_manager title_screen_particle_manager;
     struct rr_particle_manager crafting_particle_manager;
     struct rr_game_crafting_data crafting_data;
     struct rr_game_debug_info debug_info;

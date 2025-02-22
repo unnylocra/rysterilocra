@@ -213,8 +213,8 @@ void tick_ai_trex(EntityIdx entity, struct rr_simulation *simulation)
             mob2->no_drop = mob->no_drop;
             if (mob->player_spawned)
             {
-                mob1->player_spawned = 1;
-                mob2->player_spawned = 1;
+                rr_component_mob_set_player_spawned(mob1, 1);
+                rr_component_mob_set_player_spawned(mob2, 1);
                 struct rr_component_relations *relations1 =
                     rr_simulation_get_relations(simulation, entity1);
                 struct rr_component_relations *relations2 =

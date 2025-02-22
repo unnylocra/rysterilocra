@@ -31,9 +31,16 @@ void rr_component_mob_render(EntityIdx entity, struct rr_game *game,
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
     struct rr_component_mob *mob = rr_simulation_get_mob(simulation, entity);
-    if (rr_simulation_get_relations(simulation, entity)->team !=
-            rr_simulation_team_id_mobs &&
-        mob->id == rr_mob_id_trex)
+    uint8_t is_friendly =
+        mob->player_spawned &&
+        game->player_info != NULL &&
+        game->player_info->flower_id != RR_NULL_ENTITY &&
+        is_same_team(
+            rr_simulation_get_relations(simulation,
+                                        game->player_info->flower_id)->team,
+            rr_simulation_get_relations(simulation, entity)->team);
+    if ((mob->id == rr_mob_id_trex || mob->id == rr_mob_id_meteor) &&
+        is_friendly)
         rr_renderer_add_color_filter(renderer, 0xffffff63, 0.3);
     uint8_t has_arena = rr_simulation_has_arena(simulation, entity);
     struct rr_component_health *health;
@@ -74,19 +81,12 @@ void rr_component_mob_render(EntityIdx entity, struct rr_game *game,
         rr_lerp(physical->animation, sinf(physical->animation_timer),
                 30 * game->lerp_delta);
 
-    uint8_t use_cache = has_arena ? 1
-                                  : ((health->damage_animation < 0.1) |
-                                     game->cache.low_performance_mode) &
-                                        1;
-    uint8_t is_friendly =
-        (rr_simulation_get_relations(simulation, entity)->team !=
-         rr_simulation_team_id_mobs)
-        << 1;
+    uint8_t use_cache = has_arena || health->damage_animation < 0.1 ||
+                        game->cache.low_performance_mode;
     uint8_t is_centi_body =
-        4 - ((rr_simulation_has_centipede(simulation, entity) &&
-              rr_simulation_get_centipede(simulation, entity)->is_head)
-             << 2);
+        !rr_simulation_has_centipede(simulation, entity) ||
+        !rr_simulation_get_centipede(simulation, entity)->is_head;
     rr_renderer_draw_mob(renderer, mob->id, physical->animation_timer,
                          physical->turning_animation - physical->lerp_angle,
-                         use_cache | is_friendly | is_centi_body);
+                         use_cache | (is_friendly << 1) | (is_centi_body << 2));
 }

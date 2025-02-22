@@ -17,7 +17,10 @@
 
 #include <Client/Game.h>
 
-void rr_system_particle_render_tick(struct rr_game *game, struct rr_particle_manager *particle_manager, float delta)
+void
+rr_system_particle_render_tick(struct rr_game *game,
+                               struct rr_particle_manager *particle_manager,
+                               float delta)
 {
     for (uint16_t i = 0; i < particle_manager->size; ++i)
     {

@@ -175,7 +175,7 @@ uint8_t tick_summon_return_to_owner(EntityIdx entity,
         rr_simulation_request_entity_deletion(simulation, entity);
         return 1;
     }
-    if (physical->stun_ticks > 0)
+    if (ai->ai_type <= rr_ai_type_passive || physical->stun_ticks > 0)
         return 0;
     if (ai->ai_state == rr_ai_state_returning_to_owner &&
         rr_vector_magnitude_cmp(&delta, 250 + physical->radius) == 1)

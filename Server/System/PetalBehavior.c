@@ -677,22 +677,28 @@ system_egg_hatching_logic(struct rr_simulation *simulation,
         m_id = rr_mob_id_trex;
         m_rar = petal->rarity >= 1 ? petal->rarity - 1 : 0;
     }
+    else if (petal->id == rr_petal_id_meteor)
+    {
+        m_id = rr_mob_id_meteor;
+        m_rar = petal->rarity >= 1 ? petal->rarity - 1 : 0;
+    }
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, p_petal->entity_hash);
     struct rr_component_relations *relations =
         rr_simulation_get_relations(simulation, p_petal->entity_hash);
-    struct rr_component_relations *flower_relations =
-        rr_simulation_get_relations(simulation, player_info->flower_id);
     EntityIdx mob_id = rr_simulation_alloc_mob(
         simulation, physical->arena, physical->x, physical->y, m_id, m_rar,
-        flower_relations->team);
+        relations->team);
     p_petal->entity_hash = rr_simulation_get_entity_hash(simulation, mob_id);
     struct rr_component_relations *mob_relations =
         rr_simulation_get_relations(simulation, mob_id);
+    rr_component_relations_set_team(mob_relations, relations->team);
     rr_component_relations_set_owner(mob_relations, player_info->flower_id);
     rr_component_relations_update_root_owner(simulation, mob_relations);
-    mob_relations->nest = relations->nest;
-    rr_simulation_get_mob(simulation, mob_id)->player_spawned = 1;
+    if (m_id == rr_mob_id_trex)
+        mob_relations->nest = relations->nest;
+    rr_component_mob_set_player_spawned(
+        rr_simulation_get_mob(simulation, mob_id), 1);
 }
 
 static void
@@ -839,9 +845,18 @@ static void rr_system_petal_reload_foreach_function(EntityIdx id,
                             flower_physical->y, slot->id, slot->rarity,
                             player_info->flower_id));
                     struct rr_component_petal *petal =
-                        rr_simulation_get_petal(simulation, p_petal->entity_hash);
+                        rr_simulation_get_petal(simulation,
+                                                p_petal->entity_hash);
                     petal->slot = slot;
                     petal->p_petal = p_petal;
+                    if (data->id == rr_petal_id_meteor)
+                        system_egg_hatching_logic(simulation, player_info,
+                                                  p_petal);
+                }
+                if (data->id == rr_petal_id_meteor)
+                {
+                    if (inner == 0 || data->clump_radius == 0)
+                        --rotation_pos;
                 }
             }
             else

@@ -48,12 +48,22 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     else
         sprintf(cd, "↻ %.1fs", (RR_PETAL_DATA[id].cooldown * 2 / 5) * 0.1);
     char *hp = malloc((sizeof *hp) * 16);
-    rr_sprintf(hp, RR_PETAL_DATA[id].health *
-                       RR_PETAL_DATA[id].scale[rarity].health);
+    if (id != rr_petal_id_meteor)
+        rr_sprintf(hp, RR_PETAL_DATA[id].health *
+                           RR_PETAL_DATA[id].scale[rarity].health);
+    else
+        rr_sprintf(hp, RR_MOB_DATA[rr_mob_id_meteor].health *
+                           RR_MOB_RARITY_SCALING[rarity >= 1 ? rarity - 1
+                                                             : 0].health);
     char *dmg = malloc((sizeof *dmg) * 16);
-    rr_sprintf(dmg, RR_PETAL_DATA[id].damage *
-                        RR_PETAL_DATA[id].scale[rarity].damage /
-                        RR_PETAL_DATA[id].count[rarity]);
+    if (id != rr_petal_id_meteor)
+        rr_sprintf(dmg, RR_PETAL_DATA[id].damage *
+                            RR_PETAL_DATA[id].scale[rarity].damage /
+                            RR_PETAL_DATA[id].count[rarity]);
+    else
+        rr_sprintf(dmg, RR_MOB_DATA[rr_mob_id_meteor].damage *
+                            RR_MOB_RARITY_SCALING[rarity >= 1 ? rarity - 1
+                                                              : 0].damage);
 
     char *count = malloc((sizeof *count) * 12);
     count[0] = 0;
@@ -362,6 +372,19 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                           rr_ui_text_init(
                               RR_RARITY_NAMES[rarity], 12,
                               RR_RARITY_COLORS[rarity]), NULL),
+                      -1, 0));
+    }
+    else if (id == rr_petal_id_meteor)
+    {
+        rr_ui_container_add_element(
+            this, rr_ui_set_justify(
+                      rr_ui_h_container_init(
+                          rr_ui_container_init(), 0, 0,
+                          rr_ui_text_init("Spawns: ", 12, 0xffe07422),
+                          rr_ui_text_init(
+                              RR_RARITY_NAMES[rarity >= 1 ? rarity - 1 : 0], 12,
+                              RR_RARITY_COLORS[rarity >= 1 ? rarity - 1 : 0]),
+                          rr_ui_text_init(" Meteor", 12, 0xffffffff), NULL),
                       -1, 0));
     }
     else if (id == rr_petal_id_mandible)
