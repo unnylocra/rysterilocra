@@ -55,6 +55,7 @@ struct rr_component_ai
     RR_SERVER_ONLY(enum rr_ai_state ai_state;)
     RR_SERVER_ONLY(uint8_t protocol_state;)
     RR_SERVER_ONLY(uint8_t has_prediction;)
+    RR_SERVER_ONLY(uint8_t angry;)
 };
 
 void rr_component_ai_init(struct rr_component_ai *, struct rr_simulation *);

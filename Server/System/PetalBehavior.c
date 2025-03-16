@@ -78,6 +78,7 @@ static void uranium_damage(EntityIdx target, void *_captures)
         return;
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);
     struct rr_component_mob *mob = rr_simulation_get_mob(simulation, target);
+    ai->angry = 1;
     if ((ai->target_entity == RR_NULL_ENTITY ||
          rr_frand() < powf(0.3, mob->rarity)) &&
         !dev_cheat_enabled(simulation, relations->owner, no_aggro))
@@ -110,8 +111,8 @@ static void uranium_petal_system(struct rr_simulation *simulation,
 
 static void meat_aggro(EntityIdx target, void *_captures)
 {
-    if (rr_frand() >= 0.015)
-        return;
+    // if (rr_frand() >= 0.015)
+    //     return;
     struct area_captures *captures = _captures;
     struct rr_simulation *simulation = captures->simulation;
     if (!rr_simulation_has_mob(simulation, target))
@@ -637,7 +638,7 @@ static void petal_modifiers(struct rr_simulation *simulation,
         {
             rr_component_flower_set_face_flags(flower, flower->face_flags | 16);
             RR_SET_IF_GREATER(player_info->modifiers.petal_extension,
-                              35 * (slot->rarity - rr_rarity_id_epic))
+                              50 * (slot->rarity - rr_rarity_id_epic))
         }
         else if (data->id == rr_petal_id_bone)
         {

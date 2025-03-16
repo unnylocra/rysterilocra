@@ -440,7 +440,8 @@ void tick_ai_ornithomimus(EntityIdx entity, struct rr_simulation *simulation)
         rr_vector_sub(&delta, &target_pos);
         if (rr_simulation_get_mob(simulation, entity)->rarity >=
                 rr_rarity_id_exotic ||
-            rr_simulation_has_petal(simulation, ai->target_entity))
+            rr_simulation_has_petal(simulation, ai->target_entity) ||
+            ai->angry)
             physical->bearing_angle = rr_vector_theta(&delta);
         else
             physical->bearing_angle = rr_vector_theta(&delta) + M_PI;

@@ -122,11 +122,11 @@ static void lightning_petal_system(struct rr_simulation *simulation,
     animation->points[0].y = petal_physical->y;
     animation->points[1].x = first_physical->x;
     animation->points[1].y = first_physical->y;
-    uint32_t chain_amount = petal->rarity + 1;
+    uint32_t chain_amount = petal->rarity + 2;
     if (rr_simulation_has_petal(simulation, first))
         chain_amount = 1;
     float damage =
-        rr_simulation_get_health(simulation, petal->parent_id)->damage * 0.5;
+        rr_simulation_get_health(simulation, petal->parent_id)->damage;
     EntityIdx target = RR_NULL_ENTITY;
     struct lightning_captures captures = {chain, 2, first_physical};
     for (; captures.length < chain_amount + 1; ++captures.length)
@@ -347,16 +347,44 @@ static void colliding_with_function(uint64_t i, void *_captures)
     if (health1->damage_paused == 0 || bypass)
     {
         damage_effect(this, entity1, entity2);
-        rr_component_health_do_damage(this, health1, entity2, health2->damage,
-                                      rr_animation_color_type_damage);
-        health1->damage_paused = byp2 ? 3 : 8;
+        if (rr_simulation_has_petal(this, entity2) &&
+            rr_simulation_get_petal(this, entity2)->id == rr_petal_id_lightning)
+        {
+            health1->flags |= 4;
+            rr_component_health_do_damage(
+                this, health1, entity2, health2->damage,
+                rr_animation_color_type_lightning);
+            health1->damage_paused = 5;
+            physical1->stun_ticks = 4;
+        }
+        else
+        {
+            rr_component_health_do_damage(
+                this, health1, entity2, health2->damage,
+                rr_animation_color_type_damage);
+            health1->damage_paused = byp2 ? 3 : 8;
+        }
     }
     if (health2->damage_paused == 0 || bypass)
     {
         damage_effect(this, entity2, entity1);
-        rr_component_health_do_damage(this, health2, entity1, health1->damage,
-                                      rr_animation_color_type_damage);
-        health2->damage_paused = byp2 ? 3 : 8;
+        if (rr_simulation_has_petal(this, entity1) &&
+            rr_simulation_get_petal(this, entity1)->id == rr_petal_id_lightning)
+        {
+            health2->flags |= 4;
+            rr_component_health_do_damage(
+                this, health2, entity1, health1->damage,
+                rr_animation_color_type_lightning);
+            health2->damage_paused = 5;
+            physical2->stun_ticks = 4;
+        }
+        else
+        {
+            rr_component_health_do_damage(
+                this, health2, entity1, health1->damage,
+                rr_animation_color_type_damage);
+            health2->damage_paused = byp2 ? 3 : 8;
+        }
     }
 }
 

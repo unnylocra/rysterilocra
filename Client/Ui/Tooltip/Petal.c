@@ -269,7 +269,7 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     }
     else if (id == rr_petal_id_lightning)
     {
-        char *extra = malloc((sizeof *extra) * 8);
+        /*char *extra = malloc((sizeof *extra) * 8);
         sprintf(extra, "%s",
                 rr_sprintf(fmt, RR_PETAL_DATA[id].damage *
                                     RR_PETAL_DATA[id].scale[rarity].damage /
@@ -280,9 +280,9 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                           rr_ui_container_init(), 0, 0,
                           rr_ui_text_init("Lightning: ", 12, 0xff00cfcf),
                           rr_ui_text_init(extra, 12, 0xffffffff), NULL),
-                      -1, 0));
-        extra = malloc((sizeof *extra) * 8);
-        sprintf(extra, "%d", 1 + rarity);
+                      -1, 0));*/
+        char *extra = malloc((sizeof *extra) * 8);
+        sprintf(extra, "%d", 2 + rarity);
         rr_ui_container_add_element(
             this,
             rr_ui_set_justify(rr_ui_h_container_init(
@@ -294,7 +294,7 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     else if (id == rr_petal_id_third_eye)
     {
         char *extra = malloc((sizeof *extra) * 8);
-        sprintf(extra, "+%d", 35 * (rarity - rr_rarity_id_epic));
+        sprintf(extra, "+%d", 50 * (rarity - rr_rarity_id_epic));
         rr_ui_container_add_element(
             this, rr_ui_set_justify(
                       rr_ui_h_container_init(

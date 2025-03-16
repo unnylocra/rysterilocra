@@ -79,6 +79,8 @@ void shg_cb_enemy(EntityIdx potential, void *_captures)
     float dist =
         rr_vector_get_magnitude(&delta) * t_physical->aggro_range_multiplier -
         t_physical->radius;
+    if (rr_simulation_has_petal(simulation, potential))
+        dist *= 2;
     if (dist > captures->closest_dist)
         return;
     if (!captures->filter(simulation, captures->seeker, potential,
@@ -145,6 +147,8 @@ void shg_cb_rand_enemy(EntityIdx potential, void *_captures)
     float dist =
         rr_vector_get_magnitude(&delta) * t_physical->aggro_range_multiplier -
         t_physical->radius;
+    if (rr_simulation_has_petal(simulation, potential))
+        dist *= 2;
     if (dist > captures->range)
         return;
     if (!captures->filter(simulation, captures->seeker, potential,
