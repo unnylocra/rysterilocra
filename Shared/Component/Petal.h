@@ -39,6 +39,7 @@ struct rr_component_petal
     RR_SERVER_ONLY(int16_t effect_delay;)
     RR_SERVER_ONLY(EntityHash bind_target;)
     RR_SERVER_ONLY(struct rr_vector bind_pos;)
+    RR_SERVER_ONLY(uint32_t aggro_count;)
     RR_SERVER_ONLY(struct rr_component_player_info_petal_slot *slot;)
     RR_SERVER_ONLY(struct rr_component_player_info_petal *p_petal;)
 };

@@ -106,7 +106,7 @@ static void rr_server_client_create_player_info(struct rr_server *server,
         player_info->slots[i].count = RR_PETAL_DATA[id].count[rarity];
         for (uint64_t j = 0; j < player_info->slots[i].count; ++j)
             player_info->slots[i].petals[j].cooldown_ticks =
-                get_petal_cooldown(id, rarity);
+                RR_PETAL_DATA[id].cooldown;
 
         id = member->loadout[i + RR_MAX_SLOT_COUNT].id;
         rarity = member->loadout[i + RR_MAX_SLOT_COUNT].rarity;

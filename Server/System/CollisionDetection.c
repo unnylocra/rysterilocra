@@ -57,6 +57,8 @@ static void system_insert_entities(EntityIdx entity, void *_captures)
             rr_simulation_get_health(this, entity);
         rr_component_health_set_flags(health, health->flags & (~2));
     }
+    if (physical->phase_ticks > 0)
+        --physical->phase_ticks;
     rr_spatial_hash_insert(
         &rr_simulation_get_arena(this, physical->arena)->spatial_hash, entity);
 }
@@ -101,6 +103,18 @@ static void grid_filter_candidates(struct rr_simulation *this,
         return;
     if (is_dead_flower(this, entity1) ||
         is_dead_flower(this, entity2))
+        return;
+    if (physical1->phase_ticks > 0 || physical2->phase_ticks > 0)
+        return;
+    if (rr_simulation_has_petal(this, entity1) &&
+        rr_simulation_get_petal(this, entity1)->detached == 0 &&
+        rr_simulation_get_physical(this,
+            rr_simulation_get_relations(this, entity1)->owner)->phase_ticks > 0)
+        return;
+    if (rr_simulation_has_petal(this, entity2) &&
+        rr_simulation_get_petal(this, entity2)->detached == 0 &&
+        rr_simulation_get_physical(this,
+            rr_simulation_get_relations(this, entity2)->owner)->phase_ticks > 0)
         return;
     if (rr_simulation_has_nest(this, entity1) &&
         rr_simulation_has_petal(this, entity2) &&

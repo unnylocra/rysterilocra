@@ -76,7 +76,7 @@ void rr_component_petal_free(struct rr_component_petal *this,
     physical->friction = 0;
     physical->arena = petal_phys->arena;
     web->ticks_until_death = 125;
-    web->slow_factor = 0.05 + powf(0.56, this->rarity);
+    web->slow_factor = powf(0.56, this->rarity);
     rr_component_relations_set_team(relations, petal_rel->team);
     rr_component_relations_set_owner(relations, petal_rel->owner);
     rr_component_relations_update_root_owner(simulation, relations);

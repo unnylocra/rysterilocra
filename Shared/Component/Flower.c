@@ -133,8 +133,7 @@ void rr_component_flower_set_dead(struct rr_component_flower *this,
             for (uint8_t inner = 0; inner < player_info->slots[outer].count;
                  ++inner)
                 player_info->slots[outer].petals[inner].cooldown_ticks =
-                    get_petal_cooldown(player_info->slots[outer].id,
-                                       player_info->slots[outer].rarity);
+                    RR_PETAL_DATA[player_info->slots[outer].id].cooldown;
         rr_component_physical_set_angle(physical, this->saved_angle);
         health->damage_paused = 25;
         health->health = 1;

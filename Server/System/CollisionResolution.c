@@ -67,8 +67,11 @@ static void web_logic(struct rr_simulation *this, EntityIdx entity1,
         rr_simulation_get_physical(this, entity2);
     // physical->acceleration_scale *= rr_lerp(web->slow_factor, 1,
     // physical->slow_resist);
-    if (physical->web_slowdown > web->slow_factor)
-        physical->web_slowdown = web->slow_factor;
+    float slow_factor = web->slow_factor;
+    if (rr_simulation_has_flower(this, entity2))
+        slow_factor = 0.2 + 0.8 * slow_factor;
+    if (physical->web_slowdown > slow_factor)
+        physical->web_slowdown = slow_factor;
 }
 
 static void enter_arena(struct rr_simulation *this, EntityIdx arena,

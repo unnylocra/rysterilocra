@@ -38,10 +38,6 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     else if (id == rr_petal_id_nest)
         sprintf(cd, "↻ %.1f + %.1fs",
                 (RR_PETAL_DATA[id].cooldown * 2 / 5) * 0.1, 15.0);
-    else if (id == rr_petal_id_bubble)
-        sprintf(cd, "↻ %.1f + %.1fs",
-                RR_PETAL_RARITY_SCALE[rarity].bubble_cooldown,
-                (RR_PETAL_DATA[id].secondary_cooldown * 2 / 5) * 0.1);
     else if (RR_PETAL_DATA[id].secondary_cooldown > 1)
         sprintf(cd, "↻ %.1f + %.1fs",
                 (RR_PETAL_DATA[id].cooldown * 2 / 5) * 0.1,
@@ -152,7 +148,7 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     else if (id == rr_petal_id_berry)
     {
         char *extra = malloc((sizeof *extra) * 16);
-        sprintf(extra, "%.1f rad/s", (0.012 + 0.008 * rarity) * 25);
+        sprintf(extra, "%.1f rad/s", (0.02 + 0.012 * rarity) * 25);
         rr_ui_container_add_element(
             this, rr_ui_set_justify(
                       rr_ui_h_container_init(
@@ -164,7 +160,7 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     else if (id == rr_petal_id_uranium)
     {
         char *extra = malloc((sizeof *extra) * 16);
-        sprintf(extra, "%s", rr_sprintf(fmt, 200 * (rarity + 1)));
+        sprintf(extra, "%s", rr_sprintf(fmt, 400 * (rarity + 1)));
         rr_ui_container_add_element(
             this,
             rr_ui_set_justify(rr_ui_h_container_init(
@@ -172,7 +168,7 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                                   rr_ui_text_init("Range: ", 12, 0xffbf29c2),
                                   rr_ui_text_init(extra, 12, 0xffffffff), NULL),
                               -1, 0));
-        extra = malloc((sizeof *extra) * 16);
+        /*extra = malloc((sizeof *extra) * 16);
         rr_sprintf(extra, 0.5 * RR_PETAL_DATA[id].damage *
                               RR_PETAL_DATA[id].scale[rarity].damage);
         rr_ui_container_add_element(
@@ -181,7 +177,7 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                                   rr_ui_container_init(), 0, 0,
                                   rr_ui_text_init("Damage to flowers: ", 12, 0xffff4444),
                                   rr_ui_text_init(extra, 12, 0xffffffff), NULL),
-                              -1, 0));
+                              -1, 0));*/
     }
     else if (id == rr_petal_id_feather)
     {
@@ -233,12 +229,21 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                           rr_ui_text_init(extra, 12, 0xffffffff), NULL),
                       -1, 0));
         extra = malloc((sizeof *extra) * 8);
-        sprintf(extra, "%.0f%%", 100 * (1 - (0.05 + powf(0.56, rarity))));
+        sprintf(extra, "%.0f%%", 100 * (1 - powf(0.56, rarity)));
         rr_ui_container_add_element(
             this, rr_ui_set_justify(
                       rr_ui_h_container_init(
                           rr_ui_container_init(), 0, 0,
                           rr_ui_text_init("Web slowdown: ", 12, 0xffe38329),
+                          rr_ui_text_init(extra, 12, 0xffffffff), NULL),
+                      -1, 0));
+        extra = malloc((sizeof *extra) * 8);
+        sprintf(extra, "%.0f%%", 100 * (1 - powf(0.56, rarity)) * 0.8);
+        rr_ui_container_add_element(
+            this, rr_ui_set_justify(
+                      rr_ui_h_container_init(
+                          rr_ui_container_init(), 0, 0,
+                          rr_ui_text_init("Web slowdown to flowers: ", 12, 0xffe38329),
                           rr_ui_text_init(extra, 12, 0xffffffff), NULL),
                       -1, 0));
     }
@@ -357,7 +362,7 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     else if (id == rr_petal_id_meat)
     {
         char *extra = malloc((sizeof *extra) * 8);
-        rr_sprintf(extra, 150 * (rarity + 1));
+        rr_sprintf(extra, 300 + 100 * rarity);
         rr_ui_container_add_element(
             this,
             rr_ui_set_justify(rr_ui_h_container_init(
@@ -373,6 +378,18 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                           rr_ui_text_init(
                               RR_RARITY_NAMES[rarity], 12,
                               RR_RARITY_COLORS[rarity]), NULL),
+                      -1, 0));
+    }
+    else if (id == rr_petal_id_bubble)
+    {
+        char *extra = malloc((sizeof *extra) * 16);
+        sprintf(extra, "%.0f", 60.0f * (rarity + 1));
+        rr_ui_container_add_element(
+            this, rr_ui_set_justify(
+                      rr_ui_h_container_init(
+                          rr_ui_container_init(), 0, 0,
+                          rr_ui_text_init("Boost: ", 12, 0xff5682c4),
+                          rr_ui_text_init(extra, 12, 0xffffffff), NULL),
                       -1, 0));
     }
     else if (id == rr_petal_id_meteor)

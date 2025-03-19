@@ -20,11 +20,6 @@
 
 #include <Shared/Entity.h>
 
-#define get_petal_cooldown(id, rarity)                                         \
-    (id != rr_petal_id_bubble                                                  \
-         ? RR_PETAL_DATA[id].cooldown                                          \
-         : 25 * RR_PETAL_RARITY_SCALE[rarity].bubble_cooldown)
-
 enum rr_animation_type
 {
     rr_animation_type_default = 0,
@@ -213,7 +208,6 @@ struct rr_petal_rarity_scale
 {
     float heal;
     float seed_cooldown;
-    float bubble_cooldown;
     float web_radius;
     float bone_reduction;
 };
