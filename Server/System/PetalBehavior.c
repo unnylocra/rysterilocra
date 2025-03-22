@@ -824,6 +824,7 @@ static void rr_system_petal_reload_foreach_function(EntityIdx id,
         slot->count = slot->id == rr_petal_id_peas
                           ? 1
                           : RR_PETAL_DATA[slot->id].count[slot->rarity];
+        uint8_t clump_count = data->clump_radius == 0 ? 1 : slot->count;
         for (uint64_t inner = 0; inner < slot->count; ++inner)
         {
             if (inner == 0 || data->clump_radius == 0)
@@ -841,7 +842,7 @@ static void rr_system_petal_reload_foreach_function(EntityIdx id,
                 if (slot->id == rr_petal_id_bubble && has_bubble)
                 {
                     p_petal->cooldown_ticks = data->cooldown;
-                    if (inner == 0 || data->clump_radius == 0)
+                    if (--clump_count == 0)
                         --rotation_pos;
                 }
                 float cd = rr_fclamp(
@@ -867,7 +868,7 @@ static void rr_system_petal_reload_foreach_function(EntityIdx id,
                 }
                 if (data->id == rr_petal_id_meteor)
                 {
-                    if (inner == 0 || data->clump_radius == 0)
+                    if (--clump_count == 0)
                         --rotation_pos;
                 }
             }
@@ -904,7 +905,7 @@ static void rr_system_petal_reload_foreach_function(EntityIdx id,
                     rr_simulation_get_relations(simulation,
                         p_petal->entity_hash)->nest != RR_NULL_ENTITY)
                 {
-                    if (inner == 0 || data->clump_radius == 0)
+                    if (--clump_count == 0)
                         --rotation_pos;
                     continue;
                 }

@@ -85,7 +85,6 @@ struct lightning_captures
 {
     EntityIdx *chain;
     uint32_t length;
-    struct rr_component_physical *curr_physical;
 };
 
 static uint8_t lightning_filter(struct rr_simulation *simulation,
@@ -109,35 +108,27 @@ static void lightning_petal_system(struct rr_simulation *simulation,
 {
     struct rr_component_physical *petal_physical =
         rr_simulation_get_physical(simulation, petal->parent_id);
-    struct rr_component_physical *first_physical =
-        rr_simulation_get_physical(simulation, first);
     struct rr_component_relations *relations =
         rr_simulation_get_relations(simulation, petal->parent_id);
     struct rr_simulation_animation *animation =
         &simulation->animations[simulation->animation_length++];
     animation->type = rr_animation_type_lightningbolt;
     animation->owner = petal->parent_id;
-    EntityIdx chain[16] = {petal->parent_id, first};
+    EntityIdx chain[16] = {petal->parent_id};
     animation->points[0].x = petal_physical->x;
     animation->points[0].y = petal_physical->y;
-    animation->points[1].x = first_physical->x;
-    animation->points[1].y = first_physical->y;
     uint32_t chain_amount = petal->rarity + 2;
     if (rr_simulation_has_petal(simulation, first))
         chain_amount = 1;
     float damage =
         rr_simulation_get_health(simulation, petal->parent_id)->damage;
-    EntityIdx target = RR_NULL_ENTITY;
-    struct lightning_captures captures = {chain, 2, first_physical};
-    for (; captures.length < chain_amount + 1; ++captures.length)
+    EntityIdx target = first;
+    struct lightning_captures captures = {chain, 1};
+    while (captures.length < chain_amount + 1)
     {
-        target = rr_simulation_find_nearest_enemy_custom_pos(
-            simulation, petal->parent_id, captures.curr_physical->x,
-            captures.curr_physical->y, 400 + captures.curr_physical->radius,
-            &captures, lightning_filter);
         if (target == RR_NULL_ENTITY)
             break;
-        if (rr_simulation_has_ai(simulation, target))
+        if (target != first && rr_simulation_has_ai(simulation, target))
         {
             struct rr_component_ai *ai =
                 rr_simulation_get_ai(simulation, target);
@@ -161,7 +152,11 @@ static void lightning_petal_system(struct rr_simulation *simulation,
         chain[captures.length] = target;
         animation->points[captures.length].x = physical->x;
         animation->points[captures.length].y = physical->y;
-        captures.curr_physical = physical;
+        ++captures.length;
+        target = rr_simulation_find_nearest_enemy_custom_pos(
+            simulation, petal->parent_id, physical->x,
+            physical->y, 400 + physical->radius,
+            &captures, lightning_filter);
     }
     animation->length = captures.length;
     if (!dev_cheat_enabled(simulation, petal->parent_id, invulnerable))
@@ -247,8 +242,8 @@ static void fireball_petal_system(struct rr_simulation *simulation,
         rr_simulation_request_entity_deletion(simulation, petal->parent_id);
 }
 
-static void damage_effect(struct rr_simulation *simulation, EntityIdx target,
-                          EntityIdx attacker)
+static uint8_t damage_effect(struct rr_simulation *simulation, EntityIdx target,
+                             EntityIdx attacker)
 {
     if (rr_simulation_has_ai(simulation, target))
     {
@@ -301,7 +296,10 @@ static void damage_effect(struct rr_simulation *simulation, EntityIdx target,
                 (1 - physical->slow_resist);
         }
         else if (petal->id == rr_petal_id_lightning)
+        {
             lightning_petal_system(simulation, petal, target);
+            return 0;
+        }
         else if (petal->id == rr_petal_id_fireball)
             fireball_petal_system(simulation, petal, target);
         else if (petal->id == rr_petal_id_mandible)
@@ -315,6 +313,7 @@ static void damage_effect(struct rr_simulation *simulation, EntityIdx target,
                     rr_animation_color_type_damage);
         }
     }
+    return 1;
 }
 
 static void colliding_with_function(uint64_t i, void *_captures)
@@ -346,18 +345,7 @@ static void colliding_with_function(uint64_t i, void *_captures)
                     rr_simulation_has_mob(this, entity2));
     if (health1->damage_paused == 0 || bypass)
     {
-        damage_effect(this, entity1, entity2);
-        if (rr_simulation_has_petal(this, entity2) &&
-            rr_simulation_get_petal(this, entity2)->id == rr_petal_id_lightning)
-        {
-            health1->flags |= 4;
-            rr_component_health_do_damage(
-                this, health1, entity2, health2->damage,
-                rr_animation_color_type_lightning);
-            health1->damage_paused = 5;
-            physical1->stun_ticks = 4;
-        }
-        else
+        if (damage_effect(this, entity1, entity2))
         {
             rr_component_health_do_damage(
                 this, health1, entity2, health2->damage,
@@ -367,18 +355,7 @@ static void colliding_with_function(uint64_t i, void *_captures)
     }
     if (health2->damage_paused == 0 || bypass)
     {
-        damage_effect(this, entity2, entity1);
-        if (rr_simulation_has_petal(this, entity1) &&
-            rr_simulation_get_petal(this, entity1)->id == rr_petal_id_lightning)
-        {
-            health2->flags |= 4;
-            rr_component_health_do_damage(
-                this, health2, entity1, health1->damage,
-                rr_animation_color_type_lightning);
-            health2->damage_paused = 5;
-            physical2->stun_ticks = 4;
-        }
-        else
+        if (damage_effect(this, entity2, entity1))
         {
             rr_component_health_do_damage(
                 this, health2, entity1, health1->damage,
