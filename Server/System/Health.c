@@ -76,7 +76,7 @@ static void system_default_idle_heal(EntityIdx entity, void *captures)
         float heal = (-0.0001 * log10f(health->max_health) + 0.0006) *
                          health->max_health;
         if (heal < 0)
-            heal = 0;
+            heal = health->max_health * 0.00001;
         rr_component_health_set_health(health, health->health + heal);
     }
 }

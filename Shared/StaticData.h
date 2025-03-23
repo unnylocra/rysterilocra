@@ -188,6 +188,9 @@ struct rr_mob_data
     float health;
     float damage;
     float radius;
+    uint8_t ai_passive_rarity;
+    uint8_t ai_neutral_rarity;
+    uint8_t ai_aggro_rarity;
     struct rr_loot_data loot[4];
 };
 
@@ -274,7 +277,7 @@ struct rr_maze_declaration
     float grid_size;
     struct rr_maze_grid *maze;
     uint8_t checkpoint_count;
-    struct rr_checkpoint checkpoints[10];
+    struct rr_checkpoint checkpoints[11];
 };
 
 #define RR_DECLARE_MAZE(name, size)                                            \

@@ -27,11 +27,12 @@ void tick_ai_default(EntityIdx entity, struct rr_simulation *simulation,
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, entity);
     struct rr_component_physical *physical =
         rr_simulation_get_physical(simulation, entity);
+    if (ai->ai_type == rr_ai_type_none)
+        return;
     if (should_aggro(simulation, ai))
     {
         ai->ai_state = rr_ai_state_attacking;
-        if (ai->ai_type == rr_ai_type_neutral)
-            ai->ticks_until_next_action = 25;
+        ai->ticks_until_next_action = 25;
     }
 
     switch (ai->ai_state)
@@ -441,7 +442,7 @@ void tick_ai_ornithomimus(EntityIdx entity, struct rr_simulation *simulation)
         if (rr_simulation_get_mob(simulation, entity)->rarity >=
                 rr_rarity_id_exotic ||
             rr_simulation_has_petal(simulation, ai->target_entity) ||
-            ai->angry)
+            ai->ai_type == rr_ai_type_aggro)
             physical->bearing_angle = rr_vector_theta(&delta);
         else
             physical->bearing_angle = rr_vector_theta(&delta) + M_PI;
@@ -594,6 +595,7 @@ void tick_ai_quetzalcoaltus(EntityIdx entity, struct rr_simulation *simulation)
 
     if (should_aggro(simulation, ai))
         ai->ai_state = rr_ai_state_attacking;
+    physical->knockback_scale = 1;
 
     switch (ai->ai_state)
     {
@@ -605,6 +607,7 @@ void tick_ai_quetzalcoaltus(EntityIdx entity, struct rr_simulation *simulation)
         break;
     case rr_ai_state_attacking:
     {
+        physical->knockback_scale = 10;
         struct rr_component_physical *physical2 =
             rr_simulation_get_physical(simulation, ai->target_entity);
 

@@ -70,8 +70,7 @@ static void web_logic(struct rr_simulation *this, EntityIdx entity1,
     float slow_factor = web->slow_factor;
     if (rr_simulation_has_flower(this, entity2))
         slow_factor = 0.2 + 0.8 * slow_factor;
-    if (physical->web_slowdown > slow_factor)
-        physical->web_slowdown = slow_factor;
+    physical->web_slowdown *= slow_factor;
 }
 
 static void enter_arena(struct rr_simulation *this, EntityIdx arena,
@@ -137,14 +136,26 @@ static void colliding_with_function(uint64_t i, void *_captures)
         rr_simulation_get_relations(this, entity1);
     struct rr_component_relations *relations2 =
         rr_simulation_get_relations(this, entity2);
+    float mass1 = physical1->mass;
+    float mass2 = physical2->mass;
+    uint8_t pushable_mob2 = rr_simulation_has_flower(this, entity1) &&
+                            rr_simulation_has_mob(this, entity2) &&
+                            is_same_team(relations1->team, relations2->team);
+    uint8_t pushable_mob1 = rr_simulation_has_flower(this, entity2) &&
+                            rr_simulation_has_mob(this, entity1) &&
+                            is_same_team(relations1->team, relations2->team);
     uint8_t inf1 = rr_simulation_has_nest(this, entity1) ||
-                   (rr_simulation_has_flower(this, entity1) &&
-                    rr_simulation_has_mob(this, entity2) &&
-                    is_same_team(relations1->team, relations2->team));
+                   (pushable_mob2 &&
+                    rr_simulation_get_mob(this, entity2)->player_spawned);
     uint8_t inf2 = rr_simulation_has_nest(this, entity2) ||
-                   (rr_simulation_has_flower(this, entity2) &&
-                    rr_simulation_has_mob(this, entity1) &&
-                    is_same_team(relations1->team, relations2->team));
+                   (pushable_mob1 &&
+                    rr_simulation_get_mob(this, entity1)->player_spawned);
+    if (pushable_mob2)
+        mass2 = physical1->mass *
+                    (rr_simulation_get_mob(this, entity2)->rarity + 1);
+    if (pushable_mob1)
+        mass1 = physical2->mass *
+                    (rr_simulation_get_mob(this, entity1)->rarity + 1);
     float v2_coeff, v1_coeff;
     if (inf1 && inf2)
     {
@@ -163,8 +174,8 @@ static void colliding_with_function(uint64_t i, void *_captures)
     }
     else
     {
-        v2_coeff = physical1->mass / (physical1->mass + physical2->mass);
-        v1_coeff = physical2->mass / (physical1->mass + physical2->mass);
+        v2_coeff = mass1 / (mass1 + mass2);
+        v1_coeff = mass2 / (mass1 + mass2);
     }
     {
         float overlap = (distance - physical1->radius - physical2->radius);

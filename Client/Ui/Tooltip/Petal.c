@@ -168,16 +168,16 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
                                   rr_ui_text_init("Range: ", 12, 0xffbf29c2),
                                   rr_ui_text_init(extra, 12, 0xffffffff), NULL),
                               -1, 0));
-        /*extra = malloc((sizeof *extra) * 16);
-        rr_sprintf(extra, 0.5 * RR_PETAL_DATA[id].damage *
+        extra = malloc((sizeof *extra) * 16);
+        rr_sprintf(extra, 2 * RR_PETAL_DATA[id].damage *
                               RR_PETAL_DATA[id].scale[rarity].damage);
         rr_ui_container_add_element(
             this,
             rr_ui_set_justify(rr_ui_h_container_init(
                                   rr_ui_container_init(), 0, 0,
-                                  rr_ui_text_init("Damage to flowers: ", 12, 0xffff4444),
+                                  rr_ui_text_init("Damage to owner: ", 12, 0xffff4444),
                                   rr_ui_text_init(extra, 12, 0xffffffff), NULL),
-                              -1, 0));*/
+                              -1, 0));
     }
     else if (id == rr_petal_id_feather)
     {
@@ -383,7 +383,7 @@ struct rr_ui_element *rr_ui_petal_tooltip_init(uint8_t id, uint8_t rarity)
     else if (id == rr_petal_id_bubble)
     {
         char *extra = malloc((sizeof *extra) * 16);
-        sprintf(extra, "%.0f", 60.0f * (rarity + 1));
+        sprintf(extra, "%.0f", 25.0f * (rarity + 1));
         rr_ui_container_add_element(
             this, rr_ui_set_justify(
                       rr_ui_h_container_init(

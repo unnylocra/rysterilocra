@@ -60,7 +60,7 @@ static void system_for_each(EntityIdx entity, void *simulation)
             rr_simulation_get_physical(this, ai->target_entity);
         struct rr_vector diff = {physical->x - t_physical->x,
                                  physical->y - t_physical->y};
-        if (rr_vector_magnitude_cmp(&diff, 2000) == 1)
+        if (rr_vector_magnitude_cmp(&diff, ai->aggro_range + 200) == 1)
         {
             ai->target_entity = RR_NULL_ENTITY;
             ai->ai_state = rr_ai_state_idle;
@@ -80,54 +80,39 @@ static void system_for_each(EntityIdx entity, void *simulation)
 
     switch (mob->id)
     {
-    case rr_mob_id_fern:
-    case rr_mob_id_tree:
-        ai->ai_type = rr_ai_type_none;
-        break;
     case rr_mob_id_triceratops:
-        ai->ai_type = rr_ai_type_neutral;
         tick_ai_triceratops(entity, this);
         break;
     case rr_mob_id_trex:
-        ai->ai_type = rr_ai_type_aggro;
         tick_ai_trex(entity, this);
         break;
     case rr_mob_id_meteor:
-        ai->ai_type = rr_ai_type_passive;
         tick_ai_meteor(entity, this);
         break;
     case rr_mob_id_pteranodon:
-        ai->ai_type = rr_ai_type_aggro;
         tick_ai_pteranodon(entity, this);
         break;
     case rr_mob_id_dakotaraptor:
-        ai->ai_type = rr_ai_type_aggro;
         tick_ai_default(entity, this, RR_PLAYER_SPEED *
                                       (1.5 - mob->rarity * 0.05));
         break;
     case rr_mob_id_pachycephalosaurus:
-        ai->ai_type = rr_ai_type_aggro;
         tick_ai_pachycephalosaurus(entity, this);
         break;
     case rr_mob_id_ornithomimus:
-        ai->ai_type = rr_ai_type_neutral;
         tick_ai_ornithomimus(entity, this);
         break;
     case rr_mob_id_ankylosaurus:
-        ai->ai_type = rr_ai_type_neutral;
         tick_ai_ankylosaurus(entity, this);
         break;
     case rr_mob_id_quetzalcoatlus:
-        ai->ai_type = rr_ai_type_aggro;
         tick_ai_quetzalcoaltus(entity, this);
         break;
+    case rr_mob_id_fern:
+    case rr_mob_id_tree:
     case rr_mob_id_edmontosaurus:
-        ai->ai_type = rr_ai_type_neutral;
-        tick_ai_default(entity, this, RR_PLAYER_SPEED);
-        break;
     default:
-        ai->ai_type = rr_ai_type_passive;
-        tick_ai_default(entity, this, 0);
+        tick_ai_default(entity, this, RR_PLAYER_SPEED);
         break;
     }
     --ai->ticks_until_next_action;

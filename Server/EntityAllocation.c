@@ -116,7 +116,7 @@ EntityIdx rr_simulation_alloc_petal(struct rr_simulation *this, EntityIdx arena,
     {
         rr_component_physical_set_radius(physical, 15);
         physical->mass = 5.0f * powf(1.5, petal->rarity);
-        physical->knockback_scale = 10.0f * powf(1.3, petal->rarity);
+        physical->knockback_scale = 25.0f * powf(1.3, petal->rarity);
     }
     else if (id == rr_petal_id_fireball)
         rr_component_physical_set_radius(physical, 13);
@@ -179,9 +179,15 @@ static EntityIdx rr_simulation_alloc_mob_non_recursive(
     rr_component_health_set_health(health,
                                    mob_data->health * rarity_scale->health);
     health->damage = mob_data->damage * rarity_scale->damage;
-
     rr_component_relations_set_team(relations, team_id);
-
+    ai->aggro_range = 800 * sqrtf(rarity_id + 1);
+    ai->ai_type = rr_ai_type_none;
+    if (rarity_id >= mob_data->ai_passive_rarity)
+        ai->ai_type = rr_ai_type_passive;
+    if (rarity_id >= mob_data->ai_neutral_rarity)
+        ai->ai_type = rr_ai_type_neutral;
+    if (rarity_id >= mob_data->ai_aggro_rarity)
+        ai->ai_type = rr_ai_type_aggro;
     return entity;
 }
 
@@ -222,6 +228,14 @@ EntityIdx rr_simulation_alloc_mob(struct rr_simulation *this,
     }
     rr_component_relations_set_team(relations, team_id);
     rr_component_relations_update_root_owner(this, relations);
+    ai->aggro_range = 800 * sqrtf(rarity_id + 1);
+    ai->ai_type = rr_ai_type_none;
+    if (rarity_id >= mob_data->ai_passive_rarity)
+        ai->ai_type = rr_ai_type_passive;
+    if (rarity_id >= mob_data->ai_neutral_rarity)
+        ai->ai_type = rr_ai_type_neutral;
+    if (rarity_id >= mob_data->ai_aggro_rarity)
+        ai->ai_type = rr_ai_type_aggro;
     if (mob_id == rr_mob_id_beehive)
     {
         struct rr_component_arena *arena =

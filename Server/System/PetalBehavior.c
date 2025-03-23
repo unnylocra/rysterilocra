@@ -68,8 +68,8 @@ static void uranium_damage(EntityIdx target, void *_captures)
     struct rr_component_health *target_health =
         rr_simulation_get_health(simulation, target);
     float damage = health->damage;
-    // if (rr_simulation_has_flower(simulation, target))
-    //     damage *= 0.5;
+    if (relations->owner == rr_simulation_get_entity_hash(simulation, target))
+        damage *= 2;
     target_health->flags |= 4;
     rr_component_health_do_damage(
         simulation, target_health, relations->owner, damage,
@@ -78,7 +78,13 @@ static void uranium_damage(EntityIdx target, void *_captures)
         return;
     struct rr_component_ai *ai = rr_simulation_get_ai(simulation, target);
     struct rr_component_mob *mob = rr_simulation_get_mob(simulation, target);
-    ai->angry = 1;
+    if (mob->player_spawned == 0 && mob->id != rr_mob_id_fern &&
+        mob->id != rr_mob_id_tree && mob->id != rr_mob_id_meteor)
+    {
+        ai->ai_type = rr_ai_type_aggro;
+        if (ai->aggro_range < radius)
+            ai->aggro_range = radius;
+    }
     if ((ai->target_entity == RR_NULL_ENTITY ||
          rr_frand() < powf(0.3, mob->rarity)) &&
         !dev_cheat_enabled(simulation, relations->owner, no_aggro))
@@ -122,7 +128,7 @@ static void meat_aggro(EntityIdx target, void *_captures)
         rr_simulation_get_petal(simulation, captures->petal_id);
     if (mob->rarity > petal->rarity)
         return;
-    if (petal->aggro_count >= 20)
+    if (petal->aggro_count >= 10 + petal->rarity)
         return;
     struct rr_component_relations *relations =
         rr_simulation_get_relations(simulation, captures->petal_id);
@@ -518,10 +524,11 @@ static void system_flower_petal_movement_logic(
                 break;
             struct rr_vector accel = {player_info->client->player_accel_x,
                                       player_info->client->player_accel_y};
-            rr_vector_set_magnitude(&accel, 60 * (petal->rarity + 1));
+            rr_vector_set_magnitude(&accel, 25 * (petal->rarity + 1));
             rr_vector_add(&flower_physical->acceleration, &accel);
             rr_simulation_request_entity_deletion(simulation, id);
-            flower_physical->phase_ticks = 25;
+            if (accel.x || accel.y)
+                flower_physical->phase_ticks = 25 * 0.05 * (petal->rarity + 1);
             break;
         }
         default:
@@ -703,7 +710,10 @@ system_egg_hatching_logic(struct rr_simulation *simulation,
     rr_component_relations_set_owner(mob_relations, player_info->flower_id);
     rr_component_relations_update_root_owner(simulation, mob_relations);
     if (m_id == rr_mob_id_trex)
+    {
         mob_relations->nest = relations->nest;
+        rr_simulation_get_ai(simulation, mob_id)->ai_type = rr_ai_type_aggro;
+    }
     rr_component_mob_set_player_spawned(
         rr_simulation_get_mob(simulation, mob_id), 1);
 }
