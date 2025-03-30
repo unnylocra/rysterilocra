@@ -16,6 +16,8 @@
 
 #include <Client/Renderer/ComponentRender.h>
 
+#include <math.h>
+
 #include <Client/Assets/RenderFunctions.h>
 #include <Client/Game.h>
 #include <Client/Renderer/Renderer.h>
@@ -104,31 +106,41 @@ void rr_component_flower_render(EntityIdx entity, struct rr_game *game,
         rr_renderer_fill(renderer);
         rr_renderer_context_state_free(renderer, &state);
     }
-    if (flower->face_flags & 8)
+    if (flower->crest_count)
     {
-        rr_renderer_translate(renderer, 0, -36);
-        rr_renderer_draw_petal(renderer, rr_petal_id_crest, 1);
-        rr_renderer_translate(renderer, 0, 36);
+        rr_renderer_context_state_init(renderer, &state);
+        rr_renderer_translate(renderer, 0, -21.75);
+        rr_renderer_scale2(renderer, 1, flower->crest_count);
+        rr_renderer_translate(renderer, 0, -14.25);
+        rr_renderer_draw_petal(renderer, rr_petal_id_crest, 0);
+        rr_renderer_context_state_free(renderer, &state);
     }
-    if (flower->face_flags & 16)
+    if (flower->third_eye_count)
     {
-        if (flower->dead)
+        float start = ((flower->third_eye_count - 1) / 2 * 2 + (flower->third_eye_count - 1) % 2) / (2 * (float)RR_MAX_SLOT_COUNT);
+        struct rr_vector vector;
+        for (uint8_t i = 0; i < flower->third_eye_count; ++i)
         {
-            rr_renderer_begin_path(renderer);
-            rr_renderer_move_to(renderer, 2, -17);
-            rr_renderer_line_to(renderer, -2, -13);
-            rr_renderer_move_to(renderer, -2, -17);
-            rr_renderer_line_to(renderer, 2, -13);
-            rr_renderer_stroke(renderer);
-        }
-        else
-        {
-            rr_renderer_translate(renderer, 0, -15);
-            rr_renderer_scale(renderer, 0.375);
-            rr_renderer_draw_third_eye(
-                renderer, flower->lerp_eye_x, flower->lerp_eye_y);
-            rr_renderer_scale(renderer, 1 / 0.375);
-            rr_renderer_translate(renderer, 0, 15);
+            rr_vector_from_polar(&vector, 1, 2 * M_PI * (-0.25 - start + i / (float)RR_MAX_SLOT_COUNT));
+            rr_vector_scale(&vector, 15 + 4 * fabsf(vector.x) + 3 * fmaxf(vector.y, 0));
+            rr_renderer_context_state_init(renderer, &state);
+            rr_renderer_translate(renderer, vector.x, vector.y);
+            if (flower->dead)
+            {
+                rr_renderer_begin_path(renderer);
+                rr_renderer_move_to(renderer, 2, -2);
+                rr_renderer_line_to(renderer, -2, 2);
+                rr_renderer_move_to(renderer, -2, -2);
+                rr_renderer_line_to(renderer, 2, 2);
+                rr_renderer_stroke(renderer);
+            }
+            else
+            {
+                rr_renderer_scale(renderer, 0.375);
+                rr_renderer_draw_third_eye(
+                    renderer, flower->lerp_eye_x, flower->lerp_eye_y);
+            }
+            rr_renderer_context_state_free(renderer, &state);
         }
     }
 }

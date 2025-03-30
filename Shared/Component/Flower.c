@@ -27,7 +27,9 @@
     X(eye_angle, float32)                                                      \
     X(face_flags, uint8)                                                       \
     X(level, varuint)                                                          \
-    X(dead, uint8)
+    X(dead, uint8)                                                             \
+    X(crest_count, uint8)                                                      \
+    X(third_eye_count, uint8)
 
 enum
 {
@@ -36,7 +38,9 @@ enum
     state_flags_eye_angle = 0b000100,
     state_flags_nickname = 0b001000,
     state_flags_dead = 0b010000,
-    state_flags_all = 0b011111
+    state_flags_crest_count = 0b100000,
+    state_flags_third_eye_count = 0b1000000,
+    state_flags_all = 0b1111111
 };
 
 void rr_component_flower_init(struct rr_component_flower *this,
@@ -160,6 +164,8 @@ void rr_component_flower_write(struct rr_component_flower *this,
 RR_DEFINE_PUBLIC_FIELD(flower, uint8_t, face_flags)
 RR_DEFINE_PUBLIC_FIELD(flower, float, eye_angle)
 RR_DEFINE_PUBLIC_FIELD(flower, uint32_t, level)
+RR_DEFINE_PUBLIC_FIELD(flower, uint8_t, crest_count)
+RR_DEFINE_PUBLIC_FIELD(flower, uint8_t, third_eye_count)
 #endif
 
 #ifdef RR_CLIENT

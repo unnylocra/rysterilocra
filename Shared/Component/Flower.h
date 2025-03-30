@@ -34,6 +34,8 @@ struct rr_component_flower
     EntityIdx parent_id;
     uint8_t dead;
     uint8_t face_flags;
+    uint8_t crest_count;
+    uint8_t third_eye_count;
     RR_SERVER_ONLY(uint8_t protocol_state;)
     RR_SERVER_ONLY(float saved_angle;)
     float eye_angle;
@@ -64,3 +66,5 @@ RR_CLIENT_ONLY(void rr_component_flower_read(struct rr_component_flower *,
 RR_DECLARE_PUBLIC_FIELD(flower, uint8_t, face_flags)
 RR_DECLARE_PUBLIC_FIELD(flower, uint32_t, level)
 RR_DECLARE_PUBLIC_FIELD(flower, float, eye_angle)
+RR_DECLARE_PUBLIC_FIELD(flower, uint8_t, crest_count)
+RR_DECLARE_PUBLIC_FIELD(flower, uint8_t, third_eye_count)

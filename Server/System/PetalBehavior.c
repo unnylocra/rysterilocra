@@ -617,6 +617,8 @@ static void petal_modifiers(struct rr_simulation *simulation,
     float bone_diminish_factor = 1;
     float feather_diminish_factor = 1;
     float to_rotate = 0.1;
+    uint8_t crest_count = 0;
+    uint8_t third_eye_count = 0;
     for (uint64_t outer = 0; outer < player_info->slot_count; ++outer)
     {
         struct rr_component_player_info_petal_slot *slot =
@@ -641,14 +643,14 @@ static void petal_modifiers(struct rr_simulation *simulation,
         }
         else if (data->id == rr_petal_id_crest)
         {
-            rr_component_flower_set_face_flags(flower, flower->face_flags | 8);
+            ++crest_count;
             RR_SET_IF_LESS(player_info->camera_fov, 1 - 0.1 * slot->rarity)
         }
         else if (data->id == rr_petal_id_droplet)
             ++rot_count;
         else if (data->id == rr_petal_id_third_eye)
         {
-            rr_component_flower_set_face_flags(flower, flower->face_flags | 16);
+            ++third_eye_count;
             RR_SET_IF_GREATER(player_info->modifiers.petal_extension,
                               50 * (slot->rarity - rr_rarity_id_epic))
         }
@@ -671,6 +673,8 @@ static void petal_modifiers(struct rr_simulation *simulation,
             }
         }
     }
+    rr_component_flower_set_crest_count(flower, crest_count);
+    rr_component_flower_set_third_eye_count(flower, third_eye_count);
     player_info->global_rotation +=
         to_rotate * ((rot_count % 3) ? (rot_count % 3 == 2) ? 0 : -1 : 1);
 }
