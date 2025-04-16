@@ -139,7 +139,7 @@ void rr_component_flower_set_dead(struct rr_component_flower *this,
                 player_info->slots[outer].petals[inner].cooldown_ticks =
                     RR_PETAL_DATA[player_info->slots[outer].id].cooldown;
         rr_component_physical_set_angle(physical, this->saved_angle);
-        health->damage_paused = 25;
+        health->damage_paused = 63;
         health->health = 1;
         if (dev_cheat_enabled(simulation, this->parent_id, invulnerable))
             rr_component_health_set_health(health, health->max_health);

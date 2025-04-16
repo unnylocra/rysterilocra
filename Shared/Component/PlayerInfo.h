@@ -38,7 +38,7 @@ RR_CLIENT_ONLY(struct rr_renderer;)
 struct rr_component_player_info_petal
 {
     EntityHash entity_hash;
-    int32_t cooldown_ticks;
+    float cooldown_ticks;
 };
 
 struct rr_component_player_info_petal_slot
@@ -56,6 +56,7 @@ struct rr_player_info_modifiers
     float drop_pickup_radius;
     float petal_extension;
     // float rotation_direction;
+    float reload_speed;
 };
 
 struct rr_component_player_info

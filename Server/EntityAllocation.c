@@ -72,7 +72,7 @@ EntityIdx rr_simulation_alloc_player(struct rr_simulation *this,
                                   player_info->level);
     rr_simulation_get_flower(this, flower_id)->saved_angle = physical->angle;
     rr_component_health_set_max_health(
-        health, 100 * pow(1.0256, player_info->level - 1));
+        health, 200 * pow(1.0256, player_info->level - 1));
     rr_component_health_set_health(health, health->max_health);
     health->damage = health->max_health * 0.1;
     health->damage_paused = 25;
@@ -116,7 +116,7 @@ EntityIdx rr_simulation_alloc_petal(struct rr_simulation *this, EntityIdx arena,
     {
         rr_component_physical_set_radius(physical, 15);
         physical->mass = 5.0f * powf(1.5, petal->rarity);
-        physical->knockback_scale = 25.0f * powf(1.3, petal->rarity);
+        physical->knockback_scale = 10.0f * powf(1.7, petal->rarity);
     }
     else if (id == rr_petal_id_fireball)
         rr_component_physical_set_radius(physical, 13);

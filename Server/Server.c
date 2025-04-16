@@ -1507,7 +1507,10 @@ static void server_tick(struct rr_server *this)
                 if (rr_simulation_entity_alive(
                         &this->simulation, client->player_info->flower_id) &&
                     !is_dead_flower(&this->simulation,
-                                    client->player_info->flower_id))
+                                    client->player_info->flower_id) &&
+                    !rr_simulation_get_physical(
+                        &this->simulation,
+                        client->player_info->flower_id)->bubbling_to_death)
                     rr_vector_set(
                         &rr_simulation_get_physical(
                              &this->simulation, client->player_info->flower_id)
