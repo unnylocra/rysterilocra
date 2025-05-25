@@ -353,6 +353,7 @@ void rr_renderer_draw_mob(struct rr_renderer *renderer, uint8_t id,
             rr_renderer_translate(renderer, 55, 0);
             render_sprite(renderer, id, 2, flags);
             rr_renderer_context_state_free(renderer, &state);
+            rr_renderer_context_state_init(renderer, &state);
             rr_renderer_rotate(renderer, animation_tick * 0.1f - M_PI / 2);
             rr_renderer_translate(renderer, 55, 0);
             rr_renderer_scale2(renderer, 1, -1);

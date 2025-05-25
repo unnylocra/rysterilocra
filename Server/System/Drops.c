@@ -75,6 +75,9 @@ static void drop_pick_up(EntityIdx entity, void *_captures)
 
     struct rr_component_physical *flower_physical =
         rr_simulation_get_physical(this, entity);
+    if (flower_physical->bubbling_to_death)
+        return;
+
     struct rr_component_arena *arena =
         rr_simulation_get_arena(this, flower_physical->arena);
     struct drop_pick_up_captures captures;

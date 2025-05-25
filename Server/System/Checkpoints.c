@@ -24,6 +24,8 @@ static void system_for_each_function(EntityIdx entity, void *_captures)
     struct rr_simulation *this = _captures;
     struct rr_component_physical *physical =
         rr_simulation_get_physical(this, entity);
+    if (physical->bubbling_to_death)
+        return;
     struct rr_component_arena *arena =
         rr_simulation_get_arena(this, physical->arena);
     if (arena->pvp)

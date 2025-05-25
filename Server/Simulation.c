@@ -237,6 +237,8 @@ static void count_flower_vicinity(EntityIdx entity, void *_simulation)
         rr_simulation_get_player_info(this, relations->owner);
     if (is_dead_flower(this, entity))
         return;
+    if (physical->bubbling_to_death)
+        return;
     if (player_info->client->disconnected)
         return;
     if (dev_cheat_enabled(this, entity, no_grid_influence))
