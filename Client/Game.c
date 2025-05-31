@@ -321,6 +321,12 @@ static void window_on_event(struct rr_ui_element *this, struct rr_game *game)
     {
         game->menu_open = 0;
         game->chat.chat_active = 0;
+        if (game->is_mobile)
+        {
+            EM_ASM({
+                document.body.requestFullscreen();
+            });
+        }
     }
 }
 
