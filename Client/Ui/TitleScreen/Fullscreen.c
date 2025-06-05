@@ -87,6 +87,6 @@ struct rr_ui_element *rr_ui_fullscreen_toggle_button_init()
     this->abs_width = this->abs_height = this->width = this->height = 40;
     this->on_event = fullscreen_toggle_button_on_event;
     this->on_render = fullscreen_toggle_button_on_render;
-    // this->should_show = fullscreen_toggle_button_should_show;
+    this->should_show = fullscreen_toggle_button_should_show;
     return this;
 }
