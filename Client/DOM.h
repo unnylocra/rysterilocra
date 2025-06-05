@@ -34,3 +34,6 @@ uint8_t rr_dom_test_mobile();
 void rr_page_open(char const *);
 void rr_dom_set_cursor(uint8_t);
 void rr_dom_get_socket_url(char *);
+void rr_dom_request_fullscreen();
+void rr_dom_exit_fullscreen();
+uint8_t rr_dom_fullscreen_enabled();

@@ -233,3 +233,24 @@ void rr_dom_get_socket_url(char *out)
         HEAPU8[$0 + arr.length] = 0;
     }, out);
 }
+
+void rr_dom_request_fullscreen()
+{
+    EM_ASM({
+        document.documentElement.requestFullscreen();
+    });
+}
+
+void rr_dom_exit_fullscreen()
+{
+    EM_ASM({
+        document.exitFullscreen();
+    });
+}
+
+uint8_t rr_dom_fullscreen_enabled()
+{
+    return EM_ASM_INT({
+        return +!!document.fullscreenElement;
+    });
+}

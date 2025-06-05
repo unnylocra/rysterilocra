@@ -236,6 +236,8 @@ extern struct rr_ui_element *rr_ui_in_game_player_hud_init(uint8_t);
 extern struct rr_ui_element *rr_ui_dev_panel_toggle_button_init();
 extern struct rr_ui_element *rr_ui_dev_panel_container_init(struct rr_game *);
 
+extern struct rr_ui_element *rr_ui_fullscreen_toggle_button_init();
+
 extern struct rr_ui_element *rr_ui_biome_button_init(char *, uint32_t, uint8_t);
 
 extern struct rr_ui_element *rr_ui_level_bar_init(float);
