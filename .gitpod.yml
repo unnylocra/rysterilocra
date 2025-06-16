@@ -32,7 +32,7 @@ tasks:
 
   - name: Game Server
     before: |
-      sudo apt update &&
+      sudo apt update
       sudo apt install -y libwebsockets-dev
     init: |
       mkdir Server/build &&
