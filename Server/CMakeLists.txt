@@ -62,7 +62,7 @@ set(SRCS
     ../Shared/Api.c
     ../Shared/Binary.c
     ../Shared/Bitset.c
-    ../Shared/cJSON.c
+    # ../Shared/cJSON.c
     ../Shared/Crypto.c
     ../Shared/pb.c
     ../Shared/SimulationCommon.c
@@ -85,7 +85,7 @@ if(DEBUG_BUILD)
 elseif(CALLGRIND_BUILD)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG -gdwarf-4 -march=native")
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG -O3 -ffast-math -gdwarf-4")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG -O3 -ffast-math -gdwarf-4 -fsanitize=undefined,address")
     # link time optimiations
     if(WINDOWS)
     else()

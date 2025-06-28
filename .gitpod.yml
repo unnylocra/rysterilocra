@@ -33,7 +33,7 @@ tasks:
   - name: Game Server
     before: |
       sudo apt update
-      sudo apt install -y libwebsockets-dev
+      sudo apt install -y libwebsockets-dev libclang-rt-19-dev
     init: |
       mkdir Server/build &&
       cd Server/build &&
